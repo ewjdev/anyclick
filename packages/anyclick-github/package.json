@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-github",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "description": "GitHub adapter for UI feedback - includes browser HTTP adapter and Node-side GitHub integration",
   "keywords": [
@@ -12,6 +12,10 @@
   ],
   "license": "MIT",
   "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git",
@@ -53,7 +57,7 @@
     "setup": "node bin/setup-media-branch.js"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "*"
+    "@ewjdev/anyclick-core": "^1.0.0"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",

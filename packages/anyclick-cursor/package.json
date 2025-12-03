@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-cursor",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": false,
   "description": "Cursor Cloud Agent adapter for UI feedback - launch agents from feedback payloads",
   "keywords": [
@@ -12,6 +12,10 @@
   ],
   "license": "MIT",
   "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git",
@@ -41,7 +45,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "*"
+    "@ewjdev/anyclick-core": "^1.0.0"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
