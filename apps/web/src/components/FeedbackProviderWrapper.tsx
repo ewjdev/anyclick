@@ -6,6 +6,7 @@ import {
 } from "@ewjdev/anyclick-react";
 import type { FeedbackMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { CodeIcon, CloudIcon, MonitorIcon } from "lucide-react";
@@ -70,6 +71,10 @@ export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
           targetColor: "#3b82f6",
           containerColor: "#8b5cf6",
         },
+      }}
+      screenshotConfig={{
+        enabled: true,
+        sensitiveSelectors: DEFAULT_SENSITIVE_SELECTORS,
       }}
     >
       {children}

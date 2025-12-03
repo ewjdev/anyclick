@@ -7,6 +7,7 @@ import {
   Terminal,
   ArrowRight,
   Sparkles,
+  Shield,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -51,6 +52,15 @@ const examples = [
     icon: Terminal,
     color: "amber",
     tags: ["Cursor", "Development", "AI", "Local"],
+  },
+  {
+    title: "Sensitive Masking",
+    description:
+      "Automatic masking of passwords, credit cards, and other sensitive data in screenshots.",
+    href: "/examples/sensitive-masking",
+    icon: Shield,
+    color: "emerald",
+    tags: ["Privacy", "Security", "Screenshots", "Masking"],
   },
 ];
 

@@ -14,9 +14,18 @@ export type {
   ScreenshotCapture,
   ScreenshotData,
   ScreenshotConfig,
+  ScreenshotResult,
+  ScreenshotError,
 } from './types';
 
 export { DEFAULT_SENSITIVE_SELECTORS } from './types';
+
+// Errors
+export {
+  ELEMENT_CANNOT_BE_CAPTURED_ERROR,
+  SCREENSHOT_TIMEOUT_ERROR,
+  SCREENSHOT_NOT_SUPPORTED_ERROR,
+} from './errors';
 
 // DOM utilities
 export {

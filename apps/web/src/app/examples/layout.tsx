@@ -12,6 +12,7 @@ import {
   Terminal,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,6 +26,11 @@ const navigation = [
     icon: GitBranch,
   },
   { name: "Cursor Local", href: "/examples/cursor-local", icon: Terminal },
+  {
+    name: "Sensitive Masking",
+    href: "/examples/sensitive-masking",
+    icon: Shield,
+  },
 ];
 
 export default function ExamplesLayout({
