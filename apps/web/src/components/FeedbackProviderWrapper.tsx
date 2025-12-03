@@ -4,6 +4,7 @@ import {
   FeedbackProvider,
   filterMenuItemsByRole,
 } from "@ewjdev/anyclick-react";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import type { FeedbackMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
@@ -77,7 +78,20 @@ export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
         sensitiveSelectors: DEFAULT_SENSITIVE_SELECTORS,
       }}
     >
-      {children}
+      <PointerProvider
+        theme={{
+          colors: {
+            pointerColor: "#3b82f6",
+            circleColor: "rgba(59, 130, 246, 0.4)",
+          },
+        }}
+        config={{
+          visibility: "always",
+          hideDefaultCursor: true,
+        }}
+      >
+        {children}
+      </PointerProvider>
     </FeedbackProvider>
   );
 }

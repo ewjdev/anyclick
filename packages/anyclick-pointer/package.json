@@ -1,0 +1,66 @@
+{
+  "name": "@ewjdev/anyclick-pointer",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Customizable cursor visualization with smooth animations for UI feedback",
+  "keywords": [
+    "cursor",
+    "pointer",
+    "animation",
+    "motion",
+    "react",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-pointer"
+  },
+  "homepage": "https://anyclick.ewjdev.com/docs/pointer",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
+  },
+  "dependencies": {
+    "lucide-react": "^0.544.0",
+    "motion": "^12.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.1",
+    "react-dom": ">=19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.2.0",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
