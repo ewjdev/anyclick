@@ -1,0 +1,15 @@
+---
+description: testing work locally
+alwaysApply: false
+---
+
+# Browser testing
+
+At the end of all agentic work use the browsermcp tools to test the application and verify the changes meet the agents prompt and code expections
+
+# UI / UX testing
+
+At the end of all work look at the UI created and ask yourself. 
+- Is this UI easy to use? 
+- Is it clear what the ui is suppose to do?
+- Will it work on mobile?

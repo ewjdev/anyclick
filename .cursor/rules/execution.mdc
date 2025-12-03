@@ -1,0 +1,105 @@
+---
+description: Execution strategy to deliver milestones in docs/tasks.md with atomic, gated commits (functionality + tests + docs)
+globs: docs/tasks.md
+alwaysApply: false
+---
+
+## Execution Strategy for docs/tasks.md (Milestone-Gated, Atomic Commits)
+
+Follow this strategy to implement the roadmap in `docs/tasks.md` precisely, with small, frequent commits. Each commit must include: functionality, tests (or verifiable checks), and documentation updates. Do not start the next task until the current one is implemented, verified, and documented.
+
+### Core Principles
+- One milestone at a time: complete all Acceptance Criteria in `docs/tasks.md` for a milestone before moving on.
+- Atomic work units: break each milestone into small, independently shippable tasks. Each task → one commit that includes functionality, tests/checks, and docs.
+- Gated progression: a task is “done” only after build, type-check, lint, and targeted verification pass; update docs; then commit.
+- No WIP commits: avoid partial commits without corresponding tests/checks and doc updates.
+
+### Workspace Commands (build, lint, type-check, dev)
+- Root dev (web + convex):
+  - `yarn dev`
+- Web app:
+  - Dev: `yarn workspace web-app dev`
+  - Build (includes type-check): `yarn workspace web-app build`
+  - Lint: `yarn workspace web-app lint`
+- Backend (Convex):
+  - Dev: `yarn workspace @packages/backend dev`
+  - Ensure Convex started / env ok (non-interactive): `yarn workspace @packages/backend setup`
+  - Type-check (no emit): `npx tsc -p packages/backend/convex/tsconfig.json --noEmit`
+- Monorepo build (optional when useful):
+  - `yarn build`
+
+Always run the smallest relevant set of checks for the current task to stay fast (e.g., web lint/build for a web-only change; backend type-check for a convex-only change).
+
+### Branching and PR Discipline
+- One branch per milestone: `feat/m{N}-<slug>` (e.g., `feat/m1-schema`)
+- Optional: sub-branches per task if the milestone is large: `feat/m{N}-<task>`
+- Open a PR per milestone; keep commits small and atomic. Merge only after milestone Acceptance Criteria pass.
+
+### Commit Requirements (per task)
+Each commit MUST include all three:
+1) Functionality: code changes that implement the task.
+2) Tests/Verification: at least one of: automated tests, type-checks, lints, builds, or an explicit manual verification step scripted/recorded.
+3) Documentation: update `docs/tasks.md` and/or relevant README/inline docs to reflect what changed and how to verify.
+
+Recommended message format:
+`M{N}/{area}: <concise change> [func|test|docs]`
+Examples:
+- `M1/schema: add profiles/games/markets tables with indexes [func|test|docs]`
+- `M4/bets: atomic placeBet mutation + balance checks [func|test|docs]`
+
+### Per-Task Delivery Loop
+For each task in a milestone:
+1) Plan: restate acceptance in 1–3 lines; identify minimal change set and verification.
+2) Implement: write the smallest code necessary.
+3) Verify:
+   - Web: `yarn workspace web-app lint` and `yarn workspace web-app build`
+   - Backend: `npx tsc -p packages/backend/convex/tsconfig.json --noEmit`
+   - If the task touches Convex runtime, ensure `yarn workspace @packages/backend dev` runs clean, and exercise queries/mutations in the app or via a minimal script.
+4) Document: update `docs/tasks.md` under the relevant milestone to reflect progress and how to validate.
+5) Commit: a single atomic commit including functionality + tests/checks + docs.
+
+Only after all milestone tasks meet Acceptance Criteria, proceed to the next milestone.
+
+### Milestone Gates (from docs/tasks.md)
+- Use the “Acceptance Criteria” under each milestone as the source of truth for Done.
+- Before moving on:
+  - Confirm all listed criteria are satisfied via build/type-check/lint and runtime checks as applicable.
+  - Ensure indexes are used (no `.filter` scans); add/adjust indexes in `packages/backend/convex/schema.ts` when needed and re-run type-checks/dev.
+  - Ensure all Convex functions include `args` and `returns` validators.
+
+### Milestone-Specific Verification Hints
+- M0 (Bootstrap):
+  - Web dev starts; Clerk sign-in loads without error boundary.
+  - Convex dev ready; OpenAI key check query returns true when set.
+  - Commands: `yarn dev`, `yarn workspace web-app build`, backend type-check.
+- M1 (Schema):
+  - Schema compiles; Convex dev boots with new tables and indexes.
+  - Verify index-backed queries with `withIndex`; avoid `.filter`.
+- M2–M3 (APIs):
+  - Functions export with validators; `api`/`internal` types generate.
+  - Reactive queries reflect changes live during `yarn dev`.
+- M4 (Bets):
+  - Single atomic mutation sequence; concurrent placement keeps balances/pools correct.
+- M5 (Settlement):
+  - Idempotent by `settlements` table; safe re-runs with same key.
+- M6 (Chat):
+  - Live updates on market page without refresh.
+- M7 (AI):
+  - `openaiKeySet` present; drafts generate and can be published.
+- M8–M11 (Frontend/Access/Leaderboard/Polish):
+  - End-to-end demo flow works; profile/leaderboard and guardrails behave as specified.
+
+### Seed & Local Data
+- For demo flows, seed a few `games` and markets as outlined in `docs/tasks.md`.
+- Keep seeding logic separate (scripts or manual notes in `docs/tasks.md`).
+
+### Quality Bars (every commit)
+- No linter errors in web: `yarn workspace web-app lint`
+- Type-check clean in backend: `npx tsc -p packages/backend/convex/tsconfig.json --noEmit`
+- Affected apps build: `yarn workspace web-app build` (when UI is impacted)
+- Update docs: record what changed and how to validate.
+
+### When Blocked
+- If a criterion cannot be validated locally, note the reason and mitigation in `docs/tasks.md`, then pause that task. Do not proceed to the next task until an acceptable substitute verification is defined and performed.
+
+This rule activates when working against `docs/tasks.md` and is intended to keep velocity high while preserving correctness via strict gating and documentation at every step.

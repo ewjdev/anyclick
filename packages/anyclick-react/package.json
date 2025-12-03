@@ -1,0 +1,50 @@
+{
+  "name": "@anyclick/react",
+  "version": "0.1.0",
+  "private": false,
+  "description": "React provider and context menu UI for UI feedback capture",
+  "keywords": [
+    "feedback",
+    "ui",
+    "context-menu",
+    "react",
+    "typescript"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
+  },
+  "dependencies": {
+    "@anyclick/core": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.1",
+    "react-dom": ">=19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.9",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

@@ -1,0 +1,70 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+ 
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+
+  /* Brand palette inspired by the ESL logo (deep teal + off-white) */
+  --color-primary: #0d3b3e;
+  --color-primary-foreground: #f2f6f5;
+  --color-secondary: #0d6e7c; /* blue-leaning teal */
+  --color-secondary-foreground: #f2f6f5;
+  --color-accent: #0d7a5d; /* green-leaning teal */
+  --color-accent-foreground: #f2f6f5;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  /* App surfaces */
+  --color-background: #ffffff;
+  --color-foreground: #0f1d1d;
+  --color-card: #ffffff;
+  --color-card-foreground: #0f1d1d;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0f1d1d;
+  --color-muted: #eef3f3; /* subtle teal-tinted gray */
+  --color-muted-foreground: #5b6b6b;
+
+  /* Inputs / borders / focus rings */
+  --color-input: #e5e7eb;
+  --color-ring: var(--color-secondary);
+
+  /* Fonts */
+  --font-inter: Inter, sans-serif;
+  --font-lato: Lato, sans-serif;
+  --font-montserrat: Montserrat, sans-serif;
+
+  /* Utility gradients */
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
+}
+
+@utility container {
+  margin-inline: auto;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

@@ -1,0 +1,67 @@
+---
+globs: **/components/**/*.tsx
+alwaysApply: false
+---
+
+### React components rule (Next.js 15 + React 19)
+
+- Use Server Components by default. Add 'use client' only for interactivity (state, refs, effects, event handlers, context, browser APIs, Radix UI).
+- Prefer TypeScript with explicit props; avoid React.FC. Always accept optional `className` and merge with `cn` from `@/lib/utils`.
+- Prefer named exports. For interactive components use `React.forwardRef` with a `displayName`.
+- Keep accessibility first: correct semantic elements, keyboard support, and `aria-*` where needed.
+- Style with Tailwind classes; merge using `cn`. For variants, use `class-variance-authority` and export the variant helper.
+- Use `next/link` for navigation and `next/image` for images. Do not fetch data in Client Components.
+
+shadcn/ui usage:
+
+- Base UI primitives should follow shadcn/ui patterns (Radix + `cva` + `cn`). Prefer reusing/extending components under `apps/web/src/components/common/*`.
+- For new primitives, scaffold from shadcn/ui (or copy the official component) and adapt imports/paths to this repo. Keep the `forwardRef`, `displayName`, `asChild` (via `@radix-ui/react-slot`) patterns.
+- Export both the component and its variant helper (e.g., `export { Button, buttonVariants }`). Keep minimal props and rely on Tailwind utilities.
+- Mark Radix-based components as Client Components with `'use client'` only when necessary.
+
+Skeleton (make interactive only if needed):
+
+```tsx
+// Remove this line if the component has no interactivity
+'use client';
+
+import * as React from "react";
+import { cn } from "@/lib/utils";
+// import { Slot } from "@radix-ui/react-slot"; // optional for asChild polymorphism
+
+export interface ComponentNameProps extends React.HTMLAttributes<HTMLDivElement> {
+  // add variant props if needed
+}
+
+export const ComponentName = React.forwardRef<HTMLDivElement, ComponentNameProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div ref={ref} className={cn("", className)} {...props} />
+    );
+  },
+);
+ComponentName.displayName = "ComponentName";
+```
+
+Variants (optional):
+
+```tsx
+import { cva, type VariantProps } from "class-variance-authority";
+
+export const componentNameVariants = cva("/* base classes */", {
+  variants: {
+    size: { sm: "text-xs", md: "text-sm", lg: "text-base" },
+    variant: { default: "", subtle: "" },
+  },
+  defaultVariants: { size: "md", variant: "default" },
+});
+
+export interface ComponentNameProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof componentNameVariants> {}
+```
+
+Notes:
+- Do not overuse `'use client'`; keep components server-renderable when possible.
+- Do not use `any`. Prefer `ComponentPropsWithoutRef<T>` for polymorphic wrappers and `asChild` patterns.
+

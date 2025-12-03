@@ -1,0 +1,44 @@
+{
+  "name": "@anyclick/cursor",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Cursor Cloud Agent adapter for UI feedback - launch agents from feedback payloads",
+  "keywords": [
+    "feedback",
+    "ui",
+    "cursor",
+    "cloud-agent",
+    "typescript"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
+  },
+  "dependencies": {
+    "@anyclick/core": "*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

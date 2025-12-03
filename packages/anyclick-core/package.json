@@ -1,0 +1,44 @@
+{
+  "name": "@anyclick/core",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Framework-agnostic core library for UI feedback capture with DOM context",
+  "keywords": [
+    "feedback",
+    "ui",
+    "context-menu",
+    "dom-capture",
+    "typescript"
+  ],
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "dependencies": {
+    "html-to-image": "^1.11.13"
+  }
+}
