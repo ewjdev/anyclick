@@ -428,34 +428,6 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@ewjdev/anyclick-core@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ewjdev/anyclick-core/-/anyclick-core-1.0.0.tgz#e15a3ef2c295458644015567f6fcba32039d81c7"
-  integrity sha512-LuYdR4Qg+zP/dJLzjHgYoJBn4SbP505UVNmbSHe64Hpxl3JBJh7NkyrJY6WyemL22p/B43wWHSBWtodyrYZEZA==
-  dependencies:
-    html-to-image "^1.11.13"
-
-"@ewjdev/anyclick-cursor@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ewjdev/anyclick-cursor/-/anyclick-cursor-1.0.0.tgz#26b34770a39cfe16f77f3aaf11f209b5165864b1"
-  integrity sha512-wRIkLKy0rJsqRwqIyTHKfNhi2SjeGCllEnCwCMiA+7r2TkpSBtL3Wxlj0z2BSW1zXEIkPdKjxLU4CdnM71lUkw==
-  dependencies:
-    "@ewjdev/anyclick-core" "*"
-
-"@ewjdev/anyclick-github@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ewjdev/anyclick-github/-/anyclick-github-1.0.0.tgz#2662f77d66234173d636410f4cd914518f6d617f"
-  integrity sha512-5gGHgLRnkzvg179jUepmK89q8GQjgx6o5gn6wwfiUgs8At8huz9alpkC9+fjIQaOJ/soVyPn8A2a29zIKgLImA==
-  dependencies:
-    "@ewjdev/anyclick-core" "*"
-
-"@ewjdev/anyclick-react@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@ewjdev/anyclick-react/-/anyclick-react-1.0.0.tgz#9e97a33adb5a901cfc1ffbd49c35c181138526d3"
-  integrity sha512-NiRgi1arfusYubZxmbppKAC7/hyyKPuZEcTggKX4+mDRmK+V53CyWw+xwVcycft8ce/UUNLfKID3n8rJdBrUyQ==
-  dependencies:
-    "@ewjdev/anyclick-core" "*"
-
 "@floating-ui/core@^1.6.0":
   version "1.6.9"
   resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-1.6.9.tgz#64d1da251433019dafa091de9b2886ff35ec14e6"
