@@ -1,7 +1,7 @@
 /**
  * Built-in feedback types
  */
-export type BuiltInFeedbackType = 'issue' | 'feature' | 'like';
+export type BuiltInFeedbackType = "issue" | "feature" | "like";
 
 /**
  * Type of feedback the user is submitting
@@ -81,7 +81,7 @@ export interface PageContext {
 /**
  * Screenshot capture mode
  */
-export type ScreenshotCaptureMode = 'element' | 'container' | 'viewport';
+export type ScreenshotCaptureMode = "element" | "container" | "viewport";
 
 /**
  * Single screenshot capture result
@@ -98,6 +98,26 @@ export interface ScreenshotCapture {
 }
 
 /**
+ * Error information for a failed screenshot capture
+ */
+export interface ScreenshotError {
+  /** Error message */
+  message: string;
+  /** Error name/code */
+  name: string;
+}
+
+/**
+ * Result of a single screenshot capture (success or error)
+ */
+export interface ScreenshotResult {
+  /** The captured screenshot data (undefined if error) */
+  capture?: ScreenshotCapture;
+  /** Error information if capture failed */
+  error?: ScreenshotError;
+}
+
+/**
  * Collection of all captured screenshots
  */
 export interface ScreenshotData {
@@ -107,6 +127,12 @@ export interface ScreenshotData {
   container?: ScreenshotCapture;
   /** Screenshot of the full viewport */
   viewport?: ScreenshotCapture;
+  /** Errors encountered during capture (keyed by screenshot type) */
+  errors?: {
+    element?: ScreenshotError;
+    container?: ScreenshotError;
+    viewport?: ScreenshotError;
+  };
   /** Timestamp when screenshots were captured */
   capturedAt: string;
 }
@@ -142,8 +168,8 @@ export const DEFAULT_SENSITIVE_SELECTORS: string[] = [
   'input[autocomplete="cc-exp"]',
   '[data-sensitive="true"]',
   '[data-mask="true"]',
-  '.sensitive',
-  '.private',
+  ".sensitive",
+  ".private",
 ];
 
 /**
@@ -181,7 +207,7 @@ export interface FeedbackAdapter {
 export interface FeedbackClientOptions {
   /** The adapter to use for submitting feedback */
   adapter: FeedbackAdapter;
-  /** 
+  /**
    * Filter function to determine if feedback should be captured for a target element
    * Return true to allow feedback, false to ignore
    */
@@ -214,4 +240,3 @@ export interface FeedbackEvent {
   element: Element;
   payload: FeedbackPayload;
 }
-

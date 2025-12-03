@@ -12,6 +12,7 @@ import {
   Terminal,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -19,8 +20,17 @@ const navigation = [
   { name: "Examples Gallery", href: "/examples", icon: Sparkles },
   { name: "Basic Setup", href: "/examples/basic", icon: Box },
   { name: "Custom Menu", href: "/examples/custom-menu", icon: Palette },
-  { name: "GitHub Integration", href: "/examples/github-integration", icon: GitBranch },
+  {
+    name: "GitHub Integration",
+    href: "/examples/github-integration",
+    icon: GitBranch,
+  },
   { name: "Cursor Local", href: "/examples/cursor-local", icon: Terminal },
+  {
+    name: "Sensitive Masking",
+    href: "/examples/sensitive-masking",
+    icon: Shield,
+  },
 ];
 
 export default function ExamplesLayout({
@@ -48,7 +58,11 @@ export default function ExamplesLayout({
                 className="lg:hidden p-2 -ml-2 text-gray-400 hover:text-white"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {mobileMenuOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
               </button>
               <Link href="/" className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
@@ -67,7 +81,7 @@ export default function ExamplesLayout({
                 Docs
               </Link>
               <a
-                href="https://github.com/anyclick/anyclick"
+                href="https://github.com/ewjdev/anyclick"
                 className="text-sm text-gray-400 hover:text-white transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -85,7 +99,9 @@ export default function ExamplesLayout({
           <aside
             className={cn(
               "fixed inset-y-0 left-0 z-40 w-64 bg-[#0a0a0f]/95 backdrop-blur-xl border-r border-white/5 pt-20 pb-8 overflow-y-auto lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:bg-transparent lg:backdrop-blur-none lg:border-none transition-transform duration-200",
-              mobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+              mobileMenuOpen
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0",
             )}
           >
             <nav className="px-4 space-y-1">
@@ -101,10 +117,17 @@ export default function ExamplesLayout({
                       "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all group",
                       isActive
                         ? "bg-white/10 text-white"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                        : "text-gray-400 hover:text-white hover:bg-white/5",
                     )}
                   >
-                    <Icon className={cn("w-4 h-4", isActive ? "text-violet-400" : "text-gray-500 group-hover:text-gray-400")} />
+                    <Icon
+                      className={cn(
+                        "w-4 h-4",
+                        isActive
+                          ? "text-violet-400"
+                          : "text-gray-500 group-hover:text-gray-400",
+                      )}
+                    />
                     {item.name}
                   </Link>
                 );
@@ -129,4 +152,3 @@ export default function ExamplesLayout({
     </div>
   );
 }
-

@@ -48,8 +48,13 @@ export const defaultContainerSelectors: string[] = [
  * Generate CSS for highlight effects based on configuration
  */
 function generateHighlightCSS(colors: Required<HighlightColors>): string {
-  const { targetColor, containerColor, targetShadowOpacity, containerShadowOpacity } = colors;
-  
+  const {
+    targetColor,
+    containerColor,
+    targetShadowOpacity,
+    containerShadowOpacity,
+  } = colors;
+
   // Convert hex to rgba for shadows
   const hexToRgba = (hex: string, alpha: number): string => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -59,7 +64,7 @@ function generateHighlightCSS(colors: Required<HighlightColors>): string {
 
   return `
 .${HIGHLIGHT_TARGET_CLASS} {
-  outline: 2px solid ${targetColor} !important;
+  outline: 2px dashed ${targetColor} !important;
   outline-offset: 2px !important;
   box-shadow: 0 0 0 4px ${hexToRgba(targetColor, targetShadowOpacity)}, 0 4px 12px ${hexToRgba(targetColor, targetShadowOpacity * 0.6)} !important;
   border-radius: 4px !important;
@@ -103,7 +108,8 @@ export function findContainerParent(
   element: Element,
   config?: HighlightConfig,
 ): Element | null {
-  const containerSelectors = config?.containerSelectors ?? defaultContainerSelectors;
+  const containerSelectors =
+    config?.containerSelectors ?? defaultContainerSelectors;
   const minChildren = config?.minChildrenForContainer ?? 2;
 
   let current = element.parentElement;
@@ -155,7 +161,10 @@ export function findContainerParent(
 /**
  * Apply highlight to target element
  */
-export function highlightTarget(element: Element, colors?: HighlightColors): void {
+export function highlightTarget(
+  element: Element,
+  colors?: HighlightColors,
+): void {
   const mergedColors = { ...defaultHighlightColors, ...colors };
   injectStyles(mergedColors);
   element.classList.add(HIGHLIGHT_TARGET_CLASS);
@@ -164,7 +173,10 @@ export function highlightTarget(element: Element, colors?: HighlightColors): voi
 /**
  * Apply highlight to container element
  */
-export function highlightContainer(element: Element, colors?: HighlightColors): void {
+export function highlightContainer(
+  element: Element,
+  colors?: HighlightColors,
+): void {
   const mergedColors = { ...defaultHighlightColors, ...colors };
   injectStyles(mergedColors);
   element.classList.add(HIGHLIGHT_CONTAINER_CLASS);
@@ -203,7 +215,7 @@ export function applyHighlights(
   clearHighlights();
 
   const colors = { ...defaultHighlightColors, ...config?.colors };
-  
+
   highlightTarget(targetElement, colors);
 
   const container = findContainerParent(targetElement, config);
