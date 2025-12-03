@@ -56,7 +56,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "*"
+    "@ewjdev/anyclick-core": "^0.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.32",

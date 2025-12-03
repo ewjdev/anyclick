@@ -57,7 +57,7 @@
     "setup": "node bin/setup-media-branch.js"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "*"
+    "@ewjdev/anyclick-core": "^0.1.0"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
