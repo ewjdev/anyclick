@@ -1,8 +1,11 @@
 "use client";
 
-import { FeedbackProvider, filterMenuItemsByRole } from "@anyclick/react";
-import type { FeedbackMenuItem, FeedbackUserContext } from "@anyclick/react";
-import { createHttpAdapter } from "@anyclick/github";
+import {
+  FeedbackProvider,
+  filterMenuItemsByRole,
+} from "@ewjdev/anyclick-react";
+import type { FeedbackMenuItem } from "@ewjdev/anyclick-react";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { CodeIcon, CloudIcon, MonitorIcon } from "lucide-react";

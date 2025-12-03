@@ -1,5 +1,5 @@
 {
-  "name": "@anyclick/core",
+  "name": "@ewjdev/anyclick-core",
   "version": "0.1.0",
   "private": false,
   "description": "Framework-agnostic core library for UI feedback capture with DOM context",
@@ -11,6 +11,16 @@
     "typescript"
   ],
   "license": "MIT",
+  "author": "ewjdev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-core"
+  },
+  "homepage": "https://anyclick.ewjdev.com/docs/core",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
   "sideEffects": false,
   "main": "dist/index.js",
   "module": "dist/index.mjs",

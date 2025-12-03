@@ -1,4 +1,4 @@
-import type { FeedbackAdapter, FeedbackPayload } from "@anyclick/core";
+import type { FeedbackAdapter, FeedbackPayload } from "@ewjdev/anyclick-core";
 import type { HttpAdapterOptions } from "./types";
 
 /**

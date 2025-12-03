@@ -10,9 +10,13 @@ const montserrat = Montserrat({ subsets: ["latin"] });
 const lato = Lato({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ESL",
+  title: {
+    default: "anyclick - UI feedback that codes itself",
+    template: "%s | anyclick",
+  },
   description:
-    "ESL is a platform for friends to engage in social fantasy sports",
+    "Right-click any element in your app to capture feedback with full DOM context, screenshots, and automatic integration with GitHub Issues or AI coding agents.",
+  keywords: ["feedback", "ui", "react", "github", "cursor", "ai", "typescript"],
 };
 
 export const viewport: Viewport = {

@@ -9,4 +9,4 @@ export type { GitHubAdapterOptions, GitHubIssueResult } from "./types";
 export { feedbackTypeLabels } from "./types";
 
 // Re-export core types for convenience
-export type { FeedbackPayload, FeedbackType } from "@anyclick/core";
+export type { FeedbackPayload, FeedbackType } from "@ewjdev/anyclick-core";

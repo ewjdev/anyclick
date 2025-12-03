@@ -4,7 +4,7 @@ import type {
   FeedbackType,
   ScreenshotConfig,
   ScreenshotData,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 import type { ReactNode, CSSProperties } from "react";
 
 /**
