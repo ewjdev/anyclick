@@ -14,6 +14,10 @@
   ],
   "license": "MIT",
   "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git",
@@ -28,7 +32,7 @@
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "bin": {
-    "uifeedback-local-server": "./dist/server.js"
+    "anyclick-local-server": "./dist/server.js"
   },
   "exports": {
     ".": {
