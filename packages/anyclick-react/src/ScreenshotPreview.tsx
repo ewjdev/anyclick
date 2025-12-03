@@ -138,7 +138,7 @@ export function ScreenshotPreview({
       }}
     >
       <div style={styles.header}>
-        <span style={styles.headerTitle}>Screenshot Preview</span>
+        <span style={styles.headerTitle}>Review Screenshots</span>
         <div style={styles.headerActions}>
           <span style={styles.sizeLabel}>{formatBytes(totalSize)}</span>
           <button

@@ -268,7 +268,7 @@ export const screenshotPreviewStyles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     gap: "4px",
-    padding: "6px 10px",
+    padding: "2px 5px",
     fontSize: "12px",
     color: "#6b7280",
     backgroundColor: "transparent",

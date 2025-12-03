@@ -415,11 +415,9 @@ export function ContextMenu({
       role="menu"
       aria-label="Feedback options"
     >
-      <div style={menuStyles.header}>
-        {currentView === "screenshot-preview"
-          ? "Review Screenshots"
-          : "Send Feedback"}
-      </div>
+      {currentView !== "screenshot-preview" && (
+        <div style={menuStyles.header}>Send Feedback</div>
+      )}
 
       {currentView === "menu" && (
         <div style={menuStyles.itemList}>
