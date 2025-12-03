@@ -52,7 +52,7 @@ export default function Home() {
                 Examples
               </Link>
               <a
-                href="https://github.com/anyclick/anyclick"
+                href="https://github.com/ewjdev/anyclick"
                 className="hover:text-white transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -641,7 +641,7 @@ export default function Home() {
               Examples
             </Link>
             <a
-              href="https://github.com/anyclick/anyclick"
+              href="https://github.com/ewjdev/anyclick"
               className="hover:text-white transition-colors"
               target="_blank"
               rel="noopener noreferrer"

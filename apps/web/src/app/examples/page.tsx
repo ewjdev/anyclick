@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Box, Palette, GitBranch, Terminal, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Box,
+  Palette,
+  GitBranch,
+  Terminal,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Examples",
-  description: "Interactive examples showcasing anyclick feedback capture capabilities.",
+  description:
+    "Interactive examples showcasing anyclick feedback capture capabilities.",
 };
 
 const examples = [
   {
     title: "Basic Setup",
-    description: "Minimal implementation with default configuration. Perfect starting point for new integrations.",
+    description:
+      "Minimal implementation with default configuration. Perfect starting point for new integrations.",
     href: "/examples/basic",
     icon: Box,
     color: "violet",
@@ -18,7 +27,8 @@ const examples = [
   },
   {
     title: "Custom Menu",
-    description: "Customized context menu with branded colors, icons, and role-based menu items.",
+    description:
+      "Customized context menu with branded colors, icons, and role-based menu items.",
     href: "/examples/custom-menu",
     icon: Palette,
     color: "cyan",
@@ -26,7 +36,8 @@ const examples = [
   },
   {
     title: "GitHub Integration",
-    description: "Full GitHub Issues integration with automatic issue creation and screenshot uploads.",
+    description:
+      "Full GitHub Issues integration with automatic issue creation and screenshot uploads.",
     href: "/examples/github-integration",
     icon: GitBranch,
     color: "emerald",
@@ -34,7 +45,8 @@ const examples = [
   },
   {
     title: "Cursor Local",
-    description: "Development workflow with local Cursor integration for instant AI-powered code fixes.",
+    description:
+      "Development workflow with local Cursor integration for instant AI-powered code fixes.",
     href: "/examples/cursor-local",
     icon: Terminal,
     color: "amber",
@@ -56,8 +68,8 @@ export default function ExamplesPage() {
           </h1>
         </div>
         <p className="text-lg text-gray-400 leading-relaxed max-w-2xl">
-          Explore these interactive examples to see anyclick in action. Each example demonstrates 
-          different features and configuration options.
+          Explore these interactive examples to see anyclick in action. Each
+          example demonstrates different features and configuration options.
         </p>
       </div>
 
@@ -70,8 +82,9 @@ export default function ExamplesPage() {
           <div>
             <h2 className="font-semibold mb-2">Try it on this page!</h2>
             <p className="text-gray-400 text-sm">
-              This entire documentation site uses anyclick. Right-click any element to see the 
-              feedback menu in action. The feedback is connected to our GitHub repository.
+              This entire documentation site uses anyclick. Right-click any
+              element to see the feedback menu in action. The feedback is
+              connected to our GitHub repository.
             </p>
           </div>
         </div>
@@ -101,7 +114,9 @@ export default function ExamplesPage() {
                     <h2 className="text-lg font-semibold">{example.title}</h2>
                     <ArrowRight className="w-4 h-4 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
                   </div>
-                  <p className="text-gray-400 text-sm mb-4">{example.description}</p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {example.description}
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {example.tags.map((tag) => (
                       <span
@@ -123,12 +138,12 @@ export default function ExamplesPage() {
       <div className="mt-12 p-6 rounded-2xl bg-white/[0.02] border border-white/5">
         <h3 className="font-semibold mb-2">Need a specific example?</h3>
         <p className="text-gray-400 text-sm mb-4">
-          If you&apos;d like to see an example for a specific use case, open an issue on GitHub 
-          or contribute your own example.
+          If you&apos;d like to see an example for a specific use case, open an
+          issue on GitHub or contribute your own example.
         </p>
         <div className="flex gap-4">
           <a
-            href="https://github.com/anyclick/anyclick/issues/new"
+            href="https://github.com/ewjdev/anyclick/issues/new"
             className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium transition-colors"
             target="_blank"
             rel="noopener noreferrer"
@@ -136,7 +151,7 @@ export default function ExamplesPage() {
             Request Example
           </a>
           <a
-            href="https://github.com/anyclick/anyclick/blob/main/CONTRIBUTING.md"
+            href="https://github.com/ewjdev/anyclick/blob/main/CONTRIBUTING.md"
             className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm font-medium transition-colors"
             target="_blank"
             rel="noopener noreferrer"
@@ -148,4 +163,3 @@ export default function ExamplesPage() {
     </div>
   );
 }
-

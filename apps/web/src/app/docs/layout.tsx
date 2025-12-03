@@ -72,7 +72,7 @@ export default function DocsLayout({
                 Examples
               </Link>
               <a
-                href="https://github.com/anyclick/anyclick"
+                href="https://github.com/ewjdev/anyclick"
                 className="text-sm text-gray-400 hover:text-white transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
