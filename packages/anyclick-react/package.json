@@ -1,5 +1,5 @@
 {
-  "name": "@anyclick/react",
+  "name": "@ewjdev/anyclick-react",
   "version": "0.1.0",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
@@ -11,6 +11,16 @@
     "typescript"
   ],
   "license": "MIT",
+  "author": "ewjdev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-react"
+  },
+  "homepage": "https://anyclick.ewjdev.com/docs/react",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
   "sideEffects": false,
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -31,15 +41,15 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
-    "@anyclick/core": "*"
+    "@ewjdev/anyclick-core": "*"
   },
   "peerDependencies": {
     "react": ">=19.1.1",
-    "react-dom": ">=19.1.1"
+    "react-dom": ">=19.2.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.1",
-    "@types/react-dom": "^19.1.9",
+    "@types/react-dom": "^19.2.0",
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
     "rimraf": "^6.0.1"

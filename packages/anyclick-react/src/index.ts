@@ -34,7 +34,7 @@ export type {
   ScreenshotCapture,
   ScreenshotConfig,
   ScreenshotCaptureMode,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 
 // Re-export screenshot utilities from core
 export {
@@ -45,7 +45,7 @@ export {
   estimateTotalSize,
   DEFAULT_SCREENSHOT_CONFIG,
   DEFAULT_SENSITIVE_SELECTORS,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 
 // Styles (for customization)
 export { menuStyles, darkMenuStyles } from "./styles";

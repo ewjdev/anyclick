@@ -1,13 +1,28 @@
 {
   "name": "anyclick",
   "private": true,
+  "description": "UI feedback that codes itself - capture DOM context, screenshots, and integrate with GitHub Issues or AI coding agents",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git"
+  },
+  "homepage": "https://anyclick.ewjdev.com",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "author": "ewjdev",
+  "license": "MIT",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore"
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.10",
     "prettier": "3.5.3",
     "turbo": "^2.5.6"
   },

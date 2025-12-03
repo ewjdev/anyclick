@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import type { FeedbackPayload } from "@anyclick/core";
+import type { FeedbackPayload } from "@ewjdev/anyclick-core";
 import type {
   LocalCursorAdapterOptions,
   LocalCursorResult,

@@ -13,30 +13,30 @@ anyclick/
 │           ├── components/           # Shared UI components
 │           └── lib/                  # Utilities
 ├── packages/
-│   ├── anyclick-core/                # @anyclick/core – Framework-agnostic core library
+│   ├── anyclick-core/                # @ewjdev/anyclick-core – Framework-agnostic core library
 │   │   └── src/
 │   │       ├── client.ts
 │   │       ├── dom.ts
 │   │       ├── payload.ts
 │   │       ├── screenshot.ts
 │   │       └── types.ts
-│   ├── anyclick-react/               # @anyclick/react – React provider & context menu UI
+│   ├── anyclick-react/               # @ewjdev/anyclick-react – React provider & context menu UI
 │   │   └── src/
 │   │       ├── FeedbackProvider.tsx
 │   │       ├── ContextMenu.tsx
 │   │       ├── ScreenshotPreview.tsx
 │   │       └── context.ts
-│   ├── anyclick-cursor/              # @anyclick/cursor – Cursor AI agent adapter
+│   ├── anyclick-cursor/              # @ewjdev/anyclick-cursor – Cursor AI agent adapter
 │   │   └── src/
 │   │       ├── agentAdapter.ts
 │   │       ├── formatters.ts
 │   │       └── types.ts
-│   ├── anyclick-cursor-local/        # @anyclick/cursor-local – Local filesystem adapter
+│   ├── anyclick-cursor-local/        # @ewjdev/anyclick-cursor-local – Local filesystem adapter
 │   │   └── src/
 │   │       ├── localAdapter.ts
 │   │       ├── server.ts
 │   │       └── formatters.ts
-│   └── anyclick-github/              # @anyclick/github – GitHub Issues integration
+│   └── anyclick-github/              # @ewjdev/anyclick-github – GitHub Issues integration
 │       └── src/
 │           ├── githubAdapter.ts
 │           ├── httpAdapter.ts
@@ -51,10 +51,10 @@ anyclick/
 
 - [x] Monorepo scaffolding with Yarn workspaces
 - [x] Turborepo configuration with `build`, `dev`, `lint`, `clean` tasks
-- [x] All 5 library packages migrated under `@anyclick/*` scope
+- [x] All 5 library packages migrated under `@ewjdev/anyclick-*` scope
 - [x] Package builds configured with tsup (ESM + CJS + DTS)
 - [x] Web app bootstrapped with Next.js 16 + React 19 + Tailwind 4
-- [x] Web app depends on all `@anyclick/*` packages
+- [x] Web app depends on all `@ewjdev/anyclick-*` packages
 - [x] Feedback API route implemented
 
 ## 📋 Remaining Work
@@ -119,17 +119,17 @@ The `apps/web` serves dual purposes:
 ## Package Dependencies Graph
 
 ```
-@anyclick/react
-    └── @anyclick/core
+@ewjdev/anyclick-react
+    └── @ewjdev/anyclick-core
 
-@anyclick/cursor
-    └── @anyclick/core
+@ewjdev/anyclick-cursor
+    └── @ewjdev/anyclick-core
 
-@anyclick/cursor-local
-    └── @anyclick/core
+@ewjdev/anyclick-cursor-local
+    └── @ewjdev/anyclick-core
 
-@anyclick/github
-    └── @anyclick/core
+@ewjdev/anyclick-github
+    └── @ewjdev/anyclick-core
 ```
 
 ## Scripts Reference

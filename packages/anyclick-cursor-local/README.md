@@ -1,164 +1,150 @@
-# @anyclick/cursor-local
+# @ewjdev/anyclick-cursor-local
 
-Local Cursor CLI adapter for UI feedback - run `cursor-agent` locally during development.
+> Local Cursor CLI adapter for UI feedback - run cursor-agent locally during development
 
-This package provides a standalone dev server that receives feedback from your app and runs `cursor-agent` locally, allowing you to use Cursor's AI coding assistance without cloud agents.
+[![npm version](https://img.shields.io/npm/v/@ewjdev/anyclick-cursor-local.svg)](https://www.npmjs.com/package/@ewjdev/anyclick-cursor-local)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Prerequisites
+## Overview
 
-Install the Cursor CLI:
-
-```bash
-curl https://cursor.com/install -fsS | bash
-```
+`@ewjdev/anyclick-cursor-local` enables local Cursor integration for development workflows. Submit UI feedback and have it automatically open in Cursor with full context for AI-powered fixes.
 
 ## Installation
 
 ```bash
-npm install @anyclick/cursor-local
-# or
-yarn add @anyclick/cursor-local
+npm install @ewjdev/anyclick-cursor-local
 ```
 
 ## Quick Start
 
-### 1. Start the local server
+### 1. Start the Local Server
 
 ```bash
-# Using npx
-npx uifeedback-local-server
+# Add to package.json scripts
+"scripts": {
+  "feedback-server": "anyclick-local-server"
+}
 
-# Or if installed globally
-uifeedback-local-server
-
-# With options
-uifeedback-local-server --port 4000 --cwd /path/to/project
+# Run
+npm run feedback-server
 ```
 
-### 2. Configure your app to use the local endpoint
-
-In your feedback provider, point to the local server when in development:
+### 2. Configure the Provider
 
 ```tsx
-const adapter = createHttpAdapter({
-  endpoint: process.env.NODE_ENV === 'development' 
-    ? 'http://localhost:3847/feedback'
-    : '/api/feedback',
-});
-```
+'use client';
 
-## Server Options
+import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
 
-```
-Options:
-  -p, --port <port>     Port to run the server on (default: 3847)
-  -h, --host <host>     Host to bind to (default: localhost)
-  -d, --cwd <dir>       Working directory for cursor-agent
-  -m, --mode <mode>     Execution mode: interactive or print (default: interactive)
-  --model <model>       Model to use for cursor-agent
-  --help                Show help message
-```
-
-## Execution Modes
-
-### Interactive Mode (default)
-
-Opens `cursor-agent` in your terminal for an interactive session:
-
-```bash
-uifeedback-local-server -m interactive
-```
-
-When feedback is submitted, `cursor-agent` starts with the prompt and you can interact with it directly.
-
-### Print Mode
-
-Runs `cursor-agent` headlessly and returns the output:
-
-```bash
-uifeedback-local-server -m print
-```
-
-Useful for automated workflows or CI integration.
-
-## API Endpoints
-
-### POST /feedback
-
-Submit feedback to run cursor-agent.
-
-**Request:**
-```json
-{
-  "type": "feature",
-  "comment": "Add dark mode support",
-  "element": { ... },
-  "page": { ... }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "output": "cursor-agent started in interactive mode"
-}
-```
-
-### GET /health
-
-Check server status and cursor-agent installation.
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "cursorAgentInstalled": true
-}
-```
-
-## Programmatic Usage
-
-```typescript
-import { createLocalCursorAdapter } from '@anyclick/cursor-local';
-
-const adapter = createLocalCursorAdapter({
-  workingDirectory: '/path/to/project',
-  mode: 'interactive',
+const adapter = createLocalAdapter({
+  serverUrl: 'http://localhost:3847',
+  projectPath: process.cwd(),
 });
 
-// Check if cursor-agent is installed
-const installed = await adapter.checkInstalled();
-
-// Run with feedback payload
-const result = await adapter.runAgent(payload);
+<FeedbackProvider adapter={adapter}>
+  {children}
+</FeedbackProvider>
 ```
 
-## Custom Prompt Formatting
+## Features
 
-```typescript
-import { createLocalCursorAdapter, defaultFormatPrompt } from '@anyclick/cursor-local';
+- 🖥️ **Local Development** - No cloud dependency for development
+- 📁 **File-Based Storage** - Feedback saved as JSON files
+- 🚀 **Cursor Integration** - Automatically opens Cursor with context
+- ⚙️ **Configurable** - Customize prompt generation and file handling
 
-const adapter = createLocalCursorAdapter({
-  formatPrompt: (payload) => {
-    // Use default and add custom instructions
-    return defaultFormatPrompt(payload) + '\n\nFollow our coding standards.';
+## How It Works
+
+1. User right-clicks element and selects "Fix with Cursor"
+2. Feedback is sent to local server on your machine
+3. Server saves feedback to `.feedback/` directory
+4. Server invokes Cursor with the feedback context
+5. Cursor AI analyzes and proposes fixes
+
+## Server Configuration
+
+Create `anyclick.config.js` in your project root:
+
+```javascript
+module.exports = {
+  port: 3847,
+  outputDir: '.feedback',
+  cursorPath: '/Applications/Cursor.app/Contents/MacOS/Cursor',
+  
+  onFeedback: async (payload, filePath) => {
+    console.log(`Feedback saved to: ${filePath}`);
   },
+  
+  formatPrompt: (payload) => {
+    return `Fix: ${payload.comment}\nElement: ${payload.element.selector}`;
+  },
+  
+  cors: {
+    origin: ['http://localhost:3000'],
+  },
+};
+```
+
+## Multi-Adapter Setup
+
+Route different feedback types to different adapters:
+
+```typescript
+import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+function createRoutingAdapter(config) {
+  return {
+    async submit(payload) {
+      if (payload.type === 'cursor_local') {
+        return config.local.submit(payload);
+      }
+      return config.github.submit(payload);
+    },
+  };
+}
+
+const adapter = createRoutingAdapter({
+  local: createLocalAdapter({ serverUrl: 'http://localhost:3847' }),
+  github: createHttpAdapter({ endpoint: '/api/feedback' }),
 });
 ```
 
-## Integration with @anyclick/react
+## CLI
 
-See the main app's `FeedbackProviderWrapper` for an example of how to integrate local and cloud Cursor options with a submenu.
+```bash
+# Start with default options
+npx anyclick-local-server
 
-## Security Note
+# Start with custom port
+npx anyclick-local-server --port 4000
 
-This server is intended for **local development only**. It:
-- Only binds to localhost by default
-- Has CORS restrictions for localhost origins
-- Should NOT be exposed to the internet
+# Start with custom output directory
+npx anyclick-local-server --output .my-feedback
+```
+
+## Security
+
+⚠️ The local server is designed for **development only**. Never expose it to the internet. The server only accepts connections from localhost by default.
+
+## Best Practices
+
+- Add `.feedback/` to your `.gitignore`
+- Use descriptive comments when submitting feedback
+- Configure Cursor rules for your project conventions
+- Run the server in a separate terminal for visibility
+
+## Documentation
+
+For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.ewj.dev/docs/adapters)
+
+## Related Packages
+
+- [`@ewjdev/anyclick-core`](https://www.npmjs.com/package/@ewjdev/anyclick-core) - Core library
+- [`@ewjdev/anyclick-react`](https://www.npmjs.com/package/@ewjdev/anyclick-react) - React provider
+- [`@ewjdev/anyclick-cursor`](https://www.npmjs.com/package/@ewjdev/anyclick-cursor) - Cursor Cloud integration
 
 ## License
 
-MIT
-
+MIT © [anyclick](https://anyclick.ewj.dev)

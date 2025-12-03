@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from "@anyclick/core";
+import type { FeedbackPayload } from "@ewjdev/anyclick-core";
 
 /**
  * Execution mode for cursor-agent

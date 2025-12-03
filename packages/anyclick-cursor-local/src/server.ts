@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import type { FeedbackPayload } from "@anyclick/core";
+import type { FeedbackPayload } from "@ewjdev/anyclick-core";
 import { LocalCursorAdapter } from "./localAdapter";
 import type { LocalServerConfig } from "./types";
 

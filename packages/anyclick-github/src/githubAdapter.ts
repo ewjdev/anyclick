@@ -2,7 +2,7 @@ import type {
   FeedbackPayload,
   ScreenshotData,
   ScreenshotCapture,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 import type {
   GitHubAdapterOptions,
   GitHubIssueResult,
@@ -61,6 +61,8 @@ export class GitHubAdapter {
     commitMessage: string,
   ): Promise<string> {
     const url = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`;
+
+    console.log("🔍 Uploading asset to URL:", url);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -261,6 +263,173 @@ export class GitHubAdapter {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Check if the media branch exists
+   */
+  async mediaBranchExists(): Promise<boolean> {
+    const url = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/git/ref/heads/${this.mediaBranch}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      });
+
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Create the media branch as an orphan branch for storing feedback assets
+   * This should be called once during initial setup
+   * @returns The commit SHA of the created branch, or null if branch already exists
+   */
+  async ensureMediaBranch(): Promise<string | null> {
+    // Check if branch already exists
+    if (await this.mediaBranchExists()) {
+      return null;
+    }
+
+    // Step 1: Create a blob with a README
+    const readmeContent = `# Feedback Assets
+
+This branch stores screenshot assets for GitHub Issues created by @ewjdev/anyclick-github.
+
+## Structure
+
+\`\`\`
+${this.assetsPath}/
+└── <submission-id>/
+    ├── element.png     # Screenshot of the selected element
+    ├── container.png   # Screenshot of the element's container
+    └── viewport.png    # Full viewport screenshot
+\`\`\`
+
+Do not manually edit this branch unless cleaning up old assets.
+`;
+
+    const blobResponse = await fetch(
+      `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/git/blobs`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: Buffer.from(readmeContent).toString("base64"),
+          encoding: "base64",
+        }),
+      },
+    );
+
+    if (!blobResponse.ok) {
+      const error = await blobResponse.text().catch(() => "Unknown error");
+      throw new Error(
+        `Failed to create blob: ${blobResponse.status} - ${error}`,
+      );
+    }
+
+    const blob = (await blobResponse.json()) as { sha: string };
+
+    // Step 2: Create a tree with the README
+    const treeResponse = await fetch(
+      `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/git/trees`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tree: [
+            {
+              path: "README.md",
+              mode: "100644",
+              type: "blob",
+              sha: blob.sha,
+            },
+          ],
+        }),
+      },
+    );
+
+    if (!treeResponse.ok) {
+      const error = await treeResponse.text().catch(() => "Unknown error");
+      throw new Error(
+        `Failed to create tree: ${treeResponse.status} - ${error}`,
+      );
+    }
+
+    const tree = (await treeResponse.json()) as { sha: string };
+
+    // Step 3: Create an orphan commit (no parents)
+    const commitResponse = await fetch(
+      `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/git/commits`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message:
+            "Initialize feedback assets branch\n\nCreated by @ewjdev/anyclick-github",
+          tree: tree.sha,
+          parents: [], // Empty parents = orphan commit
+        }),
+      },
+    );
+
+    if (!commitResponse.ok) {
+      const error = await commitResponse.text().catch(() => "Unknown error");
+      throw new Error(
+        `Failed to create commit: ${commitResponse.status} - ${error}`,
+      );
+    }
+
+    const commit = (await commitResponse.json()) as { sha: string };
+
+    // Step 4: Create the branch reference
+    const refResponse = await fetch(
+      `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/git/refs`,
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ref: `refs/heads/${this.mediaBranch}`,
+          sha: commit.sha,
+        }),
+      },
+    );
+
+    if (!refResponse.ok) {
+      const error = await refResponse.text().catch(() => "Unknown error");
+      throw new Error(
+        `Failed to create branch: ${refResponse.status} - ${error}`,
+      );
+    }
+
+    return commit.sha;
   }
 }
 

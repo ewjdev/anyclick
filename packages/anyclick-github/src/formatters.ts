@@ -1,4 +1,4 @@
-import type { FeedbackPayload, ScreenshotCapture } from "@anyclick/core";
+import type { FeedbackPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
 
 /**
  * Default title formatter for GitHub issues

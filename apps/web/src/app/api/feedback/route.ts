@@ -1,15 +1,14 @@
-import { createGitHubAdapter } from "@anyclick/github/server";
-import { createCursorAgentAdapter } from "@anyclick/cursor";
-import type { FeedbackPayload } from "@anyclick/core";
+import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
+import { createCursorAgentAdapter } from "@ewjdev/anyclick-cursor";
+import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+
+const githubRepo = process.env.GITHUB_REPO! ?? "ewjdev/anyclick";
 
 const github = createGitHubAdapter({
   token: process.env.GITHUB_TOKEN!,
-  owner: "ej020586",
-  repo: "esl",
+  owner: githubRepo.split("/")[0]!,
+  repo: githubRepo.split("/")[1]!,
 });
-
-// Roles that are allowed to use the Cursor agent
-const CURSOR_ALLOWED_ROLES = ["dev", "esl_admin", "super_admin"];
 
 // Local cursor server URL (only used in development)
 const LOCAL_CURSOR_SERVER =

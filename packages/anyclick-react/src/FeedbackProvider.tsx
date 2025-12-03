@@ -7,12 +7,12 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createFeedbackClient } from "@anyclick/core";
+import { createFeedbackClient } from "@ewjdev/anyclick-core";
 import type {
   FeedbackClient,
   FeedbackType,
   ScreenshotData,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 import { FeedbackContext } from "./context";
 import { ContextMenu } from "./ContextMenu";
 import { findContainerParent } from "./highlight";

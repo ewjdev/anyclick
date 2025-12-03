@@ -1,139 +1,102 @@
-# @anyclick/cursor
+# @ewjdev/anyclick-cursor
 
-Cursor Cloud Agent adapter for UI feedback - launch agents from feedback payloads.
+> Cursor Cloud Agent adapter for UI feedback - launch AI agents from feedback payloads
+
+[![npm version](https://img.shields.io/npm/v/@ewjdev/anyclick-cursor.svg)](https://www.npmjs.com/package/@ewjdev/anyclick-cursor)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Overview
+
+`@ewjdev/anyclick-cursor` enables integration with Cursor's Cloud Agent API. Submit UI feedback and have AI automatically analyze and propose code fixes.
 
 ## Installation
 
 ```bash
-npm install @anyclick/cursor
-# or
-yarn add @anyclick/cursor
+npm install @ewjdev/anyclick-cursor
 ```
 
-## Usage
+## Quick Start
 
-### Server-Side (API Route)
+```tsx
+import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { createCursorAdapter } from '@ewjdev/anyclick-cursor';
 
-```typescript
-import { createCursorAgentAdapter } from "@anyclick/cursor";
-import type { FeedbackPayload } from "@anyclick/core";
-
-const cursorAdapter = createCursorAgentAdapter({
-  apiKey: process.env.CURSOR_API_KEY!,
-  defaultSource: {
-    repository: "https://github.com/your-org/your-repo",
-    ref: "main",
-  },
-  defaultTarget: {
-    autoCreatePr: true,
-  },
+const adapter = createCursorAdapter({
+  apiKey: process.env.NEXT_PUBLIC_CURSOR_API_KEY,
+  projectId: 'your-project-id',
 });
 
-export async function POST(req: Request) {
-  const payload: FeedbackPayload = await req.json();
-
-  const result = await cursorAdapter.createAgent(payload);
-
-  if (!result.success) {
-    return Response.json({ error: result.error?.message }, { status: 500 });
-  }
-
-  return Response.json({
-    agentId: result.agent?.id,
-    agentUrl: result.agent?.target.url,
-  });
-}
+<FeedbackProvider adapter={adapter}>
+  {children}
+</FeedbackProvider>
 ```
 
-### Configuration Options
+## Features
+
+- 🤖 **AI-Powered Fixes** - Submit feedback for automatic code analysis
+- 📝 **Optimized Prompts** - Feedback formatted for optimal AI understanding
+- 🔧 **Configurable** - Customize prompt generation and context
+
+## Configuration
 
 ```typescript
-interface CursorAgentAdapterOptions {
-  /** Cursor API key (from https://cursor.com/settings) */
-  apiKey: string;
-
-  /** Default repository configuration */
-  defaultSource: {
-    repository: string; // e.g., "https://github.com/your-org/your-repo"
-    ref?: string; // Branch or commit ref (default: "main")
-  };
-
-  /** Default target configuration */
-  defaultTarget?: {
-    branchName?: string; // Auto-generated if not provided
-    autoCreatePr?: boolean; // Create PR when agent finishes
-    openAsCursorGithubApp?: boolean;
-    skipReviewerRequest?: boolean;
-  };
-
-  /** API base URL (default: https://api.cursor.com) */
-  apiBaseUrl?: string;
-
-  /** Request timeout in milliseconds (default: 30000) */
-  timeout?: number;
-
-  /** Custom prompt formatter */
-  formatPrompt?: (payload: FeedbackPayload) => AgentPrompt;
-
-  /** Custom agent name formatter */
-  formatAgentName?: (payload: FeedbackPayload) => string;
-}
-```
-
-### Custom Prompt Formatting
-
-You can customize how feedback payloads are converted to agent prompts:
-
-```typescript
-import { createCursorAgentAdapter, defaultFormatPrompt } from "@anyclick/cursor";
-
-const adapter = createCursorAgentAdapter({
-  apiKey: process.env.CURSOR_API_KEY!,
-  defaultSource: { repository: "https://github.com/your-org/repo" },
+const adapter = createCursorAdapter({
+  apiKey: process.env.CURSOR_API_KEY,
+  projectId: 'your-project-id',
+  
+  // Custom prompt formatting
   formatPrompt: (payload) => {
-    // Use default formatting and add custom instructions
-    const base = defaultFormatPrompt(payload);
-    return {
-      text: `${base.text}\n\n## Additional Context\nPlease follow our coding standards.`,
-    };
+    return `
+Fix this ${payload.type} in the codebase:
+
+Element: ${payload.element.selector}
+Comment: ${payload.comment}
+Page: ${payload.page.url}
+
+Please analyze and propose a fix.
+    `;
   },
 });
 ```
 
-### Additional Methods
+## Prompt Formatting
 
 ```typescript
-// Get agent status
-const status = await adapter.getAgentStatus("bc_abc123");
+import { formatForCursorAgent } from '@ewjdev/anyclick-cursor';
 
-// Add follow-up instruction
-await adapter.addFollowUp("bc_abc123", {
-  text: "Also add unit tests for this change",
-});
-
-// Delete an agent
-await adapter.deleteAgent("bc_abc123");
+// Generate an optimized prompt for Cursor
+const prompt = formatForCursorAgent(payload);
 ```
 
-## Environment Variables
+## Usage with Menu Items
 
-| Variable               | Description                                    | Required |
-| ---------------------- | ---------------------------------------------- | -------- |
-| `CURSOR_API_KEY`       | Your Cursor API key                            | Yes      |
-| `CURSOR_REPOSITORY`    | Default repository URL                         | Yes      |
-| `CURSOR_DEFAULT_REF`   | Default branch (defaults to "main")            | No       |
-| `CURSOR_AUTO_CREATE_PR`| Set to "true" to auto-create PRs               | No       |
+```tsx
+const menuItems = [
+  { type: 'bug', label: 'Report Bug', showComment: true },
+  { type: 'feature', label: 'Request Feature', showComment: true },
+  { 
+    type: 'cursor_cloud', 
+    label: 'Fix with AI', 
+    showComment: true,
+    requiredRoles: ['developer'],
+  },
+];
 
-## Role-Based Access
+<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+  {children}
+</FeedbackProvider>
+```
 
-This adapter is designed to work with role-based access control. See `@anyclick/react` for the `filterMenuItemsByRole` utility that can restrict the "Build with Cursor" menu item to specific user roles.
+## Documentation
 
-## API Reference
+For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.ewj.dev/docs/adapters)
 
-For the full Cursor Cloud Agent API documentation, see:
-https://cursor.com/docs/cloud-agent/api/endpoints
+## Related Packages
+
+- [`@ewjdev/anyclick-core`](https://www.npmjs.com/package/@ewjdev/anyclick-core) - Core library
+- [`@ewjdev/anyclick-react`](https://www.npmjs.com/package/@ewjdev/anyclick-react) - React provider
+- [`@ewjdev/anyclick-cursor-local`](https://www.npmjs.com/package/@ewjdev/anyclick-local) - Local development
 
 ## License
 
-MIT
-
+MIT © [anyclick](https://anyclick.ewj.dev)

@@ -2,12 +2,12 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import type { ContextMenuProps, FeedbackMenuItem } from "./types";
-import type { FeedbackType, ScreenshotData } from "@anyclick/core";
+import type { FeedbackType, ScreenshotData } from "@ewjdev/anyclick-core";
 import {
   captureAllScreenshots,
   isScreenshotSupported,
   DEFAULT_SCREENSHOT_CONFIG,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";
 import { menuStyles } from "./styles";
 import { applyHighlights, clearHighlights } from "./highlight";
 import { ScreenshotPreview } from "./ScreenshotPreview";

@@ -9,4 +9,4 @@ export type {
   FeedbackAdapter,
   FeedbackPayload,
   FeedbackType,
-} from "@anyclick/core";
+} from "@ewjdev/anyclick-core";

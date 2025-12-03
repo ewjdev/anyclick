@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import type { ScreenshotData } from "@anyclick/core";
-import { formatBytes, estimateTotalSize } from "@anyclick/core";
+import type { ScreenshotData } from "@ewjdev/anyclick-core";
+import { formatBytes, estimateTotalSize } from "@ewjdev/anyclick-core";
 import type { ScreenshotPreviewProps } from "./types";
 import { menuStyles } from "./styles";
 import {
