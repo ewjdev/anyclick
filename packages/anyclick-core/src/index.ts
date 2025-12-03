@@ -16,6 +16,8 @@ export type {
   ScreenshotConfig,
   ScreenshotResult,
   ScreenshotError,
+  FeedbackTriggerEvent,
+  FeedbackMenuEvent,
 } from './types';
 
 export { DEFAULT_SENSITIVE_SELECTORS } from './types';

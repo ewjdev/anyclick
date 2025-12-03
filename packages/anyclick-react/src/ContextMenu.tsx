@@ -30,7 +30,7 @@ const defaultIcons: Record<string, React.ReactNode> = {
 };
 
 /**
- * Menu item component
+ * Menu item component with touch-friendly sizing
  */
 function MenuItem({
   item,
@@ -44,6 +44,7 @@ function MenuItem({
   hasChildren?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   return (
     <button
@@ -51,11 +52,25 @@ function MenuItem({
       onClick={onClick}
       disabled={disabled}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
       style={{
         ...menuStyles.item,
-        ...(isHovered ? menuStyles.itemHover : {}),
+        // Apply hover/pressed state for both mouse and touch
+        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
         ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+        // Ensure minimum touch target size (44px is recommended)
+        minHeight: "44px",
+        // Prevent text selection on touch
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        // Prevent touch callout on iOS
+        WebkitTouchCallout: "none",
       }}
     >
       <span style={menuStyles.itemIcon}>
@@ -73,22 +88,35 @@ function MenuItem({
 }
 
 /**
- * Back button for submenu navigation
+ * Back button for submenu navigation with touch-friendly sizing
  */
 function BackButton({ onClick }: { onClick: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   return (
     <button
       type="button"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
       style={{
         ...menuStyles.item,
-        ...(isHovered ? menuStyles.itemHover : {}),
+        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
         borderBottom: "1px solid #e5e5e5",
         marginBottom: "4px",
+        // Ensure minimum touch target size
+        minHeight: "44px",
+        // Prevent text selection on touch
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
       }}
     >
       <ChevronLeftIcon className="w-4 h-4" style={{ opacity: 0.5 }} />
@@ -325,6 +353,35 @@ export function ContextMenu({
     }
   }, [visible, currentView, submenuStack.length, onClose]);
 
+  // Prevent touch default behaviors on menu container
+  useEffect(() => {
+    const menuElement = menuRef.current;
+    if (!visible || !menuElement) return;
+
+    // Prevent touch scrolling and other default behaviors within the menu
+    const preventTouchDefault = (e: TouchEvent) => {
+      // Allow touches within interactive elements (inputs, textareas)
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "INPUT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      // Prevent default to stop scroll/zoom behaviors
+      e.preventDefault();
+    };
+
+    menuElement.addEventListener("touchmove", preventTouchDefault, {
+      passive: false,
+    });
+
+    return () => {
+      menuElement.removeEventListener("touchmove", preventTouchDefault);
+    };
+  }, [visible]);
+
   if (!visible || !targetElement) {
     return null;
   }
@@ -410,6 +467,11 @@ export function ContextMenu({
         ...(containerWidth
           ? { width: containerWidth, minWidth: containerWidth }
           : {}),
+        // Touch-specific styles
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+        touchAction: "none", // Prevent default touch behaviors
         ...style,
       }}
       role="menu"

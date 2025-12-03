@@ -1,6 +1,7 @@
 import type {
   FeedbackAdapter,
   FeedbackPayload,
+  FeedbackTriggerEvent,
   FeedbackType,
   ScreenshotConfig,
   ScreenshotData,
@@ -102,8 +103,9 @@ export interface FeedbackProviderProps {
   /**
    * Filter function to determine if feedback should be captured for a target element
    * Return true to allow feedback, false to ignore
+   * Accepts both MouseEvent (right-click) and TouchEvent (press-and-hold)
    */
-  targetFilter?: (event: MouseEvent, target: Element) => boolean;
+  targetFilter?: (event: FeedbackTriggerEvent, target: Element) => boolean;
   /** Custom menu items (defaults to Issue, Feature, Like) */
   menuItems?: FeedbackMenuItem[];
   /** Maximum length for innerText capture */
@@ -132,6 +134,10 @@ export interface FeedbackProviderProps {
   highlightConfig?: HighlightConfig;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
+  /** Duration in ms to hold touch before triggering context menu (default: 500) */
+  touchHoldDurationMs?: number;
+  /** Maximum movement in px before touch hold is cancelled (default: 10) */
+  touchMoveThreshold?: number;
 }
 
 /**
