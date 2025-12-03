@@ -52,6 +52,9 @@ export function FeedbackProvider({
   disabled = false,
   highlightConfig,
   screenshotConfig,
+  touchHoldDurationMs,
+  touchMoveThreshold,
+  menuPositionMode = "inView",
 }: FeedbackProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -73,13 +76,15 @@ export function FeedbackProvider({
       maxAncestors,
       cooldownMs,
       stripAttributes,
+      touchHoldDurationMs,
+      touchMoveThreshold,
     });
 
     // Set up callbacks
     client.onSubmitSuccess = onSubmitSuccess;
     client.onSubmitError = onSubmitError;
 
-    // Set up context menu handler
+    // Set up context menu handler (works for both mouse and touch events)
     client.onContextMenu = (event, element) => {
       setTargetElement(element);
       // Find container element for screenshot capture
@@ -111,6 +116,8 @@ export function FeedbackProvider({
     onSubmitError,
     disabled,
     highlightConfig,
+    touchHoldDurationMs,
+    touchMoveThreshold,
   ]);
 
   // Submit feedback with optional screenshots
@@ -198,6 +205,7 @@ export function FeedbackProvider({
         className={menuClassName}
         highlightConfig={highlightConfig}
         screenshotConfig={screenshotConfig}
+        positionMode={menuPositionMode}
       />
     </FeedbackContext.Provider>
   );

@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import type { ContextMenuProps, FeedbackMenuItem } from "./types";
+import type {
+  ContextMenuProps,
+  FeedbackMenuItem,
+  MenuPositionMode,
+} from "./types";
 import type { FeedbackType, ScreenshotData } from "@ewjdev/anyclick-core";
 import {
   captureAllScreenshots,
@@ -18,7 +22,22 @@ import {
   ChevronRightIcon,
   ChevronLeftIcon,
   CameraIcon,
+  GripVertical,
 } from "lucide-react";
+
+/** Padding from viewport edges in pixels */
+const VIEWPORT_PADDING = 10;
+
+const screenshotIndicatorStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "6px",
+  padding: "8px 12px",
+  fontSize: "11px",
+  color: "#9ca3af",
+  borderTop: "1px solid #f3f4f6",
+  marginTop: "4px",
+};
 
 /**
  * Default icons for feedback types
@@ -30,7 +49,7 @@ const defaultIcons: Record<string, React.ReactNode> = {
 };
 
 /**
- * Menu item component
+ * Menu item component with touch-friendly sizing
  */
 function MenuItem({
   item,
@@ -44,6 +63,7 @@ function MenuItem({
   hasChildren?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   return (
     <button
@@ -51,11 +71,25 @@ function MenuItem({
       onClick={onClick}
       disabled={disabled}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
       style={{
         ...menuStyles.item,
-        ...(isHovered ? menuStyles.itemHover : {}),
+        // Apply hover/pressed state for both mouse and touch
+        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
         ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+        // Ensure minimum touch target size (44px is recommended)
+        minHeight: "44px",
+        // Prevent text selection on touch
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        // Prevent touch callout on iOS
+        WebkitTouchCallout: "none",
       }}
     >
       <span style={menuStyles.itemIcon}>
@@ -73,22 +107,35 @@ function MenuItem({
 }
 
 /**
- * Back button for submenu navigation
+ * Back button for submenu navigation with touch-friendly sizing
  */
 function BackButton({ onClick }: { onClick: () => void }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
 
   return (
     <button
       type="button"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
       style={{
         ...menuStyles.item,
-        ...(isHovered ? menuStyles.itemHover : {}),
+        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
         borderBottom: "1px solid #e5e5e5",
         marginBottom: "4px",
+        // Ensure minimum touch target size
+        minHeight: "44px",
+        // Prevent text selection on touch
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
       }}
     >
       <ChevronLeftIcon className="w-4 h-4" style={{ opacity: 0.5 }} />
@@ -169,6 +216,42 @@ function CommentForm({
 type MenuView = "menu" | "comment" | "screenshot-preview";
 
 /**
+ * Calculate adjusted position to keep menu in viewport
+ */
+function calculateInViewPosition(
+  requestedX: number,
+  requestedY: number,
+  menuWidth: number,
+  menuHeight: number,
+): { x: number; y: number } {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  let x = requestedX;
+  let y = requestedY;
+
+  // Adjust X if menu would go off the right edge
+  if (x + menuWidth > viewportWidth - VIEWPORT_PADDING) {
+    x = viewportWidth - menuWidth - VIEWPORT_PADDING;
+  }
+  // Ensure X doesn't go off the left edge
+  if (x < VIEWPORT_PADDING) {
+    x = VIEWPORT_PADDING;
+  }
+
+  // Adjust Y if menu would go off the bottom edge
+  if (y + menuHeight > viewportHeight - VIEWPORT_PADDING) {
+    y = viewportHeight - menuHeight - VIEWPORT_PADDING;
+  }
+  // Ensure Y doesn't go off the top edge
+  if (y < VIEWPORT_PADDING) {
+    y = VIEWPORT_PADDING;
+  }
+
+  return { x, y };
+}
+
+/**
  * Context menu component for selecting feedback type
  */
 export function ContextMenu({
@@ -184,6 +267,7 @@ export function ContextMenu({
   className,
   highlightConfig,
   screenshotConfig,
+  positionMode = "inView",
 }: ContextMenuProps) {
   const [selectedType, setSelectedType] = useState<FeedbackType | null>(null);
   const [currentView, setCurrentView] = useState<MenuView>("menu");
@@ -192,6 +276,18 @@ export function ContextMenu({
   const [screenshots, setScreenshots] = useState<ScreenshotData | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Position state for different modes
+  const [adjustedPosition, setAdjustedPosition] = useState<{
+    x: number;
+    y: number;
+  }>(position);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
+    x: 0,
+    y: 0,
+  });
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Merge screenshot config with defaults
   const mergedScreenshotConfig = {
@@ -235,6 +331,9 @@ export function ContextMenu({
       setSubmenuStack([]);
       setScreenshots(null);
       setIsCapturing(false);
+      setIsDragging(false);
+      setDragOffset({ x: 0, y: 0 });
+      dragStartRef.current = null;
     }
   }, [visible]);
 
@@ -265,6 +364,10 @@ export function ContextMenu({
       if (!menuRef.current) return;
 
       const target = event.target as Node;
+      // Don't close if clicking on the drag handle
+      if ((target as HTMLElement).closest?.("[data-drag-handle]")) {
+        return;
+      }
       if (!menuRef.current.contains(target)) {
         onClose();
       }
@@ -276,29 +379,95 @@ export function ContextMenu({
     };
   }, [visible, onClose]);
 
-  // Adjust position to stay within viewport
+  // Reset adjusted position when menu opens at new position
   useEffect(() => {
-    if (visible && menuRef.current) {
-      const rect = menuRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-
-      let adjustedX = position.x;
-      let adjustedY = position.y;
-
-      if (position.x + rect.width > viewportWidth) {
-        adjustedX = viewportWidth - rect.width - 10;
-      }
-      if (position.y + rect.height > viewportHeight) {
-        adjustedY = viewportHeight - rect.height - 10;
-      }
-
-      if (adjustedX !== position.x || adjustedY !== position.y) {
-        menuRef.current.style.left = `${adjustedX}px`;
-        menuRef.current.style.top = `${adjustedY}px`;
-      }
+    if (visible) {
+      setAdjustedPosition(position);
+      setDragOffset({ x: 0, y: 0 });
     }
-  }, [visible, position]);
+  }, [visible, position.x, position.y]);
+
+  // Calculate and apply position based on mode
+  useEffect(() => {
+    if (!visible || !menuRef.current) return;
+
+    const updatePosition = () => {
+      const menuElement = menuRef.current;
+      if (!menuElement) return;
+
+      const rect = menuElement.getBoundingClientRect();
+      const baseX = position.x + dragOffset.x;
+      const baseY = position.y + dragOffset.y;
+
+      if (positionMode === "static") {
+        // Static mode: use position directly (may go off-screen)
+        setAdjustedPosition({ x: baseX, y: baseY });
+      } else if (positionMode === "inView" || positionMode === "dynamic") {
+        // inView and dynamic: keep menu in viewport
+        const adjusted = calculateInViewPosition(
+          baseX,
+          baseY,
+          rect.width,
+          rect.height,
+        );
+        setAdjustedPosition(adjusted);
+      }
+    };
+
+    // Initial calculation after render
+    requestAnimationFrame(updatePosition);
+
+    // Recalculate on resize
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [visible, position, positionMode, dragOffset, currentView]);
+
+  // Dragging logic for dynamic mode
+  useEffect(() => {
+    if (!visible || positionMode !== "dynamic") return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (!isDragging || !dragStartRef.current) return;
+
+      const deltaX = event.clientX - dragStartRef.current.x;
+      const deltaY = event.clientY - dragStartRef.current.y;
+
+      setDragOffset((prev) => ({
+        x: prev.x + deltaX,
+        y: prev.y + deltaY,
+      }));
+
+      dragStartRef.current = { x: event.clientX, y: event.clientY };
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      dragStartRef.current = null;
+    };
+
+    if (isDragging) {
+      document.addEventListener("pointermove", handlePointerMove);
+      document.addEventListener("pointerup", handlePointerUp);
+      document.addEventListener("pointercancel", handlePointerUp);
+
+      return () => {
+        document.removeEventListener("pointermove", handlePointerMove);
+        document.removeEventListener("pointerup", handlePointerUp);
+        document.removeEventListener("pointercancel", handlePointerUp);
+      };
+    }
+  }, [visible, positionMode, isDragging]);
+
+  // Handle drag start
+  const handleDragStart = useCallback(
+    (event: React.PointerEvent) => {
+      if (positionMode !== "dynamic") return;
+      event.preventDefault();
+      setIsDragging(true);
+      dragStartRef.current = { x: event.clientX, y: event.clientY };
+    },
+    [positionMode],
+  );
 
   // Handle escape key
   useEffect(() => {
@@ -324,6 +493,35 @@ export function ContextMenu({
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
   }, [visible, currentView, submenuStack.length, onClose]);
+
+  // Prevent touch default behaviors on menu container
+  useEffect(() => {
+    const menuElement = menuRef.current;
+    if (!visible || !menuElement) return;
+
+    // Prevent touch scrolling and other default behaviors within the menu
+    const preventTouchDefault = (e: TouchEvent) => {
+      // Allow touches within interactive elements (inputs, textareas)
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "INPUT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+      // Prevent default to stop scroll/zoom behaviors
+      e.preventDefault();
+    };
+
+    menuElement.addEventListener("touchmove", preventTouchDefault, {
+      passive: false,
+    });
+
+    return () => {
+      menuElement.removeEventListener("touchmove", preventTouchDefault);
+    };
+  }, [visible]);
 
   if (!visible || !targetElement) {
     return null;
@@ -405,18 +603,60 @@ export function ContextMenu({
       className={className}
       style={{
         ...menuStyles.container,
-        left: position.x,
-        top: position.y,
+        left: adjustedPosition.x,
+        top: adjustedPosition.y,
         ...(containerWidth
           ? { width: containerWidth, minWidth: containerWidth }
           : {}),
+        // Touch-specific styles
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+        touchAction: "none", // Prevent default touch behaviors
+        // Cursor style for dragging
+        ...(isDragging ? { cursor: "grabbing" } : {}),
         ...style,
       }}
       role="menu"
       aria-label="Feedback options"
     >
+      {/* Header with optional drag handle */}
       {currentView !== "screenshot-preview" && (
-        <div style={menuStyles.header}>Send Feedback</div>
+        <div
+          style={{
+            ...menuStyles.header,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>Send Feedback</span>
+          {positionMode === "dynamic" && (
+            <div
+              data-drag-handle
+              onPointerDown={handleDragStart}
+              style={{
+                cursor: isDragging ? "grabbing" : "grab",
+                padding: "4px",
+                marginRight: "-4px",
+                borderRadius: "4px",
+                display: "flex",
+                alignItems: "center",
+                opacity: 0.5,
+                transition: "opacity 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.opacity = "1";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.opacity = "0.5";
+              }}
+              title="Drag to move"
+            >
+              <GripVertical className="w-4 h-4" />
+            </div>
+          )}
+        </div>
       )}
 
       {currentView === "menu" && (
@@ -461,14 +701,3 @@ export function ContextMenu({
     </div>
   );
 }
-
-const screenshotIndicatorStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "6px",
-  padding: "8px 12px",
-  fontSize: "11px",
-  color: "#9ca3af",
-  borderTop: "1px solid #f3f4f6",
-  marginTop: "4px",
-};
