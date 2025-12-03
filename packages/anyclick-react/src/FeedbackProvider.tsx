@@ -54,6 +54,7 @@ export function FeedbackProvider({
   screenshotConfig,
   touchHoldDurationMs,
   touchMoveThreshold,
+  menuPositionMode = "inView",
 }: FeedbackProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -204,6 +205,7 @@ export function FeedbackProvider({
         className={menuClassName}
         highlightConfig={highlightConfig}
         screenshotConfig={screenshotConfig}
+        positionMode={menuPositionMode}
       />
     </FeedbackContext.Provider>
   );

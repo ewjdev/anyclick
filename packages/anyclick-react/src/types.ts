@@ -9,6 +9,14 @@ import type {
 import type { ReactNode, CSSProperties } from "react";
 
 /**
+ * Menu positioning modes
+ * - static: Menu stays at exact click position (may go off-screen)
+ * - inView: Menu adjusts position to stay fully visible in viewport
+ * - dynamic: User can drag the menu to reposition it
+ */
+export type MenuPositionMode = "static" | "inView" | "dynamic";
+
+/**
  * Configuration for highlight colors
  */
 export interface HighlightColors {
@@ -138,6 +146,8 @@ export interface FeedbackProviderProps {
   touchHoldDurationMs?: number;
   /** Maximum movement in px before touch hold is cancelled (default: 10) */
   touchMoveThreshold?: number;
+  /** Menu positioning mode (default: 'inView') */
+  menuPositionMode?: MenuPositionMode;
 }
 
 /**
@@ -192,6 +202,8 @@ export interface ContextMenuProps {
   highlightConfig?: HighlightConfig;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
+  /** Menu positioning mode (default: 'inView') */
+  positionMode?: MenuPositionMode;
 }
 
 /**

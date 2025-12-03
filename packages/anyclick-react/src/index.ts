@@ -18,6 +18,7 @@ export type {
   HighlightConfig,
   FeedbackUserContext,
   ScreenshotPreviewProps,
+  MenuPositionMode,
 } from "./types";
 
 // Utilities
