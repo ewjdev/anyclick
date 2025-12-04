@@ -1,5 +1,51 @@
 # @ewjdev/anyclick-pointer
 
+## 1.1.0
+
+### Minor Changes
+
+- 8d9a18e: Cursor theming, scoped providers and menu theming
+
+## 1.1.0
+
+### Minor Changes
+
+- **Nested Provider Support**: `PointerProvider` now supports nesting. When you nest providers, hovering over a nested provider's children will apply that provider's theme to the pointer.
+
+  ```tsx
+  <PointerProvider theme={{ colors: { pointerColor: "blue" } }}>
+    <div>Blue pointer here</div>
+
+    {/* Nested - theme applied on hover */}
+    <PointerProvider theme={{ colors: { pointerColor: "red" } }}>
+      <div>Red pointer when hovering here!</div>
+    </PointerProvider>
+  </PointerProvider>
+  ```
+
+- **Theme Inheritance**: Nested providers inherit and merge with parent themes. You only need to specify the values you want to override.
+
+- **New Helper Functions**:
+
+  - `mergeThemeWithDefaults(theme)` - Merge a partial theme with default values
+  - `mergeThemeWithParent(parentTheme, childTheme)` - Merge a child theme with parent
+  - `mergeConfigWithDefaults(config)` - Merge a partial config with defaults
+  - `mergeConfigWithParent(parentConfig, childConfig)` - Merge a child config with parent
+
+- **New Hooks**:
+
+  - `useParentPointerTheme()` - Access parent provider's theme for manual merging
+
+- **New Type Exports**:
+  - `MergedTheme` - Type for fully merged theme with required values
+
+### Implementation Details
+
+- Root provider renders the actual `CustomPointer` component
+- Nested providers wrap children in a hover-detection container
+- Theme overrides are managed via a stack - hovering pushes theme, leaving pops it
+- Supports arbitrary nesting depth
+
 ## 1.0.0
 
 ### Major Changes
@@ -32,4 +78,3 @@
 - Comprehensive README with usage examples
 - Interactive examples page with live theme customization
 - API reference for all configuration options
-

@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-pointer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "description": "Customizable cursor visualization with smooth animations for UI feedback",
   "keywords": [

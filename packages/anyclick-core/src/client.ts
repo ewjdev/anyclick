@@ -37,8 +37,15 @@ export class FeedbackClient {
   private contextMenuHandler: ((e: MouseEvent) => void) | null = null;
   private isAttached = false;
 
-  /** Callback when context menu should be shown */
-  public onContextMenu?: (event: MouseEvent, element: Element) => void;
+  /**
+   * Callback when context menu should be shown.
+   * Return `false` to allow the native context menu (e.g., for disabled scopes).
+   * Return `true` or `void` to prevent the native menu and show the custom menu.
+   */
+  public onContextMenu?: (
+    event: MouseEvent,
+    element: Element,
+  ) => boolean | void;
 
   /** Callback after successful submission */
   public onSubmitSuccess?: (payload: FeedbackPayload) => void;
@@ -149,14 +156,19 @@ export class FeedbackClient {
           });
         }
 
-        event.preventDefault();
-        // Stop propagation for scoped providers to prevent parent providers
-        // from also handling the same event
-        if (this.container) {
-          event.stopPropagation();
-          event.stopImmediatePropagation(); // Also stop other listeners on same element
+        // Call the callback first - it returns true if it handled the event
+        // If it returns false (e.g., for disabled scopes), we let the native menu show
+        const handled = this.onContextMenu(event, target);
+
+        if (handled !== false) {
+          event.preventDefault();
+          // Stop propagation for scoped providers to prevent parent providers
+          // from also handling the same event
+          if (this.container) {
+            event.stopPropagation();
+            event.stopImmediatePropagation(); // Also stop other listeners on same element
+          }
         }
-        this.onContextMenu(event, target);
       }
     };
 
