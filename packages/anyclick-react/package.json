@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-react"
   },
-  "homepage": "https://anyclick.ewjdev.com/docs/react",
+  "homepage": "https://anyclick.ewj.dev/docs/react",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -45,7 +45,8 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.0.0"
+    "@ewjdev/anyclick-core": "^1.1.0",
+    "zustand": "^5.0.2"
   },
   "peerDependencies": {
     "react": ">=19.1.1",

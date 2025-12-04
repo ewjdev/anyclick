@@ -242,6 +242,12 @@ export interface FeedbackClientOptions {
   cooldownMs?: number;
   /** Attributes to strip from outerHTML for privacy */
   stripAttributes?: string[];
+  /**
+   * Optional container element to scope event listeners to.
+   * If provided, only events within this container will be captured.
+   * If not provided, events are captured from the entire document.
+   */
+  container?: Element | null;
   /** Duration in ms to hold touch before triggering context menu (default: 500) */
   touchHoldDurationMs?: number;
   /** Maximum movement in px before touch hold is cancelled (default: 10) */

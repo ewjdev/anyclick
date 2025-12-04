@@ -80,8 +80,14 @@ export default function DocsPage() {
             {
               name: "@ewjdev/anyclick-react",
               description:
-                "React provider and context menu UI. Drop-in component that handles all UI and event management.",
+                "React provider with context menu UI. Supports scoped providers, nested theming, and event bubbling.",
               color: "cyan",
+            },
+            {
+              name: "@ewjdev/anyclick-pointer",
+              description:
+                "Custom cursor component with theming support. Replace default cursor with animated, themed pointers.",
+              color: "fuchsia",
             },
             {
               name: "@ewjdev/anyclick-github",
@@ -161,7 +167,7 @@ export default function DocsPage() {
               <ArrowRight className="w-4 h-4 ml-auto text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
             </div>
             <p className="text-gray-400 text-sm">
-              Integrate with React using the FeedbackProvider.
+              Integrate with React using the AnyclickProvider.
             </p>
           </Link>
 

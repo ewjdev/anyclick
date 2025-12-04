@@ -1,24 +1,46 @@
 // Components
 "use client";
 
-export { FeedbackProvider } from "./FeedbackProvider";
+// New exports
+export { AnyclickProvider } from "./AnyclickProvider";
 export { ContextMenu } from "./ContextMenu";
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
-// Context and hooks
+// Deprecated exports (for backward compatibility)
+export { FeedbackProvider } from "./AnyclickProvider";
+
+// Context and hooks (new)
+export { AnyclickContext, useAnyclick } from "./context";
+
+// Context and hooks (deprecated, for backward compatibility)
 export { FeedbackContext, useFeedback } from "./context";
 
-// Types
+// Store exports (for advanced use cases)
+export {
+  useProviderStore,
+  generateProviderId,
+  dispatchContextMenuEvent,
+  type ProviderInstance,
+} from "./store";
+
+// Types (new)
 export type {
+  AnyclickProviderProps,
+  AnyclickContextValue,
+  AnyclickTheme,
   FeedbackMenuItem,
-  FeedbackProviderProps,
-  FeedbackContextValue,
   ContextMenuProps,
   HighlightColors,
   HighlightConfig,
   FeedbackUserContext,
   ScreenshotPreviewProps,
   MenuPositionMode,
+} from "./types";
+
+// Types (deprecated, for backward compatibility)
+export type {
+  FeedbackProviderProps,
+  FeedbackContextValue,
 } from "./types";
 
 // Utilities
@@ -49,7 +71,7 @@ export {
 } from "@ewjdev/anyclick-core";
 
 // Styles (for customization)
-export { menuStyles, darkMenuStyles } from "./styles";
+export { menuStyles, darkMenuStyles, menuCSSVariables } from "./styles";
 
 // Highlight utilities (for customization)
 export {

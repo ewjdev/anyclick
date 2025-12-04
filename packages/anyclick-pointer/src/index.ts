@@ -1,7 +1,20 @@
 // Components
 "use client";
 
-export { PointerProvider, PointerContext, usePointer } from "./PointerProvider";
+export {
+  PointerProvider,
+  PointerContext,
+  usePointer,
+  useParentPointerTheme,
+  // Theme/config merging helpers
+  mergeThemeWithDefaults,
+  mergeThemeWithParent,
+  mergeConfigWithDefaults,
+  mergeConfigWithParent,
+} from "./PointerProvider";
+
+// Re-export MergedTheme type
+export type { MergedTheme } from "./PointerProvider";
 export { CustomPointer } from "./CustomPointer";
 
 // Types

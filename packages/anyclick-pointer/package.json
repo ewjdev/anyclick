@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-pointer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "description": "Customizable cursor visualization with smooth animations for UI feedback",
   "keywords": [
@@ -22,7 +22,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-pointer"
   },
-  "homepage": "https://anyclick.ewjdev.com/docs/pointer",
+  "homepage": "https://anyclick.ewj.dev/docs/pointer",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },

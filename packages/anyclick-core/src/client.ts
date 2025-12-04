@@ -34,33 +34,32 @@ function defaultTargetFilter(
  */
 export class FeedbackClient {
   private adapter: FeedbackAdapter;
-  private targetFilter: (event: FeedbackTriggerEvent, target: Element) => boolean;
+  private targetFilter: (
+    event: FeedbackTriggerEvent,
+    target: Element,
+  ) => boolean;
   private maxInnerTextLength: number;
   private maxOuterHTMLLength: number;
   private maxAncestors: number;
   private cooldownMs: number;
   private stripAttributes: string[];
-  private touchHoldDurationMs: number;
-  private touchMoveThreshold: number;
+  private container: Element | null;
+  private attachedTarget: EventTarget | null = null;
 
   private lastSubmissionTime = 0;
   private pendingElement: Element | null = null;
   private contextMenuHandler: ((e: MouseEvent) => void) | null = null;
   private isAttached = false;
 
-  // Touch event state
-  private touchStartHandler: ((e: TouchEvent) => void) | null = null;
-  private touchMoveHandler: ((e: TouchEvent) => void) | null = null;
-  private touchEndHandler: ((e: TouchEvent) => void) | null = null;
-  private touchCancelHandler: ((e: TouchEvent) => void) | null = null;
-  private touchHoldTimer: ReturnType<typeof setTimeout> | null = null;
-  private touchStartPosition: { x: number; y: number } | null = null;
-  private touchTargetElement: Element | null = null;
-  private touchStartEvent: TouchEvent | null = null;
-  private touchHoldTriggered = false;
-
-  /** Callback when context menu should be shown */
-  public onContextMenu?: (event: FeedbackMenuEvent, element: Element) => void;
+  /**
+   * Callback when context menu should be shown.
+   * Return `false` to allow the native context menu (e.g., for disabled scopes).
+   * Return `true` or `void` to prevent the native menu and show the custom menu.
+   */
+  public onContextMenu?: (
+    event: MouseEvent,
+    element: Element,
+  ) => boolean | void;
 
   /** Callback after successful submission */
   public onSubmitSuccess?: (payload: FeedbackPayload) => void;
@@ -76,77 +75,86 @@ export class FeedbackClient {
     this.maxAncestors = options.maxAncestors ?? 5;
     this.cooldownMs = options.cooldownMs ?? 1000;
     this.stripAttributes = options.stripAttributes ?? [];
-    this.touchHoldDurationMs =
-      options.touchHoldDurationMs ?? DEFAULT_TOUCH_HOLD_DURATION_MS;
-    this.touchMoveThreshold =
-      options.touchMoveThreshold ?? DEFAULT_TOUCH_MOVE_THRESHOLD;
+    this.container = options.container ?? null;
   }
 
   /**
-   * Clear touch state and timer
+   * Update the container element for scoped event handling
    */
-  private clearTouchState(): void {
-    if (this.touchHoldTimer) {
-      clearTimeout(this.touchHoldTimer);
-      this.touchHoldTimer = null;
-    }
-    this.touchStartPosition = null;
-    this.touchTargetElement = null;
-    this.touchStartEvent = null;
-    this.touchHoldTriggered = false;
-  }
-
-  /**
-   * Calculate distance between two points
-   */
-  private getDistance(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-  ): number {
-    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-  }
-
-  /**
-   * Handle touch hold completion (after duration expires)
-   */
-  private handleTouchHold(): void {
-    if (!this.touchTargetElement || !this.touchStartPosition || !this.touchStartEvent) {
-      return;
+  setContainer(container: Element | null): void {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Anyclick] setContainer called", {
+        hadContainer: !!this.container,
+        newContainer: !!container,
+        wasAttached: this.isAttached,
+      });
     }
 
-    this.touchHoldTriggered = true;
-
-    // Store the pending element for later submission
-    this.pendingElement = this.touchTargetElement;
-
-    // Create synthetic event for positioning
-    const menuEvent: FeedbackMenuEvent = {
-      clientX: this.touchStartPosition.x,
-      clientY: this.touchStartPosition.y,
-      originalEvent: this.touchStartEvent,
-      isTouch: true,
-    };
-
-    // Call the onContextMenu callback if set
-    if (this.onContextMenu) {
-      this.onContextMenu(menuEvent, this.touchTargetElement);
+    const wasAttached = this.isAttached;
+    if (wasAttached) {
+      this.detach();
+    }
+    this.container = container;
+    if (wasAttached) {
+      this.attach();
     }
   }
 
   /**
-   * Attach event listeners to the document
+   * Get the current container element
+   */
+  getContainer(): Element | null {
+    return this.container;
+  }
+
+  /**
+   * Attach event listeners to the container or document
    */
   attach(): void {
     if (this.isAttached) return;
     if (typeof document === "undefined") return;
 
-    // Context menu handler (right-click)
+    const isScoped = !!this.container;
+    const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Attaching event listener`, {
+        isScoped,
+        container: this.container,
+        useCapture: isScoped,
+      });
+    }
+
     this.contextMenuHandler = (event: MouseEvent) => {
       const target = event.target as Element;
+      const targetTag = target.tagName?.toLowerCase() || "unknown";
+      const targetClass = target.className || "";
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(`${debugPrefix} Context menu event received`, {
+          target: `${targetTag}.${targetClass.toString().slice(0, 50)}`,
+          eventPhase:
+            event.eventPhase === 1
+              ? "CAPTURE"
+              : event.eventPhase === 2
+                ? "TARGET"
+                : "BUBBLE",
+          hasContainer: !!this.container,
+        });
+      }
+
+      // If scoped to a container, ensure target is within the container
+      if (this.container && !this.container.contains(target)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Target not in container, skipping`);
+        }
+        return;
+      }
 
       if (!this.targetFilter(event, target)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Target filtered out`);
+        }
         return;
       }
 
@@ -163,136 +171,70 @@ export class FeedbackClient {
 
       // Call the onContextMenu callback if set
       if (this.onContextMenu) {
-        event.preventDefault();
-        this.onContextMenu(menuEvent, target);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Handling event`, {
+            willStopPropagation: isScoped,
+            target: `${targetTag}`,
+          });
+        }
+
+        // Call the callback first - it returns true if it handled the event
+        // If it returns false (e.g., for disabled scopes), we let the native menu show
+        const handled = this.onContextMenu(event, target);
+
+        if (handled !== false) {
+          event.preventDefault();
+          // Stop propagation for scoped providers to prevent parent providers
+          // from also handling the same event
+          if (this.container) {
+            event.stopPropagation();
+            event.stopImmediatePropagation(); // Also stop other listeners on same element
+          }
+        }
       }
     };
 
-    // Touch start handler
-    this.touchStartHandler = (event: TouchEvent) => {
-      // Only handle single touch
-      if (event.touches.length !== 1) {
-        this.clearTouchState();
-        return;
-      }
+    // For scoped providers, always attach to document but filter by container
+    // This avoids issues with display:contents not receiving events
+    this.attachedTarget = document;
 
-      const touch = event.touches[0];
-      const target = event.target as Element;
-
-      if (!this.targetFilter(event, target)) {
-        return;
-      }
-
-      // Store touch state
-      this.touchStartPosition = { x: touch.clientX, y: touch.clientY };
-      this.touchTargetElement = target;
-      this.touchStartEvent = event;
-      this.touchHoldTriggered = false;
-
-      // Start hold timer
-      this.touchHoldTimer = setTimeout(() => {
-        this.handleTouchHold();
-      }, this.touchHoldDurationMs);
-    };
-
-    // Touch move handler
-    this.touchMoveHandler = (event: TouchEvent) => {
-      if (!this.touchStartPosition || !this.touchHoldTimer) {
-        return;
-      }
-
-      // If hold already triggered, prevent default to stop scrolling
-      if (this.touchHoldTriggered) {
-        event.preventDefault();
-        return;
-      }
-
-      const touch = event.touches[0];
-      if (!touch) {
-        this.clearTouchState();
-        return;
-      }
-
-      // Calculate distance moved
-      const distance = this.getDistance(
-        this.touchStartPosition.x,
-        this.touchStartPosition.y,
-        touch.clientX,
-        touch.clientY,
-      );
-
-      // Cancel hold if moved too much
-      if (distance > this.touchMoveThreshold) {
-        this.clearTouchState();
-      }
-    };
-
-    // Touch end handler
-    this.touchEndHandler = (event: TouchEvent) => {
-      // If hold was triggered, prevent default actions (click, etc.)
-      if (this.touchHoldTriggered) {
-        event.preventDefault();
-      }
-      this.clearTouchState();
-    };
-
-    // Touch cancel handler
-    this.touchCancelHandler = () => {
-      this.clearTouchState();
-    };
-
-    // Attach event listeners
-    document.addEventListener("contextmenu", this.contextMenuHandler);
-    document.addEventListener("touchstart", this.touchStartHandler, {
-      passive: true,
-    });
-    document.addEventListener("touchmove", this.touchMoveHandler, {
-      passive: false, // Need to be able to prevent default
-    });
-    document.addEventListener("touchend", this.touchEndHandler, {
-      passive: false,
-    });
-    document.addEventListener("touchcancel", this.touchCancelHandler, {
-      passive: true,
-    });
-
+    // Use capture phase for scoped providers to handle events before bubble phase
+    // This ensures scoped handlers run before global handlers
+    this.attachedTarget.addEventListener(
+      "contextmenu",
+      this.contextMenuHandler as EventListener,
+      isScoped ? true : false, // capture phase for scoped
+    );
     this.isAttached = true;
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Event listener attached successfully`);
+    }
   }
 
   /**
-   * Detach event listeners from the document
+   * Detach event listeners from the container or document
    */
   detach(): void {
-    if (!this.isAttached) return;
+    if (!this.isAttached || !this.contextMenuHandler || !this.attachedTarget)
+      return;
     if (typeof document === "undefined") return;
 
-    // Remove context menu handler
-    if (this.contextMenuHandler) {
-      document.removeEventListener("contextmenu", this.contextMenuHandler);
-      this.contextMenuHandler = null;
+    const isScoped = !!this.container;
+    const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Detaching event listener`);
     }
 
-    // Remove touch handlers
-    if (this.touchStartHandler) {
-      document.removeEventListener("touchstart", this.touchStartHandler);
-      this.touchStartHandler = null;
-    }
-    if (this.touchMoveHandler) {
-      document.removeEventListener("touchmove", this.touchMoveHandler);
-      this.touchMoveHandler = null;
-    }
-    if (this.touchEndHandler) {
-      document.removeEventListener("touchend", this.touchEndHandler);
-      this.touchEndHandler = null;
-    }
-    if (this.touchCancelHandler) {
-      document.removeEventListener("touchcancel", this.touchCancelHandler);
-      this.touchCancelHandler = null;
-    }
-
-    // Clear touch state
-    this.clearTouchState();
-
+    // Remove with same capture option that was used when adding
+    this.attachedTarget.removeEventListener(
+      "contextmenu",
+      this.contextMenuHandler as EventListener,
+      this.container ? true : false,
+    );
+    this.contextMenuHandler = null;
+    this.attachedTarget = null;
     this.isAttached = false;
     this.pendingElement = null;
   }

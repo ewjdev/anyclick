@@ -1,19 +1,35 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import type { FeedbackContextValue } from "./types";
+import type { AnyclickContextValue } from "./types";
 
 /**
- * React context for feedback functionality
+ * React context for anyclick functionality
  */
-export const FeedbackContext = createContext<FeedbackContextValue | null>(null);
+export const AnyclickContext = createContext<AnyclickContextValue | null>(null);
 
 /**
- * Hook to access feedback context
- * @throws Error if used outside of FeedbackProvider
+ * @deprecated Use AnyclickContext instead
  */
-export function useFeedback(): FeedbackContextValue {
-  const context = useContext(FeedbackContext);
+export const FeedbackContext = AnyclickContext;
+
+/**
+ * Hook to access anyclick context
+ * @throws Error if used outside of AnyclickProvider
+ */
+export function useAnyclick(): AnyclickContextValue {
+  const context = useContext(AnyclickContext);
+  if (!context) {
+    throw new Error("useAnyclick must be used within an AnyclickProvider");
+  }
+  return context;
+}
+
+/**
+ * @deprecated Use useAnyclick instead
+ */
+export function useFeedback(): AnyclickContextValue {
+  const context = useContext(AnyclickContext);
   if (!context) {
     throw new Error("useFeedback must be used within a FeedbackProvider");
   }

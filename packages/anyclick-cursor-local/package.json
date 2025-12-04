@@ -23,7 +23,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-cursor-local"
   },
-  "homepage": "https://anyclick.ewjdev.com/docs/adapters",
+  "homepage": "https://anyclick.ewj.dev/docs/adapters",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
