@@ -10,6 +10,13 @@ import {
   Terminal,
   Box,
   Sparkles,
+  TestTube,
+  Target,
+  Users,
+  Palette,
+  Eye,
+  Check,
+  Clock,
 } from "lucide-react";
 
 export default function Home() {
@@ -133,7 +140,7 @@ export default function Home() {
               <code>
                 <span className="text-purple-400">import</span>
                 <span className="text-gray-300">{" { "}</span>
-                <span className="text-cyan-400">FeedbackProvider</span>
+                <span className="text-cyan-400">AnyclickProvider</span>
                 <span className="text-gray-300">{" } "}</span>
                 <span className="text-purple-400">from</span>
                 <span className="text-emerald-400">
@@ -171,7 +178,7 @@ export default function Home() {
                 <span className="text-gray-300">{" ("}</span>
                 {"\n    "}
                 <span className="text-gray-500">{"<"}</span>
-                <span className="text-red-400">FeedbackProvider</span>
+                <span className="text-red-400">AnyclickProvider</span>
                 <span className="text-cyan-300">{" adapter"}</span>
                 <span className="text-gray-300">{"={"}</span>
                 <span className="text-cyan-400">adapter</span>
@@ -181,7 +188,7 @@ export default function Home() {
                 <span className="text-gray-300">{"{children}"}</span>
                 {"\n    "}
                 <span className="text-gray-500">{"</"}</span>
-                <span className="text-red-400">FeedbackProvider</span>
+                <span className="text-red-400">AnyclickProvider</span>
                 <span className="text-gray-500">{">"}</span>
                 {"\n  "}
                 <span className="text-gray-300">{");"}</span>
@@ -189,6 +196,328 @@ export default function Home() {
                 <span className="text-gray-300">{"}"}</span>
               </code>
             </pre>
+          </div>
+        </div>
+      </section>
+
+      {/* Use Cases Section */}
+      <section className="py-24 px-6 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent" />
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Built for every role
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Whether you&apos;re hunting bugs, designing interfaces, or
+              managing products—anyclick adapts to your workflow.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* QA Engineer */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <TestTube className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">QA Engineer</h3>
+                  <p className="text-sm text-gray-500">Bug bash partner</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Right-click feedback capture
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Screenshot capture (element, container, viewport)
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  GitHub Issues integration
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Sensitive data masking
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Jira integration{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Slack integration{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Developer */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Terminal className="w-6 h-6 text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Developer</h3>
+                  <p className="text-sm text-gray-500">
+                    AI-assisted bug fixing
+                  </p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Cursor AI agent (local & cloud)
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  GitHub Issues integration
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Context-aware DOM capture
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Full DOM context with ancestors
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Jira integration{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Playwright test generation{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Product Manager */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Target className="w-6 h-6 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Product Manager</h3>
+                  <p className="text-sm text-gray-500">Capture pain points</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Feature feedback type
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Screenshot capture
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Comment support
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Custom menu items
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Workflow recording{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Pain point analytics{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Customer/End User */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Users className="w-6 h-6 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Customer</h3>
+                  <p className="text-sm text-gray-500">Easy feedback</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Right-click feedback (easy to use)
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Screenshot capture
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Comment support
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Touch support (press-and-hold)
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Auto error collection{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Click behavior tracking{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* UX Designer */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-rose-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Palette className="w-6 h-6 text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">UX Designer</h3>
+                  <p className="text-sm text-gray-500">Customizable menus</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Custom menu items
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Role-based menu filtering
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Custom menu styling
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Custom cursor/pointer
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Element-specific menus{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Designer */}
+            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Eye className="w-6 h-6 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Designer</h3>
+                  <p className="text-sm text-gray-500">Catch visual bugs</p>
+                </div>
+              </div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Screenshot capture (element, container, viewport)
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Full DOM context
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Sensitive data masking
+                </li>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Element highlighting
+                </li>
+                <li className="flex items-center gap-2 text-gray-500">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    Visual diff/comparison{" "}
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Soon
+                    </span>
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Roadmap Summary */}
+          <div className="mt-16 p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5 text-amber-400" />
+                  Coming Soon
+                </h3>
+                <p className="text-sm text-gray-400 max-w-2xl">
+                  Workflow recording, Jira & Slack integrations, automatic error
+                  collection, click behavior analytics, Playwright test
+                  generation, and more.
+                </p>
+              </div>
+              <a
+                href="https://github.com/ewjdev/anyclick/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 px-5 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                Request a feature
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -531,7 +860,7 @@ export default function Home() {
                     <code>
                       <span className="text-purple-400">import</span>
                       <span className="text-gray-300">{" { "}</span>
-                      <span className="text-cyan-400">FeedbackProvider</span>
+                      <span className="text-cyan-400">AnyclickProvider</span>
                       <span className="text-gray-300">{" } "}</span>
                       <span className="text-purple-400">from</span>
                       <span className="text-emerald-400">
@@ -571,7 +900,7 @@ export default function Home() {
                       <span className="text-gray-300">{" ("}</span>
                       {"\n    "}
                       <span className="text-gray-500">{"<"}</span>
-                      <span className="text-red-400">FeedbackProvider</span>
+                      <span className="text-red-400">AnyclickProvider</span>
                       <span className="text-cyan-300">{" adapter"}</span>
                       <span className="text-gray-300">{"={"}</span>
                       <span className="text-cyan-400">adapter</span>
@@ -581,7 +910,7 @@ export default function Home() {
                       <span className="text-gray-300">{"{children}"}</span>
                       {"\n    "}
                       <span className="text-gray-500">{"</"}</span>
-                      <span className="text-red-400">FeedbackProvider</span>
+                      <span className="text-red-400">AnyclickProvider</span>
                       <span className="text-gray-500">{">"}</span>
                       {"\n  "}
                       <span className="text-gray-300">{");"}</span>
