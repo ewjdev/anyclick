@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import type { FeedbackMenuEvent } from "@ewjdev/anyclick-core";
 import type { AnyclickTheme } from "./types";
 
 /**
@@ -22,7 +23,7 @@ export interface ProviderInstance {
   /** Depth in the provider hierarchy (0 = root) */
   depth: number;
   /** Handler to call when an event occurs in this provider's scope */
-  onContextMenu?: (event: MouseEvent, element: Element) => void;
+  onContextMenu?: (event: FeedbackMenuEvent, element: Element) => boolean | void;
 }
 
 /**
