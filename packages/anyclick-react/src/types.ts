@@ -24,6 +24,8 @@ export interface AnyclickTheme {
   /** Whether anyclick functionality is disabled in this theme */
   disabled?: boolean;
 }
+
+/**
  * Menu positioning modes
  * - static: Menu stays at exact click position (may go off-screen)
  * - inView: Menu adjusts position to stay fully visible in viewport

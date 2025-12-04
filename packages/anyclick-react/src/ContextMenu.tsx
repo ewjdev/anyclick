@@ -34,8 +34,8 @@ const screenshotIndicatorStyle: React.CSSProperties = {
   gap: "6px",
   padding: "8px 12px",
   fontSize: "11px",
-  color: "#9ca3af",
-  borderTop: "1px solid #f3f4f6",
+  color: "var(--anyclick-menu-text-muted, #9ca3af)",
+  borderTop: "1px solid var(--anyclick-menu-border, #f3f4f6)",
   marginTop: "4px",
 };
 
@@ -711,14 +711,3 @@ export function ContextMenu({
     </div>
   );
 }
-
-const screenshotIndicatorStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "6px",
-  padding: "8px 12px",
-  fontSize: "11px",
-  color: "var(--anyclick-menu-text-muted, #9ca3af)",
-  borderTop: "1px solid var(--anyclick-menu-border, #f3f4f6)",
-  marginTop: "4px",
-};
