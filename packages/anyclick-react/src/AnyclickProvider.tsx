@@ -174,20 +174,22 @@ export function AnyclickProvider({
   }, [theme, menuStyle, menuClassName, highlightConfig, screenshotConfig]);
 
   // Context menu handler
+  // Returns false to allow native context menu (for disabled scopes)
+  // Returns true (or void) to show custom menu
   const handleContextMenu = useCallback(
-    (event: MouseEvent, element: Element) => {
+    (event: MouseEvent, element: Element): boolean => {
       // For non-scoped (global) providers, check if the element is inside
-      // a disabled scoped provider's container - if so, don't show menu
+      // a disabled scoped provider's container - if so, allow native menu
       if (!scoped && isElementInDisabledScope(element)) {
         if (process.env.NODE_ENV === "development") {
           console.log(
-            `[AnyclickProvider:${providerId}] Skipping - element is in disabled scope`,
+            `[AnyclickProvider:${providerId}] Allowing native menu - element is in disabled scope`,
             {
               targetTag: element.tagName,
             },
           );
         }
-        return;
+        return false; // Allow native context menu
       }
 
       const mergedTheme = getMergedTheme(providerId);
@@ -213,6 +215,8 @@ export function AnyclickProvider({
       setContainerElement(container);
       setMenuPosition({ x: event.clientX, y: event.clientY });
       setMenuVisible(true);
+
+      return true; // Handled - prevent native menu
     },
     [
       providerId,
