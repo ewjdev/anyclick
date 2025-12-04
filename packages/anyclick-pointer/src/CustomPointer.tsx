@@ -20,6 +20,13 @@ import {
   defaultPointerThemeSizes,
   defaultPointerConfig,
 } from "./types";
+import {
+  shouldShowPointer,
+  markTouchInteraction,
+  wasLastInteractionTouch,
+  clearTouchInteraction,
+  getDeviceType,
+} from "./deviceDetection";
 
 /**
  * CSS style IDs
@@ -99,6 +106,9 @@ export function CustomPointer({
     useState<PointerInteractionState>("normal");
   const [showRipple, setShowRipple] = useState(false);
 
+  // Track if pointer should be shown based on device type
+  const [shouldRender, setShouldRender] = useState(true);
+
   const rippleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isVisibleRef = useRef(false);
   const interactionStateRef = useRef<PointerInteractionState>("normal");
@@ -123,11 +133,55 @@ export function CustomPointer({
     onInteractionChange?.(interactionState);
   }, [interactionState, onInteractionChange]);
 
+  // Detect device type on mount and update shouldRender
+  useEffect(() => {
+    const checkDevice = () => {
+      const should = shouldShowPointer();
+      setShouldRender(should);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("[CustomPointer] Device detection:", {
+          deviceType: getDeviceType(),
+          shouldShowPointer: should,
+        });
+      }
+    };
+
+    checkDevice();
+
+    // Re-check on resize (device orientation change might affect detection)
+    window.addEventListener("resize", checkDevice);
+    return () => window.removeEventListener("resize", checkDevice);
+  }, []);
+
   // Set up event listeners
   useEffect(() => {
-    if (!enabled) return;
+    // Don't attach listeners if disabled or device shouldn't show pointer
+    if (!enabled || !shouldRender) {
+      // Make sure to remove cursor hide style if it exists
+      if (mergedConfig.hideDefaultCursor) {
+        document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
+      }
+      return;
+    }
+
+    // Track touch events to filter out touch-emulated mouse events
+    const handleTouchStart = () => {
+      markTouchInteraction();
+    };
+
+    const handleTouchEnd = () => {
+      // Keep the touch flag for a bit to catch emulated mouse events
+      // The markTouchInteraction function handles the timeout internally
+    };
 
     const handleMouseMove = (event: MouseEvent) => {
+      // Ignore touch-emulated mouse events
+      // These fire shortly after touch events on mobile/tablet
+      if (wasLastInteractionTouch()) {
+        return;
+      }
+
       updatePosition(event.clientX, event.clientY);
 
       // Only update state if visibility changed
@@ -155,9 +209,27 @@ export function CustomPointer({
     const handleMouseLeave = () => {
       isVisibleRef.current = false;
       setIsVisible(false);
+      // Clear touch interaction flag on mouse leave
+      clearTouchInteraction();
     };
 
-    const handleContextMenu = () => {
+    const handleContextMenu = (event: MouseEvent) => {
+      // Ignore if this contextmenu was triggered by touch (long-press)
+      // Touch-triggered contextmenu events are handled by FeedbackClient
+      if (wasLastInteractionTouch()) {
+        return;
+      }
+
+      // Skip if the event was already prevented (handled by FeedbackClient)
+      if (event.defaultPrevented) {
+        return;
+      }
+
+      // Only handle actual mouse right-clicks (button === 2)
+      if (event.button !== 2) {
+        return;
+      }
+
       interactionStateRef.current = "rightClick";
       setInteractionState("rightClick");
       setShowRipple(true);
@@ -171,6 +243,11 @@ export function CustomPointer({
     };
 
     const handleClick = () => {
+      // Ignore click if it was from touch
+      if (wasLastInteractionTouch()) {
+        return;
+      }
+
       if (interactionStateRef.current === "rightClick") {
         interactionStateRef.current = "normal";
         setInteractionState("normal");
@@ -178,6 +255,11 @@ export function CustomPointer({
     };
 
     const handleMouseDown = (event: MouseEvent) => {
+      // Ignore touch-emulated mouse events
+      if (wasLastInteractionTouch()) {
+        return;
+      }
+
       if (event.button === 0 && interactionStateRef.current === "normal") {
         interactionStateRef.current = "pressing";
         setInteractionState("pressing");
@@ -185,13 +267,24 @@ export function CustomPointer({
     };
 
     const handleMouseUp = () => {
+      // Ignore touch-emulated mouse events
+      if (wasLastInteractionTouch()) {
+        return;
+      }
+
       if (interactionStateRef.current === "pressing") {
         interactionStateRef.current = "normal";
         setInteractionState("normal");
       }
     };
 
-    // Add event listeners
+    // Add touch event listeners to track touch interactions
+    document.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    document.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    // Add mouse event listeners
     document.addEventListener("mousemove", handleMouseMove, { passive: true });
     document.documentElement.addEventListener("mouseleave", handleMouseLeave);
     document.addEventListener("contextmenu", handleContextMenu);
@@ -199,7 +292,7 @@ export function CustomPointer({
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mouseup", handleMouseUp);
 
-    // Hide default cursor
+    // Hide default cursor only if we're showing custom pointer
     if (mergedConfig.hideDefaultCursor) {
       let styleElement = document.getElementById(
         CURSOR_HIDE_STYLE_ID,
@@ -215,6 +308,8 @@ export function CustomPointer({
     }
 
     return () => {
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchend", handleTouchEnd);
       document.removeEventListener("mousemove", handleMouseMove);
       document.documentElement.removeEventListener(
         "mouseleave",
@@ -232,11 +327,14 @@ export function CustomPointer({
       if (mergedConfig.hideDefaultCursor) {
         document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
       }
-    };
-  }, [enabled, updatePosition, mergedConfig.hideDefaultCursor]);
 
-  // Don't render if not enabled or visibility is never
-  if (!enabled || mergedConfig.visibility === "never") {
+      // Clear touch interaction state on cleanup
+      clearTouchInteraction();
+    };
+  }, [enabled, shouldRender, updatePosition, mergedConfig.hideDefaultCursor]);
+
+  // Don't render if not enabled, visibility is never, or device shouldn't show pointer
+  if (!enabled || !shouldRender || mergedConfig.visibility === "never") {
     return null;
   }
 

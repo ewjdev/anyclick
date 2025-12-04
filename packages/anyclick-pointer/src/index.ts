@@ -51,3 +51,18 @@ export {
   getTransition,
   createSpringTransition,
 } from "./animations";
+
+// Device detection utilities
+export {
+  hasTouchSupport,
+  hasFinePointer,
+  isMobileDevice,
+  isTabletDevice,
+  isDesktopDevice,
+  shouldShowPointer,
+  markTouchInteraction,
+  wasLastInteractionTouch,
+  clearTouchInteraction,
+  resetDeviceDetectionCache,
+  getDeviceType,
+} from "./deviceDetection";

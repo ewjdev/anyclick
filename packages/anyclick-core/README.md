@@ -25,7 +25,7 @@ npm install @ewjdev/anyclick-core
 ## Basic Usage
 
 ```typescript
-import { createFeedbackClient } from '@ewjdev/anyclick-core';
+import { createFeedbackClient } from "@ewjdev/anyclick-core";
 
 // Create a feedback client with your adapter
 const client = createFeedbackClient({
@@ -41,8 +41,8 @@ const client = createFeedbackClient({
 client.attach();
 
 // Later, submit feedback programmatically
-await client.submitFeedback(element, 'issue', {
-  comment: 'This button is broken',
+await client.submitFeedback(element, "issue", {
+  comment: "This button is broken",
 });
 
 // Cleanup
@@ -59,7 +59,7 @@ import {
   getAncestors,
   getDataAttributes,
   buildElementContext,
-} from '@ewjdev/anyclick-core';
+} from "@ewjdev/anyclick-core";
 
 // Get a unique CSS selector for an element
 const selector = getUniqueSelector(element);
@@ -81,30 +81,33 @@ import {
   captureScreenshot,
   captureAllScreenshots,
   isScreenshotSupported,
-} from '@ewjdev/anyclick-core';
+} from "@ewjdev/anyclick-core";
 
 if (isScreenshotSupported()) {
   // Capture a single element
   const screenshot = await captureScreenshot(element, {
     quality: 0.9,
-    format: 'png',
+    format: "png",
   });
 
   // Capture target, container, and full page
-  const screenshots = await captureAllScreenshots(targetElement, containerElement);
+  const screenshots = await captureAllScreenshots(
+    targetElement,
+    containerElement,
+  );
 }
 ```
 
 ### Payload Building
 
 ```typescript
-import { buildFeedbackPayload, buildPageContext } from '@ewjdev/anyclick-core';
+import { buildFeedbackPayload, buildPageContext } from "@ewjdev/anyclick-core";
 
 const payload = buildFeedbackPayload({
   element,
-  type: 'issue',
-  comment: 'Something is wrong here',
-  metadata: { userId: '123' },
+  type: "issue",
+  comment: "Something is wrong here",
+  metadata: { userId: "123" },
 });
 ```
 
@@ -149,7 +152,7 @@ const client = createFeedbackClient({
   maxOuterHTMLLength: 2000,
   maxAncestors: 5,
   cooldownMs: 1000,
-  stripAttributes: ['data-sensitive'],
+  stripAttributes: ["data-sensitive"],
 });
 ```
 

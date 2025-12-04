@@ -35,7 +35,7 @@ npx @ewjdev/anyclick-github setup-media-branch -b feedback-assets
 Or programmatically in your setup script:
 
 ```typescript
-import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 
 const repoName = process.env.GITHUB_REPO;
 const [owner, repo] = repoName.split("/");
@@ -58,26 +58,23 @@ const exists = await github.mediaBranchExists();
 ### Browser Side
 
 ```tsx
-'use client';
+"use client";
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
 const adapter = createHttpAdapter({
-  endpoint: '/api/feedback',
+  endpoint: "/api/feedback",
 });
 
-<FeedbackProvider adapter={adapter}>
-  {children}
-</FeedbackProvider>
+<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
 ```
 
 ### Server Side
 
 ```typescript
 // app/api/feedback/route.ts
-import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-
+import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 
 const repoName = process.env.GITHUB_REPO;
 
@@ -109,9 +106,9 @@ export async function POST(request: Request) {
 
 ```typescript
 const adapter = createHttpAdapter({
-  endpoint: '/api/feedback',
+  endpoint: "/api/feedback",
   headers: {
-    'X-Custom-Header': 'value',
+    "X-Custom-Header": "value",
   },
 });
 ```
@@ -120,32 +117,32 @@ const adapter = createHttpAdapter({
 
 ```typescript
 const github = createGitHubAdapter({
-  owner: 'your-org',
-  repo: 'your-repo',
+  owner: "your-org",
+  repo: "your-repo",
   token: process.env.GITHUB_TOKEN!,
-  
+
   // Dynamic labels
   getLabels: (payload) => {
-    const labels = ['feedback'];
-    if (payload.type === 'bug') labels.push('bug');
-    if (payload.type === 'feature') labels.push('enhancement');
+    const labels = ["feedback"];
+    if (payload.type === "bug") labels.push("bug");
+    if (payload.type === "feature") labels.push("enhancement");
     return labels;
   },
-  
+
   // Custom title
   getTitle: (payload) => {
-    const emoji = payload.type === 'bug' ? '🐛' : '✨';
-    return `${emoji} ${payload.comment?.slice(0, 80) || 'Feedback'}`;
+    const emoji = payload.type === "bug" ? "🐛" : "✨";
+    return `${emoji} ${payload.comment?.slice(0, 80) || "Feedback"}`;
   },
-  
+
   // Custom body formatting
   getBody: (payload) => {
     return formatFeedbackAsMarkdown(payload);
   },
-  
+
   // Assign to users
   getAssignees: (payload) => {
-    return payload.type === 'bug' ? ['triage-team'] : [];
+    return payload.type === "bug" ? ["triage-team"] : [];
   },
 });
 ```
@@ -153,7 +150,7 @@ const github = createGitHubAdapter({
 ## Custom Markdown Formatting
 
 ```typescript
-import { formatFeedbackAsMarkdown } from '@ewjdev/anyclick-github/server';
+import { formatFeedbackAsMarkdown } from "@ewjdev/anyclick-github/server";
 
 // Use the built-in formatter
 const markdown = formatFeedbackAsMarkdown(payload);
@@ -162,9 +159,9 @@ const markdown = formatFeedbackAsMarkdown(payload);
 const github = createGitHubAdapter({
   // ...config
   getBody: (payload) => `
-## ${payload.type === 'bug' ? '🐛 Bug Report' : '✨ Feature Request'}
+## ${payload.type === "bug" ? "🐛 Bug Report" : "✨ Feature Request"}
 
-**Comment:** ${payload.comment || 'No comment'}
+**Comment:** ${payload.comment || "No comment"}
 
 ### Element
 - Selector: \`${payload.element.selector}\`
@@ -196,8 +193,8 @@ Screenshots are uploaded to an orphan branch (default: `issues/src`). Configure 
 ```typescript
 const github = createGitHubAdapter({
   // ...required options
-  mediaBranch: 'feedback-media',      // Custom branch name
-  assetsPath: 'screenshots',          // Custom path within branch
+  mediaBranch: "feedback-media", // Custom branch name
+  assetsPath: "screenshots", // Custom path within branch
 });
 ```
 

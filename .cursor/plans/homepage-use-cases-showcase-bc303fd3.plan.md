@@ -1,4 +1,5 @@
 <!-- bc303fd3-d2a0-475e-97b5-a8e24b91574a 909414e5-c38e-48f2-a8fe-860baeaf5f38 -->
+
 # Homepage Use Cases Showcase
 
 Add a new "Use Cases" section to [apps/web/src/app/page.tsx](apps/web/src/app/page.tsx) that showcases different user personas and their specific use cases. The section will be inserted between the Hero and features sections.

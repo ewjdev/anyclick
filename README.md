@@ -30,7 +30,7 @@ yarn install @ewjdev/anyclick-react @ewjdev/anyclick-github
 
 ```typescript
 // app/api/feedback/route.ts
-import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -50,19 +50,15 @@ export async function POST(request: Request) {
 **2. Add Provider**
 
 ```tsx
-'use client';
+"use client";
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
-const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <FeedbackProvider adapter={adapter}>
-      {children}
-    </FeedbackProvider>
-  );
+  return <FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
 }
 ```
 
@@ -72,13 +68,13 @@ That's it! Users can now right-click any element to submit feedback.
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [`@ewjdev/anyclick-core`](./packages/anyclick-core) | Framework-agnostic core library |
-| [`@ewjdev/anyclick-react`](./packages/anyclick-react) | React provider and context menu UI |
-| [`@ewjdev/anyclick-github`](./packages/anyclick-github) | GitHub Issues adapter |
-| [`@ewjdev/anyclick-cursor`](./packages/anyclick-cursor) | Cursor Cloud Agent adapter |
-| [`@ewjdev/anyclick-cursor-local`](./packages/anyclick-cursor-local) | Local Cursor CLI adapter |
+| Package                                                             | Description                        |
+| ------------------------------------------------------------------- | ---------------------------------- |
+| [`@ewjdev/anyclick-core`](./packages/anyclick-core)                 | Framework-agnostic core library    |
+| [`@ewjdev/anyclick-react`](./packages/anyclick-react)               | React provider and context menu UI |
+| [`@ewjdev/anyclick-github`](./packages/anyclick-github)             | GitHub Issues adapter              |
+| [`@ewjdev/anyclick-cursor`](./packages/anyclick-cursor)             | Cursor Cloud Agent adapter         |
+| [`@ewjdev/anyclick-cursor-local`](./packages/anyclick-cursor-local) | Local Cursor CLI adapter           |
 
 ## Documentation
 

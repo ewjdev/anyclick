@@ -38,10 +38,7 @@ export type {
 } from "./types";
 
 // Types (deprecated, for backward compatibility)
-export type {
-  FeedbackProviderProps,
-  FeedbackContextValue,
-} from "./types";
+export type { FeedbackProviderProps, FeedbackContextValue } from "./types";
 
 // Utilities
 export { filterMenuItemsByRole } from "./types";

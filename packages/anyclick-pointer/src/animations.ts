@@ -108,7 +108,7 @@ export const containerVariants: Variants = {
  */
 export function getTransition(
   prefersReducedMotion: boolean,
-  type: "spring" | "quick" | "fade" = "spring"
+  type: "spring" | "quick" | "fade" = "spring",
 ): Transition {
   if (prefersReducedMotion) {
     return { duration: 0 };
@@ -133,7 +133,7 @@ export function createSpringTransition(
     stiffness: number;
     damping: number;
     mass: number;
-  }>
+  }>,
 ): Transition {
   return {
     type: "spring",
@@ -142,4 +142,3 @@ export function createSpringTransition(
     mass: overrides?.mass ?? 0.8,
   };
 }
-

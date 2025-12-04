@@ -18,17 +18,15 @@ npm install @ewjdev/anyclick-cursor
 ## Quick Start
 
 ```tsx
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createCursorAdapter } from '@ewjdev/anyclick-cursor';
+import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { createCursorAdapter } from "@ewjdev/anyclick-cursor";
 
 const adapter = createCursorAdapter({
   apiKey: process.env.NEXT_PUBLIC_CURSOR_API_KEY,
-  projectId: 'your-project-id',
+  projectId: "your-project-id",
 });
 
-<FeedbackProvider adapter={adapter}>
-  {children}
-</FeedbackProvider>
+<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
 ```
 
 ## Features
@@ -42,8 +40,8 @@ const adapter = createCursorAdapter({
 ```typescript
 const adapter = createCursorAdapter({
   apiKey: process.env.CURSOR_API_KEY,
-  projectId: 'your-project-id',
-  
+  projectId: "your-project-id",
+
   // Custom prompt formatting
   formatPrompt: (payload) => {
     return `
@@ -62,7 +60,7 @@ Please analyze and propose a fix.
 ## Prompt Formatting
 
 ```typescript
-import { formatForCursorAgent } from '@ewjdev/anyclick-cursor';
+import { formatForCursorAgent } from "@ewjdev/anyclick-cursor";
 
 // Generate an optimized prompt for Cursor
 const prompt = formatForCursorAgent(payload);
@@ -72,19 +70,19 @@ const prompt = formatForCursorAgent(payload);
 
 ```tsx
 const menuItems = [
-  { type: 'bug', label: 'Report Bug', showComment: true },
-  { type: 'feature', label: 'Request Feature', showComment: true },
-  { 
-    type: 'cursor_cloud', 
-    label: 'Fix with AI', 
+  { type: "bug", label: "Report Bug", showComment: true },
+  { type: "feature", label: "Request Feature", showComment: true },
+  {
+    type: "cursor_cloud",
+    label: "Fix with AI",
     showComment: true,
-    requiredRoles: ['developer'],
+    requiredRoles: ["developer"],
   },
 ];
 
 <FeedbackProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>
+</FeedbackProvider>;
 ```
 
 ## Documentation

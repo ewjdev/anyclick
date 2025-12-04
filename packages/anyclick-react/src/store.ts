@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import type { FeedbackMenuEvent } from "@ewjdev/anyclick-core";
 import type { AnyclickTheme } from "./types";
 
 /**
@@ -22,7 +23,10 @@ export interface ProviderInstance {
   /** Depth in the provider hierarchy (0 = root) */
   depth: number;
   /** Handler to call when an event occurs in this provider's scope */
-  onContextMenu?: (event: MouseEvent, element: Element) => void;
+  onContextMenu?: (
+    event: FeedbackMenuEvent,
+    element: Element,
+  ) => boolean | void;
 }
 
 /**
@@ -76,6 +80,13 @@ interface ProviderStore {
    * in areas where a disabled scoped provider should block them
    */
   isElementInDisabledScope: (element: Element) => boolean;
+
+  /**
+   * Check if an element is inside any scoped provider's container (enabled or not)
+   * This is used to prevent the global provider from handling touch events
+   * that should be handled by a scoped provider instead
+   */
+  isElementInAnyScopedProvider: (element: Element) => boolean;
 }
 
 /**
@@ -188,17 +199,17 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
 
     while (current) {
       ancestors.unshift(current);
-      current = current.parentId
-        ? providers.get(current.parentId)
-        : undefined;
+      current = current.parentId ? providers.get(current.parentId) : undefined;
     }
 
     if (process.env.NODE_ENV === "development") {
       console.log(`[Store:getMergedTheme] Provider: ${providerId}`, {
         ancestorCount: ancestors.length,
-        ancestorIds: ancestors.map(a => a.id),
+        ancestorIds: ancestors.map((a) => a.id),
         providerHasTheme: !!provider.theme,
-        providerThemeMenuStyle: provider.theme?.menuStyle ? Object.keys(provider.theme.menuStyle) : [],
+        providerThemeMenuStyle: provider.theme?.menuStyle
+          ? Object.keys(provider.theme.menuStyle)
+          : [],
       });
     }
 
@@ -234,7 +245,9 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     if (process.env.NODE_ENV === "development") {
       console.log(`[Store:getMergedTheme] Result for ${providerId}`, {
         hasMenuStyle: !!mergedTheme.menuStyle,
-        menuStyleKeys: mergedTheme.menuStyle ? Object.keys(mergedTheme.menuStyle) : [],
+        menuStyleKeys: mergedTheme.menuStyle
+          ? Object.keys(mergedTheme.menuStyle)
+          : [],
       });
     }
 
@@ -254,9 +267,7 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
       if (current.disabled || current.theme?.disabled) {
         return true;
       }
-      current = current.parentId
-        ? providers.get(current.parentId)
-        : undefined;
+      current = current.parentId ? providers.get(current.parentId) : undefined;
     }
 
     return false;
@@ -282,6 +293,36 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
 
     return false;
   },
+
+  isElementInAnyScopedProvider: (element) => {
+    const { providers } = get();
+
+    // Check all scoped providers (enabled or disabled)
+    for (const provider of providers.values()) {
+      // Only check scoped providers
+      if (!provider.scoped) continue;
+
+      const container = provider.containerRef.current;
+      if (!container) continue;
+
+      // If element is inside this scoped provider's container
+      if (container.contains(element)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[Store:isElementInAnyScopedProvider] Element is in scoped provider: ${provider.id}`,
+            {
+              elementTag: element.tagName,
+              providerId: provider.id,
+              providerDisabled: provider.disabled,
+            },
+          );
+        }
+        return true;
+      }
+    }
+
+    return false;
+  },
 }));
 
 /**
@@ -294,6 +335,14 @@ export function dispatchContextMenuEvent(
   const store = useProviderStore.getState();
   const providers = store.findProvidersForElement(element);
 
+  // Convert MouseEvent to FeedbackMenuEvent
+  const menuEvent: FeedbackMenuEvent = {
+    clientX: event.clientX,
+    clientY: event.clientY,
+    originalEvent: event,
+    isTouch: false,
+  };
+
   // Call handlers from nearest to outermost
   for (const provider of providers) {
     // Check if disabled by theme or prop
@@ -302,11 +351,10 @@ export function dispatchContextMenuEvent(
     }
 
     if (provider.onContextMenu) {
-      provider.onContextMenu(event, element);
+      provider.onContextMenu(menuEvent, element);
       // After the first handler processes, we don't need to call others
       // unless we want to implement explicit bubbling control
       break;
     }
   }
 }
-

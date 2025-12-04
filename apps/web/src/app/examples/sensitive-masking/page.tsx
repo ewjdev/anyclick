@@ -175,7 +175,9 @@ export default function SensitiveMaskingExamplePage() {
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Elements with <code className="text-amber-400">data-sensitive="true"</code> are masked
+                Elements with{" "}
+                <code className="text-amber-400">data-sensitive="true"</code>{" "}
+                are masked
               </p>
             </div>
 
@@ -189,7 +191,9 @@ export default function SensitiveMaskingExamplePage() {
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[100px]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Elements with <code className="text-amber-400">data-mask="true"</code> are masked
+                Elements with{" "}
+                <code className="text-amber-400">data-mask="true"</code> are
+                masked
               </p>
             </div>
 
@@ -203,7 +207,8 @@ export default function SensitiveMaskingExamplePage() {
                 placeholder="sk_live_..."
               />
               <p className="text-xs text-gray-500 mt-1">
-                Elements with <code className="text-amber-400">.sensitive</code> class are masked
+                Elements with <code className="text-amber-400">.sensitive</code>{" "}
+                class are masked
               </p>
             </div>
 
@@ -217,7 +222,8 @@ export default function SensitiveMaskingExamplePage() {
                 placeholder="internal-12345"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Elements with <code className="text-amber-400">.private</code> class are masked
+                Elements with <code className="text-amber-400">.private</code>{" "}
+                class are masked
               </p>
             </div>
           </div>
@@ -352,10 +358,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
               Use Semantic Attributes
             </h3>
             <p className="text-gray-400 text-sm">
-              Add <code className="text-cyan-400">data-sensitive="true"</code> or{" "}
-              <code className="text-cyan-400">data-mask="true"</code> to any
-              element containing sensitive information. This is more maintainable
-              than relying solely on CSS classes.
+              Add <code className="text-cyan-400">data-sensitive="true"</code>{" "}
+              or <code className="text-cyan-400">data-mask="true"</code> to any
+              element containing sensitive information. This is more
+              maintainable than relying solely on CSS classes.
             </p>
           </div>
 
@@ -402,4 +408,3 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

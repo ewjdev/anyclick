@@ -52,7 +52,7 @@ export interface PointerTheme {
  * Configuration for pointer behavior
  */
 export interface PointerConfig {
-  /** 
+  /**
    * When the custom pointer should be visible
    * - "always": Always show custom pointer
    * - "enabled": Only when parent provider enables it
@@ -179,4 +179,3 @@ export const defaultPointerConfig: Required<PointerConfig> = {
   respectReducedMotion: true,
   offset: [0, 0],
 };
-

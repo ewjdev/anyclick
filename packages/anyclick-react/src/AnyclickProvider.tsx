@@ -11,6 +11,7 @@ import React, {
 import { createFeedbackClient } from "@ewjdev/anyclick-core";
 import type {
   FeedbackClient,
+  FeedbackMenuEvent,
   FeedbackType,
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
@@ -62,6 +63,8 @@ export function AnyclickProvider({
   screenshotConfig,
   scoped = false,
   theme,
+  touchHoldDurationMs,
+  touchMoveThreshold,
 }: AnyclickProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -127,6 +130,7 @@ export function AnyclickProvider({
     isDisabledByAncestor,
     findParentProvider,
     isElementInDisabledScope,
+    isElementInAnyScopedProvider,
   } = useProviderStore();
 
   // Determine parent ID
@@ -177,7 +181,7 @@ export function AnyclickProvider({
   // Returns false to allow native context menu (for disabled scopes)
   // Returns true (or void) to show custom menu
   const handleContextMenu = useCallback(
-    (event: MouseEvent, element: Element): boolean => {
+    (event: FeedbackMenuEvent, element: Element): boolean => {
       // For non-scoped (global) providers, check if the element is inside
       // a disabled scoped provider's container - if so, allow native menu
       if (!scoped && isElementInDisabledScope(element)) {
@@ -192,6 +196,24 @@ export function AnyclickProvider({
         return false; // Allow native context menu
       }
 
+      // For non-scoped (global) providers on TOUCH events, check if the element
+      // is inside any scoped provider's container - if so, defer to the scoped
+      // provider to handle the event with its own theme
+      // NOTE: For contextmenu (right-click) events, this is handled by capture
+      // phase and stopPropagation in the client. But touch events don't have
+      // the same propagation model, so we need to check here.
+      if (!scoped && event.isTouch && isElementInAnyScopedProvider(element)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[AnyclickProvider:${providerId}] Deferring to scoped provider for touch event`,
+            {
+              targetTag: element.tagName,
+            },
+          );
+        }
+        return false; // Let the scoped provider handle it
+      }
+
       const mergedTheme = getMergedTheme(providerId);
 
       if (process.env.NODE_ENV === "development") {
@@ -202,6 +224,7 @@ export function AnyclickProvider({
             targetTag: element.tagName,
             mergedThemeColors: mergedTheme.highlightConfig?.colors,
             position: { x: event.clientX, y: event.clientY },
+            isTouch: event.isTouch,
           },
         );
       }
@@ -224,6 +247,7 @@ export function AnyclickProvider({
       highlightConfig,
       scoped,
       isElementInDisabledScope,
+      isElementInAnyScopedProvider,
     ],
   );
 
@@ -319,6 +343,8 @@ export function AnyclickProvider({
       stripAttributes,
       // For scoped providers, pass the container
       container: scoped ? containerRef.current : null,
+      touchHoldDurationMs,
+      touchMoveThreshold,
     });
 
     // Set up callbacks
@@ -354,6 +380,8 @@ export function AnyclickProvider({
     providerId,
     isDisabledByAncestor,
     handleContextMenu,
+    touchHoldDurationMs,
+    touchMoveThreshold,
   ]);
 
   // Submit feedback with optional screenshots
