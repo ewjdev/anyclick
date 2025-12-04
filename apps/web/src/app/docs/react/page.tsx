@@ -95,7 +95,7 @@ export default function ReactDocsPage() {
         <h2 className="text-2xl font-bold mb-4">Basic Usage</h2>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 const adapter = createHttpAdapter({
@@ -104,16 +104,21 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
+        <p className="text-gray-400 text-sm mt-2">
+          <strong>Note:</strong>{" "}
+          <code className="text-cyan-400">FeedbackProvider</code> is still
+          exported for backward compatibility but is deprecated.
+        </p>
       </section>
 
       {/* Props Reference */}
       <section className="not-prose mb-12">
-        <h2 className="text-2xl font-bold mb-4">FeedbackProvider Props</h2>
+        <h2 className="text-2xl font-bold mb-4">AnyclickProvider Props</h2>
 
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
           <PropDef
@@ -127,6 +132,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
             type="ReactNode"
             description="Child components to wrap with the feedback provider."
             required
+          />
+          <PropDef
+            name="scoped"
+            type="boolean"
+            defaultValue="false"
+            description="When true, only captures events within this provider's children. Useful for section-specific feedback."
+          />
+          <PropDef
+            name="theme"
+            type="AnyclickTheme | null"
+            description="Theme configuration. Themes inherit from parent providers. Set to null or { disabled: true } to disable feedback."
           />
           <PropDef
             name="menuItems"
@@ -212,13 +228,77 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </div>
       </section>
 
+      {/* Scoped Providers */}
+      <section className="not-prose mb-12">
+        <h2 className="text-2xl font-bold mb-4">Scoped Providers</h2>
+        <p className="text-gray-400 mb-4 leading-relaxed">
+          Use the <code className="text-cyan-400">scoped</code> prop to limit
+          feedback capture to a specific section of your app:
+        </p>
+        <CodeBlock filename="app/layout.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={globalAdapter}>
+      <Header />
+      
+      {/* Scoped provider - only captures events in Dashboard */}
+      <AnyclickProvider 
+        adapter={dashboardAdapter}
+        scoped
+        menuItems={dashboardMenuItems}
+      >
+        <Dashboard />
+      </AnyclickProvider>
+      
+      <Footer />
+    </AnyclickProvider>
+  );
+}`}</CodeBlock>
+      </section>
+
+      {/* Nested Theming */}
+      <section className="not-prose mb-12">
+        <h2 className="text-2xl font-bold mb-4">Nested Theming</h2>
+        <p className="text-gray-400 mb-4 leading-relaxed">
+          Child providers inherit and can override parent themes. Use this for
+          section-specific styling:
+        </p>
+        <CodeBlock>{`<AnyclickProvider 
+  adapter={adapter}
+  theme={{
+    highlightConfig: {
+      colors: { targetColor: '#3b82f6' } // Blue
+    }
+  }}
+>
+  <MainContent /> {/* Uses blue highlights */}
+  
+  <AnyclickProvider 
+    scoped
+    theme={{
+      highlightConfig: {
+        colors: { targetColor: '#ef4444' } // Red
+      }
+    }}
+  >
+    <WarningSection /> {/* Uses red highlights */}
+  </AnyclickProvider>
+  
+  {/* Disable feedback in sensitive areas */}
+  <AnyclickProvider scoped theme={{ disabled: true }}>
+    <PaymentForm />
+  </AnyclickProvider>
+</AnyclickProvider>`}</CodeBlock>
+      </section>
+
       {/* Custom Menu Items */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Custom Menu Items</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
           Customize the feedback menu with your own items, icons, and submenus:
         </p>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { Bug, Lightbulb, ThumbsUp, Code, Monitor, Cloud } from 'lucide-react';
 
 const menuItems = [
@@ -253,9 +333,9 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+<AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </section>
 
       {/* Role-Based Filtering */}
@@ -264,7 +344,7 @@ const menuItems = [
         <p className="text-gray-400 mb-4 leading-relaxed">
           Show different menu items based on user roles:
         </p>
-        <CodeBlock>{`import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+        <CodeBlock>{`import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
 import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
 
 const allMenuItems: FeedbackMenuItem[] = [
@@ -288,13 +368,13 @@ function Providers({ children, user }) {
   const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
   
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={adapter} 
       menuItems={menuItems}
       metadata={userContext}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </section>
@@ -305,27 +385,29 @@ function Providers({ children, user }) {
         <p className="text-gray-400 mb-4 leading-relaxed">
           Customize how elements are highlighted when the context menu is open:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
-  highlightConfig={{
-    enabled: true,
-    colors: {
-      targetColor: '#3b82f6',      // Blue for target element
-      containerColor: '#8b5cf6',   // Purple for container
-      targetShadowOpacity: 0.25,
-      containerShadowOpacity: 0.1,
+  theme={{
+    highlightConfig: {
+      enabled: true,
+      colors: {
+        targetColor: '#3b82f6',      // Blue for target element
+        containerColor: '#8b5cf6',   // Purple for container
+        targetShadowOpacity: 0.25,
+        containerShadowOpacity: 0.1,
+      },
+      containerSelectors: [
+        '[data-component]',
+        '[data-section]',
+        '.card',
+        'section',
+      ],
+      minChildrenForContainer: 2,
     },
-    containerSelectors: [
-      '[data-component]',
-      '[data-section]',
-      '.card',
-      'section',
-    ],
-    minChildrenForContainer: 2,
   }}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </section>
 
       {/* Screenshot Configuration */}
@@ -334,43 +416,44 @@ function Providers({ children, user }) {
         <p className="text-gray-400 mb-4 leading-relaxed">
           Control screenshot capture behavior:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
-  screenshotConfig={{
-    enabled: true,
-    quality: 0.9,
-    pixelRatio: 2,
-    format: 'png',
-    maxWidth: 1920,
-    maxHeight: 1080,
-    // Selectors to blur for privacy
-    sensitiveSelectors: [
-      '[data-sensitive]',
-      '.credit-card-input',
-      'input[type="password"]',
-    ],
+  theme={{
+    screenshotConfig: {
+      enabled: true,
+      quality: 0.9,
+      // Selectors to mask for privacy
+      sensitiveSelectors: [
+        '[data-sensitive]',
+        '.credit-card-input',
+        'input[type="password"]',
+      ],
+    },
   }}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </section>
 
-      {/* useFeedback Hook */}
+      {/* useAnyclick Hook */}
       <section className="not-prose mb-12">
-        <h2 className="text-2xl font-bold mb-4">useFeedback Hook</h2>
+        <h2 className="text-2xl font-bold mb-4">useAnyclick Hook</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
-          Access feedback context from child components:
+          Access anyclick context from child components:
         </p>
-        <CodeBlock>{`import { useFeedback } from '@ewjdev/anyclick-react';
+        <CodeBlock>{`import { useAnyclick } from '@ewjdev/anyclick-react';
 
 function MyComponent() {
   const { 
-    isEnabled, 
-    isSubmitting, 
-    submitFeedback, 
-    openMenu,
-    closeMenu 
-  } = useFeedback();
+    isEnabled,      // Whether feedback is enabled
+    isSubmitting,   // Whether submission is in progress
+    submitFeedback, // Submit feedback programmatically
+    openMenu,       // Open menu programmatically
+    closeMenu,      // Close menu
+    theme,          // Current merged theme
+    scoped,         // Whether provider is scoped
+    providerId,     // Unique provider ID
+  } = useAnyclick();
   
   // Open menu programmatically
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -395,26 +478,41 @@ function MyComponent() {
     </button>
   );
 }`}</CodeBlock>
+        <p className="text-gray-400 text-sm mt-2">
+          <strong>Note:</strong>{" "}
+          <code className="text-cyan-400">useFeedback</code> is still exported
+          for backward compatibility.
+        </p>
       </section>
 
       {/* Exports */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">All Exports</h2>
-        <CodeBlock>{`// Components
-export { FeedbackProvider } from './FeedbackProvider';
+        <CodeBlock>{`// Components (new)
+export { AnyclickProvider } from './AnyclickProvider';
 export { ContextMenu } from './ContextMenu';
 export { ScreenshotPreview } from './ScreenshotPreview';
 
-// Context & Hooks
+// Components (deprecated, for backward compatibility)
+export { FeedbackProvider } from './AnyclickProvider';
+
+// Context & Hooks (new)
+export { AnyclickContext, useAnyclick } from './context';
+
+// Context & Hooks (deprecated)
 export { FeedbackContext, useFeedback } from './context';
+
+// Store (for advanced use cases)
+export { useProviderStore, generateProviderId } from './store';
 
 // Utilities
 export { filterMenuItemsByRole } from './types';
 
 // Types
 export type {
-  FeedbackProviderProps,
-  FeedbackContextValue,
+  AnyclickProviderProps,
+  AnyclickContextValue,
+  AnyclickTheme,
   FeedbackMenuItem,
   FeedbackUserContext,
   ContextMenuProps,
@@ -438,6 +536,19 @@ export type {
             </h3>
             <p className="text-gray-400 text-sm">
               Connect to GitHub, Cursor, or build custom adapters.
+            </p>
+          </Link>
+
+          <Link
+            href="/examples/scoped-providers"
+            className="group p-5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-fuchsia-500/30 transition-all"
+          >
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              Scoped Providers Example
+              <ArrowRight className="w-4 h-4 ml-auto text-gray-500 group-hover:text-fuchsia-400 group-hover:translate-x-1 transition-all" />
+            </h3>
+            <p className="text-gray-400 text-sm">
+              See scoped providers and nested theming in action.
             </p>
           </Link>
 

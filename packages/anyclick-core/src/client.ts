@@ -29,6 +29,8 @@ export class FeedbackClient {
   private maxAncestors: number;
   private cooldownMs: number;
   private stripAttributes: string[];
+  private container: Element | null;
+  private attachedTarget: EventTarget | null = null;
 
   private lastSubmissionTime = 0;
   private pendingElement: Element | null = null;
@@ -52,19 +54,86 @@ export class FeedbackClient {
     this.maxAncestors = options.maxAncestors ?? 5;
     this.cooldownMs = options.cooldownMs ?? 1000;
     this.stripAttributes = options.stripAttributes ?? [];
+    this.container = options.container ?? null;
   }
 
   /**
-   * Attach event listeners to the document
+   * Update the container element for scoped event handling
+   */
+  setContainer(container: Element | null): void {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Anyclick] setContainer called", {
+        hadContainer: !!this.container,
+        newContainer: !!container,
+        wasAttached: this.isAttached,
+      });
+    }
+
+    const wasAttached = this.isAttached;
+    if (wasAttached) {
+      this.detach();
+    }
+    this.container = container;
+    if (wasAttached) {
+      this.attach();
+    }
+  }
+
+  /**
+   * Get the current container element
+   */
+  getContainer(): Element | null {
+    return this.container;
+  }
+
+  /**
+   * Attach event listeners to the container or document
    */
   attach(): void {
     if (this.isAttached) return;
     if (typeof document === "undefined") return;
 
+    const isScoped = !!this.container;
+    const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Attaching event listener`, {
+        isScoped,
+        container: this.container,
+        useCapture: isScoped,
+      });
+    }
+
     this.contextMenuHandler = (event: MouseEvent) => {
       const target = event.target as Element;
+      const targetTag = target.tagName?.toLowerCase() || "unknown";
+      const targetClass = target.className || "";
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(`${debugPrefix} Context menu event received`, {
+          target: `${targetTag}.${targetClass.toString().slice(0, 50)}`,
+          eventPhase:
+            event.eventPhase === 1
+              ? "CAPTURE"
+              : event.eventPhase === 2
+                ? "TARGET"
+                : "BUBBLE",
+          hasContainer: !!this.container,
+        });
+      }
+
+      // If scoped to a container, ensure target is within the container
+      if (this.container && !this.container.contains(target)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Target not in container, skipping`);
+        }
+        return;
+      }
 
       if (!this.targetFilter(event, target)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Target filtered out`);
+        }
         return;
       }
 
@@ -73,24 +142,65 @@ export class FeedbackClient {
 
       // Call the onContextMenu callback if set
       if (this.onContextMenu) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`${debugPrefix} Handling event`, {
+            willStopPropagation: isScoped,
+            target: `${targetTag}`,
+          });
+        }
+
         event.preventDefault();
+        // Stop propagation for scoped providers to prevent parent providers
+        // from also handling the same event
+        if (this.container) {
+          event.stopPropagation();
+          event.stopImmediatePropagation(); // Also stop other listeners on same element
+        }
         this.onContextMenu(event, target);
       }
     };
 
-    document.addEventListener("contextmenu", this.contextMenuHandler);
+    // For scoped providers, always attach to document but filter by container
+    // This avoids issues with display:contents not receiving events
+    this.attachedTarget = document;
+
+    // Use capture phase for scoped providers to handle events before bubble phase
+    // This ensures scoped handlers run before global handlers
+    this.attachedTarget.addEventListener(
+      "contextmenu",
+      this.contextMenuHandler as EventListener,
+      isScoped ? true : false, // capture phase for scoped
+    );
     this.isAttached = true;
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Event listener attached successfully`);
+    }
   }
 
   /**
-   * Detach event listeners from the document
+   * Detach event listeners from the container or document
    */
   detach(): void {
-    if (!this.isAttached || !this.contextMenuHandler) return;
+    if (!this.isAttached || !this.contextMenuHandler || !this.attachedTarget)
+      return;
     if (typeof document === "undefined") return;
 
-    document.removeEventListener("contextmenu", this.contextMenuHandler);
+    const isScoped = !!this.container;
+    const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`${debugPrefix} Detaching event listener`);
+    }
+
+    // Remove with same capture option that was used when adding
+    this.attachedTarget.removeEventListener(
+      "contextmenu",
+      this.contextMenuHandler as EventListener,
+      this.container ? true : false,
+    );
     this.contextMenuHandler = null;
+    this.attachedTarget = null;
     this.isAttached = false;
     this.pendingElement = null;
   }

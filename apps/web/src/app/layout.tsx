@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Montserrat, Lato } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
-import { FeedbackProviderWrapper } from "@/components/FeedbackProviderWrapper";
+import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           lato.className,
         )}
       >
-        <FeedbackProviderWrapper>{children}</FeedbackProviderWrapper>
+        <AnyclickProviderWrapper>{children}</AnyclickProviderWrapper>
       </body>
     </html>
   );

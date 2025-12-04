@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  FeedbackProvider,
+  AnyclickProvider,
   filterMenuItemsByRole,
 } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
@@ -54,7 +54,11 @@ const allMenuItems: FeedbackMenuItem[] = [
   },
 ];
 
-export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
+export function AnyclickProviderWrapper({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const userContext = {};
   // Filter menu items based on user roles
   const menuItems = useMemo(() => {
@@ -62,20 +66,22 @@ export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
   }, [userContext]);
 
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       menuItems={menuItems}
       metadata={userContext}
-      highlightConfig={{
-        enabled: true,
-        colors: {
-          targetColor: "#3b82f6",
-          containerColor: "#8b5cf6",
+      theme={{
+        highlightConfig: {
+          enabled: true,
+          colors: {
+            targetColor: "#3b82f6",
+            containerColor: "#8b5cf6",
+          },
         },
-      }}
-      screenshotConfig={{
-        enabled: true,
-        sensitiveSelectors: DEFAULT_SENSITIVE_SELECTORS,
+        screenshotConfig: {
+          enabled: true,
+          sensitiveSelectors: DEFAULT_SENSITIVE_SELECTORS,
+        },
       }}
     >
       <PointerProvider
@@ -101,6 +107,12 @@ export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
       >
         {children}
       </PointerProvider>
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }
+
+/**
+ * @deprecated Use AnyclickProviderWrapper instead
+ */
+export const FeedbackProviderWrapper = AnyclickProviderWrapper;
+

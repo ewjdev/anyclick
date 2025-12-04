@@ -222,6 +222,12 @@ export interface FeedbackClientOptions {
   cooldownMs?: number;
   /** Attributes to strip from outerHTML for privacy */
   stripAttributes?: string[];
+  /**
+   * Optional container element to scope event listeners to.
+   * If provided, only events within this container will be captured.
+   * If not provided, events are captured from the entire document.
+   */
+  container?: Element | null;
 }
 
 /**

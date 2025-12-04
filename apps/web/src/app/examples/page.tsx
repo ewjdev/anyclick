@@ -9,6 +9,7 @@ import {
   Sparkles,
   Shield,
   MousePointer2,
+  Layers,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -71,6 +72,15 @@ const examples = [
     icon: Shield,
     color: "emerald",
     tags: ["Privacy", "Security", "Screenshots", "Masking"],
+  },
+  {
+    title: "Scoped & Nested Providers",
+    description:
+      "Control feedback capture at a granular level with scoped providers and nested theming.",
+    href: "/examples/scoped-providers",
+    icon: Layers,
+    color: "fuchsia",
+    tags: ["Scoped", "Nested", "Theming", "Advanced"],
   },
 ];
 

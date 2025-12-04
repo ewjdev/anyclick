@@ -8,6 +8,23 @@ import type {
 import type { ReactNode, CSSProperties } from "react";
 
 /**
+ * Theme configuration for AnyclickProvider
+ * Supports nested theming with inheritance
+ */
+export interface AnyclickTheme {
+  /** Custom styles for the context menu */
+  menuStyle?: CSSProperties;
+  /** Custom class name for the context menu */
+  menuClassName?: string;
+  /** Configuration for element highlighting */
+  highlightConfig?: HighlightConfig;
+  /** Configuration for screenshot capture */
+  screenshotConfig?: ScreenshotConfig;
+  /** Whether anyclick functionality is disabled in this theme */
+  disabled?: boolean;
+}
+
+/**
  * Configuration for highlight colors
  */
 export interface HighlightColors {
@@ -92,9 +109,9 @@ export function filterMenuItemsByRole(
 }
 
 /**
- * Props for the FeedbackProvider component
+ * Props for the AnyclickProvider component
  */
-export interface FeedbackProviderProps {
+export interface AnyclickProviderProps {
   /** The adapter to use for submitting feedback */
   adapter: FeedbackAdapter;
   /** Child components */
@@ -132,12 +149,29 @@ export interface FeedbackProviderProps {
   highlightConfig?: HighlightConfig;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
+  /**
+   * Whether to scope this provider to its children only.
+   * When true, events will only be captured for elements within this provider's subtree.
+   * When false (default), events are captured for the entire document.
+   */
+  scoped?: boolean;
+  /**
+   * Theme configuration for this provider.
+   * Themes are inherited from parent providers and merged (child overrides parent).
+   * Set to null or { disabled: true } to disable anyclick in this subtree.
+   */
+  theme?: AnyclickTheme | null;
 }
 
 /**
- * Context value exposed by FeedbackProvider
+ * @deprecated Use AnyclickProviderProps instead
  */
-export interface FeedbackContextValue {
+export type FeedbackProviderProps = AnyclickProviderProps;
+
+/**
+ * Context value exposed by AnyclickProvider
+ */
+export interface AnyclickContextValue {
   /** Whether feedback is currently enabled */
   isEnabled: boolean;
   /** Whether a submission is in progress */
@@ -152,7 +186,18 @@ export interface FeedbackContextValue {
   openMenu: (element: Element, position: { x: number; y: number }) => void;
   /** Close the feedback menu */
   closeMenu: () => void;
+  /** The current merged theme (inherited from ancestors) */
+  theme: AnyclickTheme;
+  /** Whether this provider is scoped */
+  scoped: boolean;
+  /** The provider's unique ID */
+  providerId: string;
 }
+
+/**
+ * @deprecated Use AnyclickContextValue instead
+ */
+export type FeedbackContextValue = AnyclickContextValue;
 
 /**
  * Props for the context menu component
