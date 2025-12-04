@@ -43,7 +43,11 @@ export interface MergedTheme {
  */
 interface RootPointerContextValue {
   /** Push a theme override when entering a nested provider area */
-  pushOverride: (id: string, theme: MergedTheme, config: Required<PointerConfig>) => void;
+  pushOverride: (
+    id: string,
+    theme: MergedTheme,
+    config: Required<PointerConfig>,
+  ) => void;
   /** Pop a theme override when leaving a nested provider area */
   popOverride: (id: string) => void;
 }
@@ -138,10 +142,10 @@ export function mergeThemeWithDefaults(theme?: PointerTheme): MergedTheme {
  */
 export function mergeThemeWithParent(
   parentTheme: MergedTheme,
-  childTheme?: PointerTheme
+  childTheme?: PointerTheme,
 ): MergedTheme {
   if (!childTheme) return parentTheme;
-  
+
   return {
     colors: {
       pointerColor:
@@ -149,15 +153,16 @@ export function mergeThemeWithParent(
       circleColor:
         childTheme.colors?.circleColor ?? parentTheme.colors.circleColor,
       circleBorderColor:
-        childTheme.colors?.circleBorderColor ?? parentTheme.colors.circleBorderColor,
+        childTheme.colors?.circleBorderColor ??
+        parentTheme.colors.circleBorderColor,
     },
     sizes: {
       pointerSize:
         childTheme.sizes?.pointerSize ?? parentTheme.sizes.pointerSize,
-      circleSize:
-        childTheme.sizes?.circleSize ?? parentTheme.sizes.circleSize,
+      circleSize: childTheme.sizes?.circleSize ?? parentTheme.sizes.circleSize,
       circleBorderWidth:
-        childTheme.sizes?.circleBorderWidth ?? parentTheme.sizes.circleBorderWidth,
+        childTheme.sizes?.circleBorderWidth ??
+        parentTheme.sizes.circleBorderWidth,
     },
     pointerIcon: childTheme.pointerIcon ?? parentTheme.pointerIcon,
     circleElement: childTheme.circleElement ?? parentTheme.circleElement,
@@ -167,12 +172,16 @@ export function mergeThemeWithParent(
 /**
  * Merge config with defaults
  */
-export function mergeConfigWithDefaults(config?: PointerConfig): Required<PointerConfig> {
+export function mergeConfigWithDefaults(
+  config?: PointerConfig,
+): Required<PointerConfig> {
   return {
     visibility: config?.visibility ?? defaultPointerConfig.visibility,
-    hideDefaultCursor: config?.hideDefaultCursor ?? defaultPointerConfig.hideDefaultCursor,
+    hideDefaultCursor:
+      config?.hideDefaultCursor ?? defaultPointerConfig.hideDefaultCursor,
     zIndex: config?.zIndex ?? defaultPointerConfig.zIndex,
-    respectReducedMotion: config?.respectReducedMotion ?? defaultPointerConfig.respectReducedMotion,
+    respectReducedMotion:
+      config?.respectReducedMotion ?? defaultPointerConfig.respectReducedMotion,
     offset: config?.offset ?? defaultPointerConfig.offset,
   };
 }
@@ -183,15 +192,17 @@ export function mergeConfigWithDefaults(config?: PointerConfig): Required<Pointe
  */
 export function mergeConfigWithParent(
   parentConfig: Required<PointerConfig>,
-  childConfig?: PointerConfig
+  childConfig?: PointerConfig,
 ): Required<PointerConfig> {
   if (!childConfig) return parentConfig;
-  
+
   return {
     visibility: childConfig.visibility ?? parentConfig.visibility,
-    hideDefaultCursor: childConfig.hideDefaultCursor ?? parentConfig.hideDefaultCursor,
+    hideDefaultCursor:
+      childConfig.hideDefaultCursor ?? parentConfig.hideDefaultCursor,
     zIndex: childConfig.zIndex ?? parentConfig.zIndex,
-    respectReducedMotion: childConfig.respectReducedMotion ?? parentConfig.respectReducedMotion,
+    respectReducedMotion:
+      childConfig.respectReducedMotion ?? parentConfig.respectReducedMotion,
     offset: childConfig.offset ?? parentConfig.offset,
   };
 }
@@ -239,11 +250,11 @@ function RootPointerProvider({
   // Memoize the root's merged theme and config
   const rootMergedTheme = useMemo(
     () => mergeThemeWithDefaults(dynamicTheme),
-    [dynamicTheme]
+    [dynamicTheme],
   );
   const rootMergedConfig = useMemo(
     () => mergeConfigWithDefaults(dynamicConfig),
-    [dynamicConfig]
+    [dynamicConfig],
   );
 
   // Active theme/config is the top of the stack, or root's theme/config if stack is empty
@@ -270,7 +281,7 @@ function RootPointerProvider({
         return [...filtered, { id, theme, config }];
       });
     },
-    []
+    [],
   );
 
   const popOverride = useCallback((id: string) => {
@@ -280,7 +291,7 @@ function RootPointerProvider({
   // Root context value
   const rootContextValue = useMemo<RootPointerContextValue>(
     () => ({ pushOverride, popOverride }),
-    [pushOverride, popOverride]
+    [pushOverride, popOverride],
   );
 
   // Update interaction state
@@ -329,7 +340,15 @@ function RootPointerProvider({
       setTheme,
       setConfig,
     }),
-    [state, enabled, activeTheme, activeConfig, setInteractionState, setTheme, setConfig],
+    [
+      state,
+      enabled,
+      activeTheme,
+      activeConfig,
+      setInteractionState,
+      setTheme,
+      setConfig,
+    ],
   );
 
   // Parent theme context for nested providers
@@ -338,7 +357,7 @@ function RootPointerProvider({
       theme: rootMergedTheme,
       config: rootMergedConfig,
     }),
-    [rootMergedTheme, rootMergedConfig]
+    [rootMergedTheme, rootMergedConfig],
   );
 
   // Determine if pointer should be shown based on visibility config
@@ -408,11 +427,11 @@ function NestedPointerProvider({
   // Merge with parent theme/config
   const mergedTheme = useMemo(
     () => mergeThemeWithParent(parentTheme.theme, dynamicTheme),
-    [parentTheme.theme, dynamicTheme]
+    [parentTheme.theme, dynamicTheme],
   );
   const mergedConfig = useMemo(
     () => mergeConfigWithParent(parentTheme.config, dynamicConfig),
-    [parentTheme.config, dynamicConfig]
+    [parentTheme.config, dynamicConfig],
   );
 
   // Update the root when theme/config changes while hovered
@@ -443,29 +462,35 @@ function NestedPointerProvider({
   );
 
   // Set theme dynamically (merges with existing)
-  const setTheme = useCallback((newTheme: PointerTheme) => {
-    setDynamicTheme((prev) => {
-      const updated = {
-        ...prev,
-        ...newTheme,
-        colors: { ...prev?.colors, ...newTheme.colors },
-        sizes: { ...prev?.sizes, ...newTheme.sizes },
-      };
-      return updated;
-    });
-    // Schedule update to root on next tick (after state updates)
-    setTimeout(updateRootIfHovered, 0);
-  }, [updateRootIfHovered]);
+  const setTheme = useCallback(
+    (newTheme: PointerTheme) => {
+      setDynamicTheme((prev) => {
+        const updated = {
+          ...prev,
+          ...newTheme,
+          colors: { ...prev?.colors, ...newTheme.colors },
+          sizes: { ...prev?.sizes, ...newTheme.sizes },
+        };
+        return updated;
+      });
+      // Schedule update to root on next tick (after state updates)
+      setTimeout(updateRootIfHovered, 0);
+    },
+    [updateRootIfHovered],
+  );
 
   // Set config dynamically (merges with existing)
-  const setConfig = useCallback((newConfig: PointerConfig) => {
-    setDynamicConfig((prev) => ({
-      ...prev,
-      ...newConfig,
-    }));
-    // Schedule update to root on next tick (after state updates)
-    setTimeout(updateRootIfHovered, 0);
-  }, [updateRootIfHovered]);
+  const setConfig = useCallback(
+    (newConfig: PointerConfig) => {
+      setDynamicConfig((prev) => ({
+        ...prev,
+        ...newConfig,
+      }));
+      // Schedule update to root on next tick (after state updates)
+      setTimeout(updateRootIfHovered, 0);
+    },
+    [updateRootIfHovered],
+  );
 
   // Context value for consumers
   const contextValue: PointerContextValue = useMemo(
@@ -479,7 +504,15 @@ function NestedPointerProvider({
       setTheme,
       setConfig,
     }),
-    [state, enabled, mergedTheme, mergedConfig, setInteractionState, setTheme, setConfig],
+    [
+      state,
+      enabled,
+      mergedTheme,
+      mergedConfig,
+      setInteractionState,
+      setTheme,
+      setConfig,
+    ],
   );
 
   // Parent theme context for further nested providers
@@ -488,7 +521,7 @@ function NestedPointerProvider({
       theme: mergedTheme,
       config: mergedConfig,
     }),
-    [mergedTheme, mergedConfig]
+    [mergedTheme, mergedConfig],
   );
 
   return (
@@ -510,20 +543,20 @@ function NestedPointerProvider({
 
 /**
  * PointerProvider component - provides pointer context to children
- * 
+ *
  * Supports nesting: when nested inside another PointerProvider, hovering over
  * the nested provider's children will apply its theme/config to the pointer.
- * 
+ *
  * Nested themes are merged with the parent theme - you only need to specify
  * the values you want to override. Use the helper functions `mergeThemeWithParent`
  * and `mergeConfigWithParent` if you need to programmatically merge themes.
- * 
+ *
  * @example
  * ```tsx
  * // Root provider
  * <PointerProvider theme={{ colors: { pointerColor: 'blue' } }}>
  *   <div>Blue pointer here</div>
- *   
+ *
  *   {// Nested provider - only overrides pointerColor, inherits everything else }
  *   <PointerProvider theme={{ colors: { pointerColor: 'red' } }}>
  *     <div>Red pointer when hovering here</div>

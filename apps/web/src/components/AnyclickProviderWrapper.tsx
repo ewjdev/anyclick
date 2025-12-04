@@ -54,11 +54,7 @@ const allMenuItems: FeedbackMenuItem[] = [
   },
 ];
 
-export function AnyclickProviderWrapper({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   const userContext = {};
   // Filter menu items based on user roles
   const menuItems = useMemo(() => {
@@ -115,4 +111,3 @@ export function AnyclickProviderWrapper({
  * @deprecated Use AnyclickProviderWrapper instead
  */
 export const FeedbackProviderWrapper = AnyclickProviderWrapper;
-

@@ -84,13 +84,13 @@ anyclick/
 
 ### Useful Commands
 
-| Command | Description |
-|---------|-------------|
-| `yarn dev` | Start all packages in development mode |
-| `yarn build` | Build all packages |
-| `yarn clean` | Clean all build artifacts |
-| `yarn format` | Format code with Prettier |
-| `yarn changeset` | Create a changeset for your changes |
+| Command          | Description                            |
+| ---------------- | -------------------------------------- |
+| `yarn dev`       | Start all packages in development mode |
+| `yarn build`     | Build all packages                     |
+| `yarn clean`     | Clean all build artifacts              |
+| `yarn format`    | Format code with Prettier              |
+| `yarn changeset` | Create a changeset for your changes    |
 
 ## Making Changes
 
@@ -119,7 +119,7 @@ anyclick/
 ## Pull Request Process
 
 1. **Create a Changeset**: Run `yarn changeset` and describe your changes
-2. **Ensure Quality**: 
+2. **Ensure Quality**:
    - Code builds without errors
    - Code is formatted (`yarn format`)
    - TypeScript has no errors
@@ -129,6 +129,7 @@ anyclick/
 ### PR Title Format
 
 Use a descriptive title that follows this format:
+
 - `feat: add new feature` - New features
 - `fix: resolve issue with X` - Bug fixes
 - `docs: update README` - Documentation changes
@@ -172,6 +173,7 @@ type(scope): description
 ```
 
 Types:
+
 - `feat` - New features
 - `fix` - Bug fixes
 - `docs` - Documentation
@@ -181,6 +183,7 @@ Types:
 - `chore` - Maintenance
 
 Example:
+
 ```
 feat(react): add support for custom menu icons
 
@@ -231,9 +234,9 @@ The icon is rendered alongside the label in the context menu.
 ## Questions?
 
 Feel free to:
+
 - Open an issue for questions
 - Start a discussion in GitHub Discussions
 - Reach out on Twitter [@anyclick](https://twitter.com/anyclick)
 
 Thank you for contributing! 🎉
-

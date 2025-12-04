@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 /**
  * CSS custom properties for menu theming.
  * These can be overridden via the `style` prop on AnyclickProvider.
- * 
+ *
  * Example:
  * ```tsx
  * <AnyclickProvider

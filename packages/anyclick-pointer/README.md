@@ -28,7 +28,7 @@ pnpm add @ewjdev/anyclick-pointer
 Wrap your application with `PointerProvider` to enable the custom cursor:
 
 ```tsx
-import { PointerProvider } from '@ewjdev/anyclick-pointer';
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
 
 function App() {
   return (
@@ -57,15 +57,16 @@ That's it! The custom pointer will now replace the default cursor throughout you
 
 The pointer has three interaction states:
 
-| State | Trigger | Visual |
-|-------|---------|--------|
-| `normal` | Default / Mouse move | Pointer icon visible |
+| State        | Trigger                    | Visual                         |
+| ------------ | -------------------------- | ------------------------------ |
+| `normal`     | Default / Mouse move       | Pointer icon visible           |
 | `rightClick` | Right-click (context menu) | Circle visible, pointer hidden |
-| `pressing` | Left mouse button down | Scaled pointer + faint circle |
+| `pressing`   | Left mouse button down     | Scaled pointer + faint circle  |
 
 ### Menu-Aware Behavior
 
 When a context menu is open (right-click state):
+
 - **Over menu** (`role="menu"`): Pointer icon appears for easy menu interaction
 - **Outside menu**: Circle remains visible indicating the menu is open
 - **Click anywhere**: Returns to normal state, closes menu
@@ -77,8 +78,8 @@ When a context menu is open (right-click state):
 Customize the pointer appearance with colors, sizes, and custom icons:
 
 ```tsx
-import { PointerProvider } from '@ewjdev/anyclick-pointer';
-import { Crosshair } from 'lucide-react';
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
+import { Crosshair } from "lucide-react";
 
 function App() {
   return (
@@ -86,11 +87,11 @@ function App() {
       theme={{
         colors: {
           // Pointer icon color
-          pointerColor: '#3b82f6',
+          pointerColor: "#3b82f6",
           // Circle background (right-click state)
-          circleColor: 'rgba(59, 130, 246, 0.4)',
+          circleColor: "rgba(59, 130, 246, 0.4)",
           // Circle border color
-          circleBorderColor: 'rgba(59, 130, 246, 0.7)',
+          circleBorderColor: "rgba(59, 130, 246, 0.7)",
         },
         sizes: {
           // Pointer icon size in pixels
@@ -120,17 +121,17 @@ Control pointer behavior:
 <PointerProvider
   config={{
     // When to show: "always" | "enabled" | "never"
-    visibility: 'always',
-    
+    visibility: "always",
+
     // Hide the default browser cursor
     hideDefaultCursor: true,
-    
+
     // Z-index (must be higher than your UI elements)
     zIndex: 10001,
-    
+
     // Respect prefers-reduced-motion
     respectReducedMotion: true,
-    
+
     // Offset from cursor position [x, y]
     offset: [0, 0],
   }}
@@ -161,31 +162,27 @@ function App() {
 Access pointer state and controls from any child component:
 
 ```tsx
-import { usePointer } from '@ewjdev/anyclick-pointer';
+import { usePointer } from "@ewjdev/anyclick-pointer";
 
 function PointerDebugPanel() {
-  const { 
-    state, 
-    isEnabled, 
-    setEnabled, 
-    setInteractionState,
-    theme,
-    config 
-  } = usePointer();
+  const { state, isEnabled, setEnabled, setInteractionState, theme, config } =
+    usePointer();
 
   return (
     <div>
       <h3>Pointer State</h3>
-      <p>Position: ({state.position.x}, {state.position.y})</p>
+      <p>
+        Position: ({state.position.x}, {state.position.y})
+      </p>
       <p>Interaction: {state.interactionState}</p>
-      <p>Visible: {state.isVisible ? 'Yes' : 'No'}</p>
-      <p>Enabled: {isEnabled ? 'Yes' : 'No'}</p>
-      
+      <p>Visible: {state.isVisible ? "Yes" : "No"}</p>
+      <p>Enabled: {isEnabled ? "Yes" : "No"}</p>
+
       <h3>Controls</h3>
       <button onClick={() => setEnabled(!isEnabled)}>
-        {isEnabled ? 'Disable' : 'Enable'} Pointer
+        {isEnabled ? "Disable" : "Enable"} Pointer
       </button>
-      <button onClick={() => setInteractionState('rightClick')}>
+      <button onClick={() => setInteractionState("rightClick")}>
         Simulate Right-Click
       </button>
     </div>
@@ -198,11 +195,11 @@ function PointerDebugPanel() {
 Use the pointer component directly without the provider for more control:
 
 ```tsx
-import { CustomPointer } from '@ewjdev/anyclick-pointer';
+import { CustomPointer } from "@ewjdev/anyclick-pointer";
 
 function App() {
   const handleInteractionChange = (state) => {
-    console.log('Pointer interaction:', state);
+    console.log("Pointer interaction:", state);
     // 'normal' | 'rightClick' | 'pressing'
   };
 
@@ -212,9 +209,9 @@ function App() {
       <CustomPointer
         enabled={true}
         theme={{
-          colors: { 
-            pointerColor: '#10b981',
-            circleColor: 'rgba(16, 185, 129, 0.4)',
+          colors: {
+            pointerColor: "#10b981",
+            circleColor: "rgba(16, 185, 129, 0.4)",
           },
         }}
         config={{
@@ -234,18 +231,18 @@ Here's a full example showing how to integrate the pointer in a Next.js applicat
 
 ```tsx
 // app/providers.tsx
-'use client';
+"use client";
 
-import { PointerProvider } from '@ewjdev/anyclick-pointer';
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <PointerProvider
       theme={{
         colors: {
-          pointerColor: '#6366f1', // Indigo
-          circleColor: 'rgba(99, 102, 241, 0.3)',
-          circleBorderColor: 'rgba(99, 102, 241, 0.6)',
+          pointerColor: "#6366f1", // Indigo
+          circleColor: "rgba(99, 102, 241, 0.3)",
+          circleBorderColor: "rgba(99, 102, 241, 0.6)",
         },
         sizes: {
           pointerSize: 20,
@@ -253,7 +250,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       }}
       config={{
-        visibility: 'always',
+        visibility: "always",
         hideDefaultCursor: true,
       }}
     >
@@ -263,15 +260,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 
 // app/layout.tsx
-import { Providers } from './providers';
+import { Providers } from "./providers";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
@@ -283,11 +278,11 @@ export default function RootLayout({ children }) {
 Use alongside `@ewjdev/anyclick-react` for a complete feedback experience:
 
 ```tsx
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { PointerProvider } from '@ewjdev/anyclick-pointer';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
-const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 
 function App() {
   return (
@@ -295,12 +290,12 @@ function App() {
       <PointerProvider
         theme={{
           colors: {
-            pointerColor: '#3b82f6',
-            circleColor: 'rgba(59, 130, 246, 0.4)',
+            pointerColor: "#3b82f6",
+            circleColor: "rgba(59, 130, 246, 0.4)",
           },
         }}
         config={{
-          visibility: 'always',
+          visibility: "always",
           hideDefaultCursor: true,
         }}
       >
@@ -381,7 +376,7 @@ import {
   rippleVariants,
   createSpringTransition,
   getTransition,
-} from '@ewjdev/anyclick-pointer';
+} from "@ewjdev/anyclick-pointer";
 
 // Create custom spring animation
 const mySpring = createSpringTransition({
@@ -391,75 +386,75 @@ const mySpring = createSpringTransition({
 });
 
 // Get transition based on reduced motion preference
-const transition = getTransition(prefersReducedMotion, 'spring');
+const transition = getTransition(prefersReducedMotion, "spring");
 ```
 
 ## API Reference
 
 ### PointerProvider Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | - | Child components |
-| `theme` | `PointerTheme` | See defaults | Theme configuration |
-| `config` | `PointerConfig` | See defaults | Behavior configuration |
-| `enabled` | `boolean` | `true` | Enable/disable pointer |
-| `className` | `string` | - | Container class name |
-| `style` | `CSSProperties` | - | Container styles |
+| Prop        | Type            | Default      | Description            |
+| ----------- | --------------- | ------------ | ---------------------- |
+| `children`  | `ReactNode`     | -            | Child components       |
+| `theme`     | `PointerTheme`  | See defaults | Theme configuration    |
+| `config`    | `PointerConfig` | See defaults | Behavior configuration |
+| `enabled`   | `boolean`       | `true`       | Enable/disable pointer |
+| `className` | `string`        | -            | Container class name   |
+| `style`     | `CSSProperties` | -            | Container styles       |
 
 ### CustomPointer Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `theme` | `PointerTheme` | See defaults | Theme configuration |
-| `config` | `PointerConfig` | See defaults | Behavior configuration |
-| `enabled` | `boolean` | `true` | Enable/disable pointer |
-| `onInteractionChange` | `(state) => void` | - | Callback on state change |
+| Prop                  | Type              | Default      | Description              |
+| --------------------- | ----------------- | ------------ | ------------------------ |
+| `theme`               | `PointerTheme`    | See defaults | Theme configuration      |
+| `config`              | `PointerConfig`   | See defaults | Behavior configuration   |
+| `enabled`             | `boolean`         | `true`       | Enable/disable pointer   |
+| `onInteractionChange` | `(state) => void` | -            | Callback on state change |
 
 ### PointerTheme
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `colors.pointerColor` | `string` | `'currentColor'` | Pointer icon color |
-| `colors.circleColor` | `string` | `'rgba(59, 130, 246, 0.4)'` | Circle background |
-| `colors.circleBorderColor` | `string` | `'rgba(59, 130, 246, 0.7)'` | Circle border |
-| `sizes.pointerSize` | `number` | `24` | Pointer icon size (px) |
-| `sizes.circleSize` | `number` | `44` | Circle size (px) |
-| `sizes.circleBorderWidth` | `number` | `2` | Circle border width (px) |
-| `pointerIcon` | `ReactNode` | `MousePointer2` | Custom pointer icon |
-| `circleElement` | `ReactNode` | Default circle | Custom circle element |
+| Property                   | Type        | Default                     | Description              |
+| -------------------------- | ----------- | --------------------------- | ------------------------ |
+| `colors.pointerColor`      | `string`    | `'currentColor'`            | Pointer icon color       |
+| `colors.circleColor`       | `string`    | `'rgba(59, 130, 246, 0.4)'` | Circle background        |
+| `colors.circleBorderColor` | `string`    | `'rgba(59, 130, 246, 0.7)'` | Circle border            |
+| `sizes.pointerSize`        | `number`    | `24`                        | Pointer icon size (px)   |
+| `sizes.circleSize`         | `number`    | `44`                        | Circle size (px)         |
+| `sizes.circleBorderWidth`  | `number`    | `2`                         | Circle border width (px) |
+| `pointerIcon`              | `ReactNode` | `MousePointer2`             | Custom pointer icon      |
+| `circleElement`            | `ReactNode` | Default circle              | Custom circle element    |
 
 ### PointerConfig
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `visibility` | `'always' \| 'enabled' \| 'never'` | `'always'` | When to show pointer |
-| `hideDefaultCursor` | `boolean` | `true` | Hide browser cursor |
-| `zIndex` | `number` | `10001` | Pointer z-index |
-| `respectReducedMotion` | `boolean` | `true` | Honor system preference |
-| `offset` | `[number, number]` | `[0, 0]` | Position offset [x, y] |
+| Property               | Type                               | Default    | Description             |
+| ---------------------- | ---------------------------------- | ---------- | ----------------------- |
+| `visibility`           | `'always' \| 'enabled' \| 'never'` | `'always'` | When to show pointer    |
+| `hideDefaultCursor`    | `boolean`                          | `true`     | Hide browser cursor     |
+| `zIndex`               | `number`                           | `10001`    | Pointer z-index         |
+| `respectReducedMotion` | `boolean`                          | `true`     | Honor system preference |
+| `offset`               | `[number, number]`                 | `[0, 0]`   | Position offset [x, y]  |
 
 ### usePointer Hook
 
 Returns `PointerContextValue`:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `state` | `PointerState` | Current pointer state |
-| `isEnabled` | `boolean` | Whether pointer is enabled |
-| `theme` | `PointerTheme` | Current theme |
-| `config` | `PointerConfig` | Current config |
-| `setInteractionState` | `(state) => void` | Set interaction state |
-| `setEnabled` | `(enabled) => void` | Toggle enabled state |
+| Property              | Type                | Description                |
+| --------------------- | ------------------- | -------------------------- |
+| `state`               | `PointerState`      | Current pointer state      |
+| `isEnabled`           | `boolean`           | Whether pointer is enabled |
+| `theme`               | `PointerTheme`      | Current theme              |
+| `config`              | `PointerConfig`     | Current config             |
+| `setInteractionState` | `(state) => void`   | Set interaction state      |
+| `setEnabled`          | `(enabled) => void` | Toggle enabled state       |
 
 ### PointerState
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `position` | `{ x: number; y: number }` | Cursor position |
-| `interactionState` | `'normal' \| 'rightClick' \| 'pressing'` | Current state |
-| `isVisible` | `boolean` | Whether pointer is visible |
-| `isInBounds` | `boolean` | Whether in document bounds |
+| Property           | Type                                     | Description                |
+| ------------------ | ---------------------------------------- | -------------------------- |
+| `position`         | `{ x: number; y: number }`               | Cursor position            |
+| `interactionState` | `'normal' \| 'rightClick' \| 'pressing'` | Current state              |
+| `isVisible`        | `boolean`                                | Whether pointer is visible |
+| `isInBounds`       | `boolean`                                | Whether in document bounds |
 
 ## Performance
 
@@ -473,6 +468,7 @@ The CustomPointer component is optimized for performance:
 ## Browser Support
 
 Works in all modern browsers that support:
+
 - CSS `position: fixed`
 - CSS `transform` with `translate3d`
 - CSS custom properties (CSS variables)

@@ -32,19 +32,17 @@ npm run feedback-server
 ### 2. Configure the Provider
 
 ```tsx
-'use client';
+"use client";
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
+import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { createLocalAdapter } from "@ewjdev/anyclick-cursor-local";
 
 const adapter = createLocalAdapter({
-  serverUrl: 'http://localhost:3847',
+  serverUrl: "http://localhost:3847",
   projectPath: process.cwd(),
 });
 
-<FeedbackProvider adapter={adapter}>
-  {children}
-</FeedbackProvider>
+<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
 ```
 
 ## Features
@@ -69,19 +67,19 @@ Create `anyclick.config.js` in your project root:
 ```javascript
 module.exports = {
   port: 3847,
-  outputDir: '.feedback',
-  cursorPath: '/Applications/Cursor.app/Contents/MacOS/Cursor',
-  
+  outputDir: ".feedback",
+  cursorPath: "/Applications/Cursor.app/Contents/MacOS/Cursor",
+
   onFeedback: async (payload, filePath) => {
     console.log(`Feedback saved to: ${filePath}`);
   },
-  
+
   formatPrompt: (payload) => {
     return `Fix: ${payload.comment}\nElement: ${payload.element.selector}`;
   },
-  
+
   cors: {
-    origin: ['http://localhost:3000'],
+    origin: ["http://localhost:3000"],
   },
 };
 ```
@@ -91,13 +89,13 @@ module.exports = {
 Route different feedback types to different adapters:
 
 ```typescript
-import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createLocalAdapter } from "@ewjdev/anyclick-cursor-local";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
 function createRoutingAdapter(config) {
   return {
     async submit(payload) {
-      if (payload.type === 'cursor_local') {
+      if (payload.type === "cursor_local") {
         return config.local.submit(payload);
       }
       return config.github.submit(payload);
@@ -106,8 +104,8 @@ function createRoutingAdapter(config) {
 }
 
 const adapter = createRoutingAdapter({
-  local: createLocalAdapter({ serverUrl: 'http://localhost:3847' }),
-  github: createHttpAdapter({ endpoint: '/api/feedback' }),
+  local: createLocalAdapter({ serverUrl: "http://localhost:3847" }),
+  github: createHttpAdapter({ endpoint: "/api/feedback" }),
 });
 ```
 

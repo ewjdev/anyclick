@@ -1,19 +1,19 @@
-import type { FeedbackPayload, FeedbackType, PageContext } from './types';
-import { buildElementContext } from './dom';
+import type { FeedbackPayload, FeedbackType, PageContext } from "./types";
+import { buildElementContext } from "./dom";
 
 /**
  * Build page context from the current window/document
  */
 export function buildPageContext(): PageContext {
   // Guard for SSR environments
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
+  if (typeof window === "undefined" || typeof document === "undefined") {
     return {
-      url: '',
-      title: '',
-      referrer: '',
+      url: "",
+      title: "",
+      referrer: "",
       screen: { width: 0, height: 0 },
       viewport: { width: 0, height: 0 },
-      userAgent: '',
+      userAgent: "",
       timestamp: new Date().toISOString(),
     };
   }
@@ -48,7 +48,7 @@ export function buildFeedbackPayload(
     maxOuterHTMLLength?: number;
     maxAncestors?: number;
     stripAttributes?: string[];
-  } = {}
+  } = {},
 ): FeedbackPayload {
   const { comment, metadata, ...elementOptions } = options;
 
@@ -60,4 +60,3 @@ export function buildFeedbackPayload(
     metadata,
   };
 }
-

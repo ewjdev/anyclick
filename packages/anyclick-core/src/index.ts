@@ -18,16 +18,16 @@ export type {
   ScreenshotError,
   FeedbackTriggerEvent,
   FeedbackMenuEvent,
-} from './types';
+} from "./types";
 
-export { DEFAULT_SENSITIVE_SELECTORS } from './types';
+export { DEFAULT_SENSITIVE_SELECTORS } from "./types";
 
 // Errors
 export {
   ELEMENT_CANNOT_BE_CAPTURED_ERROR,
   SCREENSHOT_TIMEOUT_ERROR,
   SCREENSHOT_NOT_SUPPORTED_ERROR,
-} from './errors';
+} from "./errors";
 
 // DOM utilities
 export {
@@ -37,10 +37,10 @@ export {
   truncate,
   stripAttributesFromHTML,
   buildElementContext,
-} from './dom';
+} from "./dom";
 
 // Payload building
-export { buildPageContext, buildFeedbackPayload } from './payload';
+export { buildPageContext, buildFeedbackPayload } from "./payload";
 
 // Screenshot utilities
 export {
@@ -50,8 +50,7 @@ export {
   captureAllScreenshots,
   estimateTotalSize,
   formatBytes,
-} from './screenshot';
+} from "./screenshot";
 
 // Client
-export { FeedbackClient, createFeedbackClient } from './client';
-
+export { FeedbackClient, createFeedbackClient } from "./client";

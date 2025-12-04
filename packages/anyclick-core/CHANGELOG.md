@@ -1,5 +1,13 @@
 # @ewjdev/anyclick-core
 
+## 1.1.1
+
+### Patch Changes
+
+- Fix mobile touch handling for scoped providers
+
+  Fix issue where global providers were incorrectly handling touch events inside scoped provider containers. Touch events now properly defer to scoped providers, allowing them to handle events with their own theme configuration. Added `isElementInAnyScopedProvider` helper to check if an element is within any scoped provider's container.
+
 ## 1.1.0
 
 ### Minor Changes

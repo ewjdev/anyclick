@@ -1,4 +1,5 @@
 <!-- fbe88f74-774b-4388-9aa6-79d83c2df3c2 7eebc206-d3e2-4ca0-8395-76650877fc78 -->
+
 # Custom Pointer Visualization Package
 
 ## Overview
@@ -74,7 +75,7 @@ Define interfaces for:
 Export:
 
 - `PointerProvider` component
-- `CustomPointer` component  
+- `CustomPointer` component
 - `usePointer` hook
 - Types and interfaces
 - Animation utilities

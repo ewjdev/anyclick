@@ -64,7 +64,7 @@ const [state, setState] = useState<PointerState>({
   position: { x: -100, y: -100 },
   // ...
 });
-setState(prev => ({ ...prev, position: { x, y } }));
+setState((prev) => ({ ...prev, position: { x, y } }));
 
 // After (direct DOM manipulation)
 const pointerRef = useRef<HTMLDivElement>(null);
@@ -188,7 +188,7 @@ After:
 #### Motion Value Strategy (Alternative to Phase 1)
 
 ```tsx
-import { useMotionValue, motion } from 'motion/react';
+import { useMotionValue, motion } from "motion/react";
 
 const x = useMotionValue(-100);
 const y = useMotionValue(-100);
@@ -198,7 +198,7 @@ x.set(event.clientX);
 y.set(event.clientY);
 
 // In render:
-<motion.div style={{ x, y }} />
+<motion.div style={{ x, y }} />;
 ```
 
 ---

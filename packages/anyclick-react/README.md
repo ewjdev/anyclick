@@ -23,21 +23,17 @@ npm install @ewjdev/anyclick-react
 ## Quick Start
 
 ```tsx
-'use client';
+"use client";
 
-import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
 const adapter = createHttpAdapter({
-  endpoint: '/api/feedback',
+  endpoint: "/api/feedback",
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <AnyclickProvider adapter={adapter}>
-      {children}
-    </AnyclickProvider>
-  );
+  return <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
 }
 ```
 
@@ -55,39 +51,39 @@ That's it! Users can now right-click any element to submit feedback.
 
 ## Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `adapter` | `FeedbackAdapter` | Required. The adapter for submitting feedback |
-| `menuItems` | `FeedbackMenuItem[]` | Custom menu items |
-| `metadata` | `Record<string, unknown>` | Additional data included with every submission |
-| `theme` | `AnyclickTheme \| null` | Theme configuration (inherits from parent) |
-| `scoped` | `boolean` | Limit capture to this provider's children only |
-| `disabled` | `boolean` | Disable feedback capture |
-| `onSubmitSuccess` | `(payload) => void` | Success callback |
-| `onSubmitError` | `(error, payload) => void` | Error callback |
+| Prop              | Type                       | Description                                    |
+| ----------------- | -------------------------- | ---------------------------------------------- |
+| `adapter`         | `FeedbackAdapter`          | Required. The adapter for submitting feedback  |
+| `menuItems`       | `FeedbackMenuItem[]`       | Custom menu items                              |
+| `metadata`        | `Record<string, unknown>`  | Additional data included with every submission |
+| `theme`           | `AnyclickTheme \| null`    | Theme configuration (inherits from parent)     |
+| `scoped`          | `boolean`                  | Limit capture to this provider's children only |
+| `disabled`        | `boolean`                  | Disable feedback capture                       |
+| `onSubmitSuccess` | `(payload) => void`        | Success callback                               |
+| `onSubmitError`   | `(error, payload) => void` | Error callback                                 |
 
 ## Scoped Providers
 
 Limit feedback capture to specific sections of your app:
 
 ```tsx
-import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 
 function App() {
   return (
     <AnyclickProvider adapter={globalAdapter}>
       {/* Global feedback works everywhere */}
       <Header />
-      
+
       {/* Scoped provider - separate configuration */}
-      <AnyclickProvider 
+      <AnyclickProvider
         adapter={dashboardAdapter}
         scoped
         menuItems={dashboardMenuItems}
       >
         <Dashboard />
       </AnyclickProvider>
-      
+
       <Footer />
     </AnyclickProvider>
   );
@@ -99,33 +95,33 @@ function App() {
 Override themes for specific sections:
 
 ```tsx
-import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 
 function App() {
   return (
-    <AnyclickProvider 
+    <AnyclickProvider
       adapter={adapter}
       theme={{
         highlightConfig: {
-          colors: { targetColor: '#3b82f6' }
-        }
+          colors: { targetColor: "#3b82f6" },
+        },
       }}
     >
       {/* Uses blue highlights */}
       <MainContent />
-      
+
       {/* Uses red highlights (overrides parent) */}
-      <AnyclickProvider 
+      <AnyclickProvider
         scoped
         theme={{
           highlightConfig: {
-            colors: { targetColor: '#ef4444' }
-          }
+            colors: { targetColor: "#ef4444" },
+          },
         }}
       >
         <WarningSection />
       </AnyclickProvider>
-      
+
       {/* Disable anyclick for this section */}
       <AnyclickProvider scoped theme={{ disabled: true }}>
         <SensitiveArea />
@@ -150,24 +146,24 @@ interface AnyclickTheme {
 ## Custom Menu Items
 
 ```tsx
-import { Bug, Lightbulb, Heart } from 'lucide-react';
+import { Bug, Lightbulb, Heart } from "lucide-react";
 
 const menuItems = [
-  { 
-    type: 'bug', 
-    label: 'Report Bug', 
+  {
+    type: "bug",
+    label: "Report Bug",
     icon: <Bug className="w-4 h-4" />,
     showComment: true,
   },
-  { 
-    type: 'feature', 
-    label: 'Suggest Feature', 
+  {
+    type: "feature",
+    label: "Suggest Feature",
     icon: <Lightbulb className="w-4 h-4" />,
     showComment: true,
   },
-  { 
-    type: 'love', 
-    label: 'Love It!', 
+  {
+    type: "love",
+    label: "Love It!",
     icon: <Heart className="w-4 h-4" />,
     showComment: false,
   },
@@ -175,20 +171,20 @@ const menuItems = [
 
 <AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</AnyclickProvider>
+</AnyclickProvider>;
 ```
 
 ## Role-Based Filtering
 
 ```tsx
-import { filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+import { filterMenuItemsByRole } from "@ewjdev/anyclick-react";
 
 const allMenuItems = [
-  { type: 'bug', label: 'Report Bug' },
-  { type: 'debug', label: 'Debug Info', requiredRoles: ['developer'] },
+  { type: "bug", label: "Report Bug" },
+  { type: "debug", label: "Debug Info", requiredRoles: ["developer"] },
 ];
 
-const userContext = { roles: ['user', 'developer'] };
+const userContext = { roles: ["user", "developer"] };
 const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
 ```
 
@@ -201,10 +197,10 @@ const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
     highlightConfig: {
       enabled: true,
       colors: {
-        targetColor: '#3b82f6',
-        containerColor: '#8b5cf6',
+        targetColor: "#3b82f6",
+        containerColor: "#8b5cf6",
       },
-      containerSelectors: ['[data-component]', '.card'],
+      containerSelectors: ["[data-component]", ".card"],
     },
   }}
 >
@@ -217,23 +213,17 @@ const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
 Access anyclick context from child components:
 
 ```tsx
-import { useAnyclick } from '@ewjdev/anyclick-react';
+import { useAnyclick } from "@ewjdev/anyclick-react";
 
 function MyComponent() {
-  const { 
-    isSubmitting, 
-    openMenu, 
-    closeMenu,
-    theme,
-    scoped,
-    providerId,
-  } = useAnyclick();
-  
+  const { isSubmitting, openMenu, closeMenu, theme, scoped, providerId } =
+    useAnyclick();
+
   // Open menu programmatically
   const handleClick = (event) => {
     openMenu(event.currentTarget, { x: event.clientX, y: event.clientY });
   };
-  
+
   return <button onClick={handleClick}>Open Feedback</button>;
 }
 ```
@@ -244,10 +234,10 @@ The `FeedbackProvider` component has been renamed to `AnyclickProvider`. The old
 
 ```tsx
 // Old (deprecated)
-import { FeedbackProvider, useFeedback } from '@ewjdev/anyclick-react';
+import { FeedbackProvider, useFeedback } from "@ewjdev/anyclick-react";
 
 // New (recommended)
-import { AnyclickProvider, useAnyclick } from '@ewjdev/anyclick-react';
+import { AnyclickProvider, useAnyclick } from "@ewjdev/anyclick-react";
 ```
 
 ## Documentation
