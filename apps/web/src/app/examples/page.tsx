@@ -8,6 +8,7 @@ import {
   ArrowRight,
   Sparkles,
   Shield,
+  MousePointer2,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -25,6 +26,15 @@ const examples = [
     icon: Box,
     color: "violet",
     tags: ["React", "Provider", "Default Menu"],
+  },
+  {
+    title: "Custom Pointer",
+    description:
+      "Replace the default cursor with a beautiful themed pointer. Includes right-click circle animation and press effects.",
+    href: "/examples/custom-pointer",
+    icon: MousePointer2,
+    color: "rose",
+    tags: ["Cursor", "Animation", "Theming", "CSS"],
   },
   {
     title: "Custom Menu",
