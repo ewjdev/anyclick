@@ -63,6 +63,9 @@ export class GitHubAdapter {
     const url = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`;
 
     console.log("🔍 Uploading asset to URL:", url);
+    console.log(`   Branch: ${this.mediaBranch}`);
+    console.log(`   Repo: ${this.owner}/${this.repo}`);
+    console.log(`   Token: ${this.token}`);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -70,7 +73,6 @@ export class GitHubAdapter {
         Accept: "application/vnd.github+json",
         Authorization: `Bearer ${this.token}`,
         "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         message: commitMessage,
@@ -81,8 +83,35 @@ export class GitHubAdapter {
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "Unknown error");
+
+      console.info(`curl command: ${curlCommand}`);
+
+      // Provide more specific error messages based on status code
+      let diagnosticMessage = "";
+      if (response.status === 404) {
+        diagnosticMessage = `
+Possible causes for 404:
+  - The branch '${this.mediaBranch}' does not exist
+  - The repository '${this.owner}/${this.repo}' does not exist or is not accessible
+  - The token does not have access to this repository
+  - Fine-grained token missing 'Contents: Read and write' permission`;
+      } else if (response.status === 401) {
+        diagnosticMessage = `
+Token authentication failed. Check that GITHUB_TOKEN is valid and not expired.`;
+      } else if (response.status === 403) {
+        diagnosticMessage = `
+Permission denied. The token may not have write access to this repository.
+For fine-grained tokens, ensure 'Contents: Read and write' permission is granted.`;
+      } else if (response.status === 422) {
+        diagnosticMessage = `
+Validation failed. This could mean:
+  - The file already exists (need to provide SHA for update)
+  - Invalid base64 content
+  - Branch name is invalid`;
+      }
+
       throw new Error(
-        `GitHub Content API error: ${response.status} ${response.statusText} - ${errorText}`,
+        `GitHub Content API error: ${response.status} ${response.statusText} - ${errorText}${diagnosticMessage}`,
       );
     }
 
@@ -160,8 +189,73 @@ export class GitHubAdapter {
     let processedPayload = payload;
     let submissionId: string | undefined;
 
-    // If there are screenshots, upload them and replace dataUrls with raw GitHub URLs
+    // If there are screenshots, validate prerequisites before attempting upload
     if (payload.screenshots && this.hasScreenshots(payload.screenshots)) {
+      console.log(
+        "📸 Screenshots detected, validating GitHub configuration...",
+      );
+
+      // Run diagnostics to check prerequisites
+      const diagnostics = await this.runDiagnostics();
+
+      if (diagnostics.errors.length > 0) {
+        console.log("❌ Configuration errors detected:");
+        diagnostics.errors.forEach((err) => console.log(`   - ${err}`));
+
+        // If media branch doesn't exist, try to create it automatically
+        if (
+          !diagnostics.mediaBranchExists &&
+          diagnostics.repoAccessible &&
+          diagnostics.repoPermissions?.push
+        ) {
+          console.log(
+            `\n🔧 Attempting to create media branch '${this.mediaBranch}' automatically...`,
+          );
+          try {
+            const sha = await this.ensureMediaBranch();
+            if (sha) {
+              console.log(
+                `✅ Media branch created successfully (commit: ${sha.substring(0, 7)})`,
+              );
+            }
+          } catch (branchError) {
+            const errorMsg =
+              branchError instanceof Error
+                ? branchError.message
+                : String(branchError);
+            throw new Error(
+              `Failed to auto-create media branch '${this.mediaBranch}': ${errorMsg}\n\n` +
+                `You can manually create it by running:\n` +
+                `  npx @ewjdev/anyclick-github setup-media-branch`,
+            );
+          }
+        } else if (!diagnostics.mediaBranchExists) {
+          // Can't auto-create, provide helpful error
+          throw new Error(
+            `Media branch '${this.mediaBranch}' does not exist and cannot be auto-created.\n\n` +
+              `Diagnostic results:\n` +
+              `  - Token valid: ${diagnostics.tokenValid}\n` +
+              `  - Repo accessible: ${diagnostics.repoAccessible}\n` +
+              `  - Push permission: ${diagnostics.repoPermissions?.push ?? "unknown"}\n\n` +
+              `Errors:\n${diagnostics.errors.map((e) => `  - ${e}`).join("\n")}\n\n` +
+              `To fix, ensure your token has write access and run:\n` +
+              `  npx @ewjdev/anyclick-github setup-media-branch`,
+          );
+        }
+
+        // If there are other critical errors (not just missing branch), throw
+        const criticalErrors = diagnostics.errors.filter(
+          (e) => !e.includes("Media branch"),
+        );
+        if (criticalErrors.length > 0 && !diagnostics.repoAccessible) {
+          throw new Error(
+            `GitHub configuration errors:\n${criticalErrors.map((e) => `  - ${e}`).join("\n")}`,
+          );
+        }
+      }
+
+      console.log("✅ Configuration validated, uploading screenshots...");
+
       submissionId = this.generateSubmissionId();
       const uploadedScreenshots = await this.uploadScreenshots(
         submissionId,
@@ -247,10 +341,32 @@ export class GitHubAdapter {
    * Validate that the adapter is configured correctly
    */
   async validateConfiguration(): Promise<boolean> {
-    const url = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}`;
+    const result = await this.runDiagnostics();
+    return result.repoAccessible && result.tokenValid;
+  }
 
+  /**
+   * Run comprehensive diagnostics on the adapter configuration
+   * Returns detailed information about what's working and what's not
+   */
+  async runDiagnostics(): Promise<{
+    tokenValid: boolean;
+    tokenScopes: string | null;
+    repoAccessible: boolean;
+    repoPermissions: { push: boolean; pull: boolean } | null;
+    mediaBranchExists: boolean;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    let tokenValid = false;
+    let tokenScopes: string | null = null;
+    let repoAccessible = false;
+    let repoPermissions: { push: boolean; pull: boolean } | null = null;
+    let mediaBranchExists = false;
+
+    // Check 1: Validate token by checking rate limit (works even without repo access)
     try {
-      const response = await fetch(url, {
+      const rateLimitResponse = await fetch(`${this.apiBaseUrl}/rate_limit`, {
         method: "GET",
         headers: {
           Accept: "application/vnd.github+json",
@@ -259,10 +375,101 @@ export class GitHubAdapter {
         },
       });
 
-      return response.ok;
-    } catch {
-      return false;
+      if (rateLimitResponse.ok) {
+        tokenValid = true;
+        tokenScopes = rateLimitResponse.headers.get("x-oauth-scopes");
+        console.log("✅ Token is valid");
+        if (tokenScopes) {
+          console.log(`   Scopes: ${tokenScopes}`);
+        } else {
+          console.log("   (Fine-grained token - scopes not listed in header)");
+        }
+      } else {
+        errors.push(
+          `Token validation failed: ${rateLimitResponse.status} ${rateLimitResponse.statusText}`,
+        );
+        console.log("❌ Token is invalid or expired");
+      }
+    } catch (e) {
+      errors.push(
+        `Token check failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
     }
+
+    // Check 2: Check repository access and permissions
+    try {
+      const repoUrl = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}`;
+      const repoResponse = await fetch(repoUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      });
+
+      if (repoResponse.ok) {
+        repoAccessible = true;
+        const repoData = (await repoResponse.json()) as {
+          permissions?: { push?: boolean; pull?: boolean };
+        };
+        repoPermissions = {
+          push: repoData.permissions?.push ?? false,
+          pull: repoData.permissions?.pull ?? false,
+        };
+        console.log(`✅ Repository ${this.owner}/${this.repo} is accessible`);
+        console.log(
+          `   Permissions: push=${repoPermissions.push}, pull=${repoPermissions.pull}`,
+        );
+
+        if (!repoPermissions.push) {
+          errors.push(
+            `Token does not have push (write) permission to ${this.owner}/${this.repo}`,
+          );
+        }
+      } else if (repoResponse.status === 404) {
+        errors.push(
+          `Repository ${this.owner}/${this.repo} not found or not accessible with this token`,
+        );
+        console.log(
+          `❌ Repository ${this.owner}/${this.repo} not found or not accessible`,
+        );
+      } else {
+        errors.push(
+          `Repository check failed: ${repoResponse.status} ${repoResponse.statusText}`,
+        );
+      }
+    } catch (e) {
+      errors.push(
+        `Repository check failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+
+    // Check 3: Check if media branch exists
+    try {
+      mediaBranchExists = await this.mediaBranchExists();
+      if (mediaBranchExists) {
+        console.log(`✅ Media branch '${this.mediaBranch}' exists`);
+      } else {
+        errors.push(
+          `Media branch '${this.mediaBranch}' does not exist. Run setup-media-branch to create it.`,
+        );
+        console.log(`❌ Media branch '${this.mediaBranch}' does not exist`);
+      }
+    } catch (e) {
+      errors.push(
+        `Media branch check failed: ${e instanceof Error ? e.message : String(e)}`,
+      );
+    }
+
+    return {
+      tokenValid,
+      tokenScopes,
+      repoAccessible,
+      repoPermissions,
+      mediaBranchExists,
+      errors,
+    };
   }
 
   /**

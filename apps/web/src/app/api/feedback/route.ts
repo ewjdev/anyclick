@@ -2,13 +2,30 @@ import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 import { createCursorAgentAdapter } from "@ewjdev/anyclick-cursor";
 import type { FeedbackPayload } from "@ewjdev/anyclick-core";
 
-const githubRepo = process.env.GITHUB_REPO! ?? "ewjdev/anyclick";
+// Lazily create the GitHub adapter to allow proper error handling
+function getGitHubAdapter() {
+  const token = process.env.GITHUB_TOKEN;
+  const githubRepo = process.env.GITHUB_REPO ?? "ewjdev/anyclick";
 
-const github = createGitHubAdapter({
-  token: process.env.GITHUB_TOKEN!,
-  owner: githubRepo.split("/")[0]!,
-  repo: githubRepo.split("/")[1]!,
-});
+  if (!token) {
+    throw new Error(
+      "GITHUB_TOKEN is not configured. Please set the GITHUB_TOKEN environment variable.",
+    );
+  }
+
+  const [owner, repo] = githubRepo.split("/");
+  if (!owner || !repo) {
+    throw new Error(
+      `GITHUB_REPO is not in valid format. Expected "owner/repo", got "${githubRepo}"`,
+    );
+  }
+
+  return createGitHubAdapter({
+    token,
+    owner,
+    repo,
+  });
+}
 
 // Local cursor server URL (only used in development)
 const LOCAL_CURSOR_SERVER =
@@ -124,6 +141,14 @@ export async function POST(req: Request) {
   }
 
   // Default: create GitHub issue
-  const issue = await github.createIssue(payload);
-  return Response.json({ success: true, url: issue.htmlUrl });
+  try {
+    const github = getGitHubAdapter();
+    const issue = await github.createIssue(payload);
+    return Response.json({ success: true, url: issue.htmlUrl });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to create GitHub issue";
+    console.error("GitHub adapter error:", message);
+    return Response.json({ success: false, error: message }, { status: 500 });
+  }
 }
