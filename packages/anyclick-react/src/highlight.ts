@@ -70,6 +70,7 @@ function generateHighlightCSS(colors: Required<HighlightColors>): string {
   border-radius: 4px !important;
   position: relative;
   z-index: 9997;
+  top: 0;
 }
 
 .${HIGHLIGHT_CONTAINER_CLASS} {
