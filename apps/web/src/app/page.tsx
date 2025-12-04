@@ -18,6 +18,11 @@ import {
   Check,
   Clock,
 } from "lucide-react";
+import {
+  HeroCodeBlock,
+  CodeBlock,
+  TerminalBlock,
+} from "@/components/CodePreview";
 
 export default function Home() {
   return (
@@ -124,80 +129,25 @@ export default function Home() {
         </div>
 
         {/* Code Preview */}
-        <div className="max-w-3xl mx-auto mt-20 relative">
-          <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 via-cyan-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-50" />
-          <div className="relative rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden shadow-2xl">
-            {/* Window controls */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-white/[0.02]">
-              <div className="w-3 h-3 rounded-full bg-red-500/80" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <div className="w-3 h-3 rounded-full bg-green-500/80" />
-              <span className="ml-4 text-xs text-gray-500 font-mono">
-                app/layout.tsx
-              </span>
-            </div>
-            <pre className="p-6 text-sm font-mono overflow-x-auto">
-              <code>
-                <span className="text-purple-400">import</span>
-                <span className="text-gray-300">{" { "}</span>
-                <span className="text-cyan-400">AnyclickProvider</span>
-                <span className="text-gray-300">{" } "}</span>
-                <span className="text-purple-400">from</span>
-                <span className="text-emerald-400">
-                  {" '@ewjdev/anyclick-react'"}
-                </span>
-                <span className="text-gray-500">;</span>
-                {"\n"}
-                <span className="text-purple-400">import</span>
-                <span className="text-gray-300">{" { "}</span>
-                <span className="text-cyan-400">createHttpAdapter</span>
-                <span className="text-gray-300">{" } "}</span>
-                <span className="text-purple-400">from</span>
-                <span className="text-emerald-400">
-                  {" '@ewjdev/anyclick-github'"}
-                </span>
-                <span className="text-gray-500">;</span>
-                {"\n\n"}
-                <span className="text-purple-400">const</span>
-                <span className="text-cyan-400">{" adapter"}</span>
-                <span className="text-gray-300">{" = "}</span>
-                <span className="text-yellow-400">createHttpAdapter</span>
-                <span className="text-gray-300">{"({"}</span>
-                {"\n  "}
-                <span className="text-cyan-300">endpoint</span>
-                <span className="text-gray-300">: </span>
-                <span className="text-emerald-400">{`'/api/feedback'`}</span>
-                {"\n"}
-                <span className="text-gray-300">{"});"}</span>
-                {"\n\n"}
-                <span className="text-purple-400">export default function</span>
-                <span className="text-yellow-400">{" RootLayout"}</span>
-                <span className="text-gray-300">{"({ children }) {"}</span>
-                {"\n  "}
-                <span className="text-purple-400">return</span>
-                <span className="text-gray-300">{" ("}</span>
-                {"\n    "}
-                <span className="text-gray-500">{"<"}</span>
-                <span className="text-red-400">AnyclickProvider</span>
-                <span className="text-cyan-300">{" adapter"}</span>
-                <span className="text-gray-300">{"={"}</span>
-                <span className="text-cyan-400">adapter</span>
-                <span className="text-gray-300">{"}"}</span>
-                <span className="text-gray-500">{">"}</span>
-                {"\n      "}
-                <span className="text-gray-300">{"{children}"}</span>
-                {"\n    "}
-                <span className="text-gray-500">{"</"}</span>
-                <span className="text-red-400">AnyclickProvider</span>
-                <span className="text-gray-500">{">"}</span>
-                {"\n  "}
-                <span className="text-gray-300">{");"}</span>
-                {"\n"}
-                <span className="text-gray-300">{"}"}</span>
-              </code>
-            </pre>
-          </div>
-        </div>
+        <HeroCodeBlock
+          className="max-w-3xl mx-auto mt-20"
+          filename="app/layout.tsx"
+          language="tsx"
+          code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+const adapter = createHttpAdapter({
+  endpoint: '/api/feedback'
+});
+
+export default function RootLayout({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter}>
+      {children}
+    </AnyclickProvider>
+  );
+}`}
+        />
       </section>
 
       {/* Use Cases Section */}
@@ -752,13 +702,10 @@ export default function Home() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold mb-3">Install the packages</h3>
-                <div className="rounded-xl bg-[#0d1117] border border-white/10 p-4 font-mono text-sm">
-                  <span className="text-gray-500">$</span>{" "}
-                  <span className="text-cyan-400">npm install</span>{" "}
-                  <span className="text-emerald-400">
-                    @ewjdev/anyclick-react @ewjdev/anyclick-github
-                  </span>
-                </div>
+                <TerminalBlock
+                  code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github"
+                  showCopy={true}
+                />
               </div>
             </div>
 
@@ -769,79 +716,23 @@ export default function Home() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold mb-3">Create an API route</h3>
-                <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden">
-                  <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono">
-                    app/api/feedback/route.ts
-                  </div>
-                  <pre className="p-4 text-sm font-mono overflow-x-auto">
-                    <code>
-                      <span className="text-purple-400">import</span>
-                      <span className="text-gray-300">{" { "}</span>
-                      <span className="text-cyan-400">createGitHubAdapter</span>
-                      <span className="text-gray-300">{" } "}</span>
-                      <span className="text-purple-400">from</span>
-                      <span className="text-emerald-400">
-                        {" '@ewjdev/anyclick-github/server'"}
-                      </span>
-                      <span className="text-gray-500">;</span>
-                      {"\n\n"}
-                      <span className="text-purple-400">const</span>
-                      <span className="text-cyan-400">{" github"}</span>
-                      <span className="text-gray-300">{" = "}</span>
-                      <span className="text-yellow-400">
-                        createGitHubAdapter
-                      </span>
-                      <span className="text-gray-300">{"({"}</span>
-                      {"\n  "}
-                      <span className="text-cyan-300">owner</span>
-                      <span className="text-gray-300">: </span>
-                      <span className="text-emerald-400">{`'your-org'`}</span>
-                      <span className="text-gray-300">,</span>
-                      {"\n  "}
-                      <span className="text-cyan-300">repo</span>
-                      <span className="text-gray-300">: </span>
-                      <span className="text-emerald-400">{`'your-repo'`}</span>
-                      <span className="text-gray-300">,</span>
-                      {"\n  "}
-                      <span className="text-cyan-300">token</span>
-                      <span className="text-gray-300">: </span>
-                      <span className="text-cyan-400">process.env</span>
-                      <span className="text-gray-300">.</span>
-                      <span className="text-cyan-400">GITHUB_TOKEN</span>
-                      {"\n"}
-                      <span className="text-gray-300">{"});"}</span>
-                      {"\n\n"}
-                      <span className="text-purple-400">
-                        export async function
-                      </span>
-                      <span className="text-yellow-400">{" POST"}</span>
-                      <span className="text-gray-300">{"(req) {"}</span>
-                      {"\n  "}
-                      <span className="text-purple-400">const</span>
-                      <span className="text-cyan-400">{" payload"}</span>
-                      <span className="text-gray-300">{" = "}</span>
-                      <span className="text-purple-400">await</span>
-                      <span className="text-gray-300">{" req."}</span>
-                      <span className="text-yellow-400">json</span>
-                      <span className="text-gray-300">();</span>
-                      {"\n  "}
-                      <span className="text-purple-400">const</span>
-                      <span className="text-cyan-400">{" result"}</span>
-                      <span className="text-gray-300">{" = "}</span>
-                      <span className="text-purple-400">await</span>
-                      <span className="text-gray-300">{" github."}</span>
-                      <span className="text-yellow-400">submit</span>
-                      <span className="text-gray-300">(payload);</span>
-                      {"\n  "}
-                      <span className="text-purple-400">return</span>
-                      <span className="text-gray-300">{" Response."}</span>
-                      <span className="text-yellow-400">json</span>
-                      <span className="text-gray-300">(result);</span>
-                      {"\n"}
-                      <span className="text-gray-300">{"}"}</span>
-                    </code>
-                  </pre>
-                </div>
+                <CodeBlock
+                  filename="app/api/feedback/route.ts"
+                  language="typescript"
+                  code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+
+const github = createGitHubAdapter({
+  owner: 'your-org',
+  repo: 'your-repo',
+  token: process.env.GITHUB_TOKEN
+});
+
+export async function POST(req) {
+  const payload = await req.json();
+  const result = await github.submit(payload);
+  return Response.json(result);
+}`}
+                />
               </div>
             </div>
 
@@ -852,73 +743,22 @@ export default function Home() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold mb-3">Wrap your app</h3>
-                <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden">
-                  <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono">
-                    app/layout.tsx
-                  </div>
-                  <pre className="p-4 text-sm font-mono overflow-x-auto">
-                    <code>
-                      <span className="text-purple-400">import</span>
-                      <span className="text-gray-300">{" { "}</span>
-                      <span className="text-cyan-400">AnyclickProvider</span>
-                      <span className="text-gray-300">{" } "}</span>
-                      <span className="text-purple-400">from</span>
-                      <span className="text-emerald-400">
-                        {" '@ewjdev/anyclick-react'"}
-                      </span>
-                      <span className="text-gray-500">;</span>
-                      {"\n"}
-                      <span className="text-purple-400">import</span>
-                      <span className="text-gray-300">{" { "}</span>
-                      <span className="text-cyan-400">createHttpAdapter</span>
-                      <span className="text-gray-300">{" } "}</span>
-                      <span className="text-purple-400">from</span>
-                      <span className="text-emerald-400">
-                        {" '@ewjdev/anyclick-github'"}
-                      </span>
-                      <span className="text-gray-500">;</span>
-                      {"\n\n"}
-                      <span className="text-purple-400">const</span>
-                      <span className="text-cyan-400">{" adapter"}</span>
-                      <span className="text-gray-300">{" = "}</span>
-                      <span className="text-yellow-400">createHttpAdapter</span>
-                      <span className="text-gray-300">{"({ "}</span>
-                      <span className="text-cyan-300">endpoint</span>
-                      <span className="text-gray-300">: </span>
-                      <span className="text-emerald-400">{`'/api/feedback'`}</span>
-                      <span className="text-gray-300">{" });"}</span>
-                      {"\n\n"}
-                      <span className="text-purple-400">
-                        export default function
-                      </span>
-                      <span className="text-yellow-400">{" Layout"}</span>
-                      <span className="text-gray-300">
-                        {"({ children }) {"}
-                      </span>
-                      {"\n  "}
-                      <span className="text-purple-400">return</span>
-                      <span className="text-gray-300">{" ("}</span>
-                      {"\n    "}
-                      <span className="text-gray-500">{"<"}</span>
-                      <span className="text-red-400">AnyclickProvider</span>
-                      <span className="text-cyan-300">{" adapter"}</span>
-                      <span className="text-gray-300">{"={"}</span>
-                      <span className="text-cyan-400">adapter</span>
-                      <span className="text-gray-300">{"}"}</span>
-                      <span className="text-gray-500">{">"}</span>
-                      {"\n      "}
-                      <span className="text-gray-300">{"{children}"}</span>
-                      {"\n    "}
-                      <span className="text-gray-500">{"</"}</span>
-                      <span className="text-red-400">AnyclickProvider</span>
-                      <span className="text-gray-500">{">"}</span>
-                      {"\n  "}
-                      <span className="text-gray-300">{");"}</span>
-                      {"\n"}
-                      <span className="text-gray-300">{"}"}</span>
-                    </code>
-                  </pre>
-                </div>
+                <CodeBlock
+                  filename="app/layout.tsx"
+                  language="tsx"
+                  code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export default function Layout({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter}>
+      {children}
+    </AnyclickProvider>
+  );
+}`}
+                />
               </div>
             </div>
 
