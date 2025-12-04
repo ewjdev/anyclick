@@ -135,6 +135,21 @@ export function CustomPointer({
         isVisibleRef.current = true;
         setIsVisible(true);
       }
+
+      // When in rightClick state, check if cursor is over a menu
+      // Show pointer icon over menus, circle elsewhere
+      if (interactionStateRef.current === "rightClick") {
+        const target = event.target as HTMLElement;
+        const isOverMenu = target.closest('[role="menu"]') !== null;
+
+        if (isOverMenu) {
+          // Temporarily show pointer when over menu
+          setInteractionState("normal");
+        } else {
+          // Keep showing circle when outside menu
+          setInteractionState("rightClick");
+        }
+      }
     };
 
     const handleMouseLeave = () => {

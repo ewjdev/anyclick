@@ -38,6 +38,8 @@ const defaultContextValue: PointerContextValue = {
   config: defaultPointerConfig,
   setInteractionState: () => {},
   setEnabled: () => {},
+  setTheme: () => {},
+  setConfig: () => {},
 };
 
 /**
@@ -111,8 +113,8 @@ function mergeConfig(config?: PointerConfig): Required<PointerConfig> {
  */
 export function PointerProvider({
   children,
-  theme,
-  config,
+  theme: initialTheme,
+  config: initialConfig,
   enabled: initialEnabled = true,
   className,
   style,
@@ -125,9 +127,17 @@ export function PointerProvider({
     isInBounds: false,
   });
 
+  // State for dynamic theme and config
+  const [dynamicTheme, setDynamicTheme] = useState<PointerTheme | undefined>(
+    initialTheme,
+  );
+  const [dynamicConfig, setDynamicConfig] = useState<PointerConfig | undefined>(
+    initialConfig,
+  );
+
   // Memoize merged theme and config
-  const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
-  const mergedConfig = useMemo(() => mergeConfig(config), [config]);
+  const mergedTheme = useMemo(() => mergeTheme(dynamicTheme), [dynamicTheme]);
+  const mergedConfig = useMemo(() => mergeConfig(dynamicConfig), [dynamicConfig]);
 
   // Update interaction state
   const setInteractionState = useCallback(
@@ -145,6 +155,24 @@ export function PointerProvider({
     [],
   );
 
+  // Set theme dynamically (merges with existing)
+  const setTheme = useCallback((newTheme: PointerTheme) => {
+    setDynamicTheme((prev) => ({
+      ...prev,
+      ...newTheme,
+      colors: { ...prev?.colors, ...newTheme.colors },
+      sizes: { ...prev?.sizes, ...newTheme.sizes },
+    }));
+  }, []);
+
+  // Set config dynamically (merges with existing)
+  const setConfig = useCallback((newConfig: PointerConfig) => {
+    setDynamicConfig((prev) => ({
+      ...prev,
+      ...newConfig,
+    }));
+  }, []);
+
   // Context value
   const contextValue: PointerContextValue = useMemo(
     () => ({
@@ -154,8 +182,10 @@ export function PointerProvider({
       config: mergedConfig,
       setInteractionState,
       setEnabled,
+      setTheme,
+      setConfig,
     }),
-    [state, enabled, mergedTheme, mergedConfig, setInteractionState],
+    [state, enabled, mergedTheme, mergedConfig, setInteractionState, setTheme, setConfig],
   );
 
   // Determine if pointer should be shown based on visibility config

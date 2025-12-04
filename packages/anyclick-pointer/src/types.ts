@@ -132,6 +132,10 @@ export interface PointerContextValue {
   setInteractionState: (state: PointerInteractionState) => void;
   /** Update enabled state */
   setEnabled: (enabled: boolean) => void;
+  /** Update theme dynamically */
+  setTheme: (theme: PointerTheme) => void;
+  /** Update config dynamically */
+  setConfig: (config: PointerConfig) => void;
 }
 
 /**
@@ -171,7 +175,7 @@ export const defaultPointerTheme: PointerTheme & {
 export const defaultPointerConfig: Required<PointerConfig> = {
   visibility: "always",
   hideDefaultCursor: true,
-  zIndex: 9990,
+  zIndex: 10001,
   respectReducedMotion: true,
   offset: [0, 0],
 };

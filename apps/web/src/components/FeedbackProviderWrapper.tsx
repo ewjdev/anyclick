@@ -10,7 +10,7 @@ import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import { CodeIcon, CloudIcon, MonitorIcon } from "lucide-react";
+import { CodeIcon, CloudIcon, MonitorIcon, MousePointer2 } from "lucide-react";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
@@ -84,6 +84,15 @@ export function FeedbackProviderWrapper({ children }: { children: ReactNode }) {
             pointerColor: "#3b82f6",
             circleColor: "rgba(59, 130, 246, 0.4)",
           },
+          // Semi-transparent fill (30% opacity of pointer color)
+          pointerIcon: (
+            <MousePointer2
+              size={24}
+              strokeWidth={2}
+              fill="rgba(59, 130, 246, 0.3)"
+              stroke="#3b82f6"
+            />
+          ),
         }}
         config={{
           visibility: "always",

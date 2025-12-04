@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   MousePointerClick,
+  MousePointer2,
   Sparkles,
   Box,
   Palette,
@@ -19,6 +20,11 @@ import { useState } from "react";
 const navigation = [
   { name: "Examples Gallery", href: "/examples", icon: Sparkles },
   { name: "Basic Setup", href: "/examples/basic", icon: Box },
+  {
+    name: "Custom Pointer",
+    href: "/examples/custom-pointer",
+    icon: MousePointer2,
+  },
   { name: "Custom Menu", href: "/examples/custom-menu", icon: Palette },
   {
     name: "GitHub Integration",
