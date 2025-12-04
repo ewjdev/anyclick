@@ -89,7 +89,7 @@ export default function DocsLayout({
           {/* Sidebar */}
           <aside
             className={cn(
-              "fixed inset-y-0 left-0 z-40 w-64 bg-[#0a0a0f]/95 backdrop-blur-xl border-r border-white/5 pt-20 pb-8 overflow-y-auto lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:bg-transparent lg:backdrop-blur-none lg:border-none transition-transform duration-200",
+              "fixed inset-y-0 left-0 z-40 w-64 bg-[#0a0a0f]/95 backdrop-blur-xl border-r border-white/5 pb-8 overflow-y-auto lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:bg-transparent lg:backdrop-blur-none lg:border-none transition-transform duration-200",
               mobileMenuOpen
                 ? "translate-x-0"
                 : "-translate-x-full lg:translate-x-0",
