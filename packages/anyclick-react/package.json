@@ -21,7 +21,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-react"
   },
-  "homepage": "https://anyclick.ewjdev.com/docs/react",
+  "homepage": "https://anyclick.ewj.dev/docs/react",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
