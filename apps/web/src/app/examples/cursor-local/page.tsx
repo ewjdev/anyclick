@@ -2,55 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  FileCode,
-  Terminal,
   Monitor,
   Zap,
   FolderOpen,
-  Play,
 } from "lucide-react";
+import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Cursor Local Example",
   description:
     "Development workflow with local Cursor integration for instant AI-powered code fixes.",
 };
-
-function CodeBlock({
-  children,
-  filename,
-}: {
-  children: string;
-  filename?: string;
-}) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      {filename && (
-        <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-          <FileCode className="w-3.5 h-3.5" />
-          {filename}
-        </div>
-      )}
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
-
-function TerminalBlock({ children }: { children: string }) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-        <Terminal className="w-3.5 h-3.5" />
-        Terminal
-      </div>
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code className="text-gray-300">{children}</code>
-      </pre>
-    </div>
-  );
-}
 
 export default function CursorLocalPage() {
   return (

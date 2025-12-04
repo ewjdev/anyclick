@@ -1,33 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, FileCode, Check, MousePointerClick } from "lucide-react";
+import { ArrowRight, Check, MousePointerClick } from "lucide-react";
+import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Basic Setup Example",
   description: "Minimal anyclick implementation with default configuration.",
 };
-
-function CodeBlock({
-  children,
-  filename,
-}: {
-  children: string;
-  filename?: string;
-}) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      {filename && (
-        <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-          <FileCode className="w-3.5 h-3.5" />
-          {filename}
-        </div>
-      )}
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
 
 export default function BasicExamplePage() {
   return (
@@ -113,7 +92,10 @@ export default function BasicExamplePage() {
         <h3 className="text-lg font-semibold mb-3 mt-8">
           1. Create the Provider
         </h3>
-        <CodeBlock filename="app/providers.tsx">{`'use client';
+        <CodeBlock 
+          filename="app/providers.tsx"
+          language="tsx"
+          code={`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
@@ -130,10 +112,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {children}
     </FeedbackProvider>
   );
-}`}</CodeBlock>
+}`} 
+        />
 
         <h3 className="text-lg font-semibold mb-3 mt-8">2. Wrap Your App</h3>
-        <CodeBlock filename="app/layout.tsx">{`import { Providers } from './providers';
+        <CodeBlock 
+          filename="app/layout.tsx"
+          language="tsx"
+          code={`import { Providers } from './providers';
 
 export default function RootLayout({ 
   children 
@@ -147,10 +133,14 @@ export default function RootLayout({
       </body>
     </html>
   );
-}`}</CodeBlock>
+}`} 
+        />
 
         <h3 className="text-lg font-semibold mb-3 mt-8">3. Create API Route</h3>
-        <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+        <CodeBlock 
+          filename="app/api/feedback/route.ts"
+          language="typescript"
+          code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
 import type { FeedbackPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
@@ -166,7 +156,8 @@ export async function POST(request: Request) {
   const payload: FeedbackPayload = await request.json();
   const result = await github.submit(payload);
   return Response.json(result);
-}`}</CodeBlock>
+}`} 
+        />
       </div>
 
       {/* Default Menu Items */}
@@ -176,11 +167,14 @@ export async function POST(request: Request) {
           When no <code className="text-cyan-400">menuItems</code> prop is
           provided, these defaults are used:
         </p>
-        <CodeBlock>{`const defaultMenuItems = [
+        <CodeBlock 
+          language="typescript"
+          code={`const defaultMenuItems = [
   { type: 'issue', label: 'Report an issue', showComment: true },
   { type: 'feature', label: 'Request a feature', showComment: true },
   { type: 'like', label: 'I like this!', showComment: false },
-];`}</CodeBlock>
+];`} 
+        />
       </div>
 
       {/* Next steps */}

@@ -2,40 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  FileCode,
   GitBranch,
   Terminal,
   Monitor,
   Cloud,
 } from "lucide-react";
+import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Adapters",
   description:
     "Connect anyclick to GitHub Issues, Cursor AI agents, or build your own custom adapter.",
 };
-
-function CodeBlock({
-  children,
-  filename,
-}: {
-  children: string;
-  filename?: string;
-}) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      {filename && (
-        <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-          <FileCode className="w-3.5 h-3.5" />
-          {filename}
-        </div>
-      )}
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
 
 export default function AdaptersDocsPage() {
   return (

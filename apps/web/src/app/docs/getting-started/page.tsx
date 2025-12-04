@@ -1,50 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, Terminal, FileCode, Box } from "lucide-react";
+import { ArrowRight, Check, Box } from "lucide-react";
+import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Getting Started",
   description:
     "Learn how to install and configure anyclick in your application.",
 };
-
-function CodeBlock({
-  children,
-  filename,
-  language = "typescript",
-}: {
-  children: string;
-  filename?: string;
-  language?: string;
-}) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      {filename && (
-        <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-          <FileCode className="w-3.5 h-3.5" />
-          {filename}
-        </div>
-      )}
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code>{children}</code>
-      </pre>
-    </div>
-  );
-}
-
-function TerminalBlock({ children }: { children: string }) {
-  return (
-    <div className="rounded-xl bg-[#0d1117] border border-white/10 overflow-hidden my-6">
-      <div className="px-4 py-2 border-b border-white/5 text-xs text-gray-500 font-mono flex items-center gap-2">
-        <Terminal className="w-3.5 h-3.5" />
-        Terminal
-      </div>
-      <pre className="p-4 text-sm font-mono overflow-x-auto">
-        <code className="text-gray-300">{children}</code>
-      </pre>
-    </div>
-  );
-}
 
 export default function GettingStartedPage() {
   return (
@@ -83,7 +46,7 @@ export default function GettingStartedPage() {
           Install the core packages you need. For a typical React + GitHub
           setup:
         </p>
-        <TerminalBlock>{`npm install @ewjdev/anyclick-react @ewjdev/anyclick-github`}</TerminalBlock>
+        <TerminalBlock code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github" />
 
         <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 mt-6">
           <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
@@ -117,8 +80,12 @@ export default function GettingStartedPage() {
           <code className="text-cyan-400">repo</code> scope and add it to your
           environment:
         </p>
-        <CodeBlock filename=".env.local">{`GITHUB_TOKEN=ghp_your_token_here
-GITHUB_REPO=your-username/your-repo-name`}</CodeBlock>
+        <CodeBlock 
+          filename=".env.local" 
+          language="env"
+          code={`GITHUB_TOKEN=ghp_your_token_here
+GITHUB_REPO=your-username/your-repo-name`} 
+        />
 
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mt-6">
           <h4 className="font-semibold text-sm mb-2">⚠️ Security Note</h4>
@@ -136,7 +103,10 @@ GITHUB_REPO=your-username/your-repo-name`}</CodeBlock>
           Create a server-side API route that receives feedback and creates
           GitHub Issues:
         </p>
-        <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+        <CodeBlock 
+          filename="app/api/feedback/route.ts"
+          language="typescript"
+          code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
 import type { FeedbackPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
@@ -161,7 +131,8 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}`}</CodeBlock>
+}`} 
+        />
       </section>
 
       {/* Step 4: Provider Setup */}
@@ -171,7 +142,10 @@ export async function POST(request: Request) {
           Wrap your application with the{" "}
           <code className="text-cyan-400">FeedbackProvider</code>:
         </p>
-        <CodeBlock filename="app/providers.tsx">{`'use client';
+        <CodeBlock 
+          filename="app/providers.tsx"
+          language="tsx"
+          code={`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
@@ -187,12 +161,16 @@ export function Providers({ children }: { children: ReactNode }) {
       {children}
     </FeedbackProvider>
   );
-}`}</CodeBlock>
+}`} 
+        />
 
         <p className="text-gray-400 mb-4 leading-relaxed mt-6">
           Then use the provider in your layout:
         </p>
-        <CodeBlock filename="app/layout.tsx">{`import { Providers } from './providers';
+        <CodeBlock 
+          filename="app/layout.tsx"
+          language="tsx"
+          code={`import { Providers } from './providers';
 
 export default function RootLayout({ 
   children 
@@ -206,7 +184,8 @@ export default function RootLayout({
       </body>
     </html>
   );
-}`}</CodeBlock>
+}`} 
+        />
       </section>
 
       {/* Step 5: Test */}
@@ -215,7 +194,7 @@ export default function RootLayout({
         <p className="text-gray-400 mb-4 leading-relaxed">
           Start your development server and right-click any element in your app:
         </p>
-        <TerminalBlock>{`npm run dev`}</TerminalBlock>
+        <TerminalBlock code="npm run dev" />
 
         <div className="p-6 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 mt-6">
           <h4 className="font-semibold mb-2 flex items-center gap-2">
