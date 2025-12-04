@@ -84,8 +84,6 @@ export class GitHubAdapter {
     if (!response.ok) {
       const errorText = await response.text().catch(() => "Unknown error");
 
-      console.info(`curl command: ${curlCommand}`);
-
       // Provide more specific error messages based on status code
       let diagnosticMessage = "";
       if (response.status === 404) {
