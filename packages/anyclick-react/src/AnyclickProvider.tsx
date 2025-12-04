@@ -130,6 +130,7 @@ export function AnyclickProvider({
     isDisabledByAncestor,
     findParentProvider,
     isElementInDisabledScope,
+    isElementInAnyScopedProvider,
   } = useProviderStore();
 
   // Determine parent ID
@@ -195,6 +196,24 @@ export function AnyclickProvider({
         return false; // Allow native context menu
       }
 
+      // For non-scoped (global) providers on TOUCH events, check if the element
+      // is inside any scoped provider's container - if so, defer to the scoped
+      // provider to handle the event with its own theme
+      // NOTE: For contextmenu (right-click) events, this is handled by capture
+      // phase and stopPropagation in the client. But touch events don't have
+      // the same propagation model, so we need to check here.
+      if (!scoped && event.isTouch && isElementInAnyScopedProvider(element)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[AnyclickProvider:${providerId}] Deferring to scoped provider for touch event`,
+            {
+              targetTag: element.tagName,
+            },
+          );
+        }
+        return false; // Let the scoped provider handle it
+      }
+
       const mergedTheme = getMergedTheme(providerId);
 
       if (process.env.NODE_ENV === "development") {
@@ -228,6 +247,7 @@ export function AnyclickProvider({
       highlightConfig,
       scoped,
       isElementInDisabledScope,
+      isElementInAnyScopedProvider,
     ],
   );
 
