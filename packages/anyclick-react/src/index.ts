@@ -34,6 +34,7 @@ export type {
   HighlightConfig,
   FeedbackUserContext,
   ScreenshotPreviewProps,
+  MenuPositionMode,
 } from "./types";
 
 // Types (deprecated, for backward compatibility)

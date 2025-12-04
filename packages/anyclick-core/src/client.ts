@@ -1,17 +1,28 @@
 import type {
   FeedbackAdapter,
   FeedbackClientOptions,
+  FeedbackMenuEvent,
   FeedbackPayload,
   FeedbackResult,
+  FeedbackTriggerEvent,
   FeedbackType,
   ScreenshotData,
 } from "./types";
 import { buildFeedbackPayload } from "./payload";
 
+/** Default touch hold duration in milliseconds */
+const DEFAULT_TOUCH_HOLD_DURATION_MS = 500;
+
+/** Default touch move threshold in pixels */
+const DEFAULT_TOUCH_MOVE_THRESHOLD = 10;
+
 /**
  * Default target filter - ignores html, body, and elements with data-feedback-ignore
  */
-function defaultTargetFilter(_event: MouseEvent, target: Element): boolean {
+function defaultTargetFilter(
+  _event: FeedbackTriggerEvent,
+  target: Element,
+): boolean {
   const tag = target.tagName.toLowerCase();
   if (tag === "html" || tag === "body") return false;
   if (target.closest("[data-feedback-ignore]")) return false;
@@ -23,7 +34,10 @@ function defaultTargetFilter(_event: MouseEvent, target: Element): boolean {
  */
 export class FeedbackClient {
   private adapter: FeedbackAdapter;
-  private targetFilter: (event: MouseEvent, target: Element) => boolean;
+  private targetFilter: (
+    event: FeedbackTriggerEvent,
+    target: Element,
+  ) => boolean;
   private maxInnerTextLength: number;
   private maxOuterHTMLLength: number;
   private maxAncestors: number;
@@ -146,6 +160,14 @@ export class FeedbackClient {
 
       // Store the pending element for later submission
       this.pendingElement = target;
+
+      // Create synthetic event for positioning
+      const menuEvent: FeedbackMenuEvent = {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        originalEvent: event,
+        isTouch: false,
+      };
 
       // Call the onContextMenu callback if set
       if (this.onContextMenu) {

@@ -202,6 +202,26 @@ export interface FeedbackAdapter {
 }
 
 /**
+ * Event types that can trigger the feedback context menu
+ */
+export type FeedbackTriggerEvent = MouseEvent | TouchEvent;
+
+/**
+ * Synthetic event with position information for context menu positioning
+ * Used to normalize mouse and touch events
+ */
+export interface FeedbackMenuEvent {
+  /** Client X position (viewport coordinates) */
+  clientX: number;
+  /** Client Y position (viewport coordinates) */
+  clientY: number;
+  /** The original event that triggered the menu */
+  originalEvent: FeedbackTriggerEvent;
+  /** Whether this was triggered by touch (press-and-hold) */
+  isTouch: boolean;
+}
+
+/**
  * Configuration options for the FeedbackClient
  */
 export interface FeedbackClientOptions {
@@ -211,7 +231,7 @@ export interface FeedbackClientOptions {
    * Filter function to determine if feedback should be captured for a target element
    * Return true to allow feedback, false to ignore
    */
-  targetFilter?: (event: MouseEvent, target: Element) => boolean;
+  targetFilter?: (event: FeedbackTriggerEvent, target: Element) => boolean;
   /** Maximum length for innerText capture */
   maxInnerTextLength?: number;
   /** Maximum length for outerHTML capture */
@@ -228,6 +248,10 @@ export interface FeedbackClientOptions {
    * If not provided, events are captured from the entire document.
    */
   container?: Element | null;
+  /** Duration in ms to hold touch before triggering context menu (default: 500) */
+  touchHoldDurationMs?: number;
+  /** Maximum movement in px before touch hold is cancelled (default: 10) */
+  touchMoveThreshold?: number;
 }
 
 /**

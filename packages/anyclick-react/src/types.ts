@@ -1,6 +1,7 @@
 import type {
   FeedbackAdapter,
   FeedbackPayload,
+  FeedbackTriggerEvent,
   FeedbackType,
   ScreenshotConfig,
   ScreenshotData,
@@ -23,6 +24,12 @@ export interface AnyclickTheme {
   /** Whether anyclick functionality is disabled in this theme */
   disabled?: boolean;
 }
+ * Menu positioning modes
+ * - static: Menu stays at exact click position (may go off-screen)
+ * - inView: Menu adjusts position to stay fully visible in viewport
+ * - dynamic: User can drag the menu to reposition it
+ */
+export type MenuPositionMode = "static" | "inView" | "dynamic";
 
 /**
  * Configuration for highlight colors
@@ -119,8 +126,9 @@ export interface AnyclickProviderProps {
   /**
    * Filter function to determine if feedback should be captured for a target element
    * Return true to allow feedback, false to ignore
+   * Accepts both MouseEvent (right-click) and TouchEvent (press-and-hold)
    */
-  targetFilter?: (event: MouseEvent, target: Element) => boolean;
+  targetFilter?: (event: FeedbackTriggerEvent, target: Element) => boolean;
   /** Custom menu items (defaults to Issue, Feature, Like) */
   menuItems?: FeedbackMenuItem[];
   /** Maximum length for innerText capture */
@@ -161,6 +169,12 @@ export interface AnyclickProviderProps {
    * Set to null or { disabled: true } to disable anyclick in this subtree.
    */
   theme?: AnyclickTheme | null;
+  /** Duration in ms to hold touch before triggering context menu (default: 500) */
+  touchHoldDurationMs?: number;
+  /** Maximum movement in px before touch hold is cancelled (default: 10) */
+  touchMoveThreshold?: number;
+  /** Menu positioning mode (default: 'inView') */
+  menuPositionMode?: MenuPositionMode;
 }
 
 /**
@@ -231,6 +245,8 @@ export interface ContextMenuProps {
   highlightConfig?: HighlightConfig;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
+  /** Menu positioning mode (default: 'inView') */
+  positionMode?: MenuPositionMode;
 }
 
 /**
