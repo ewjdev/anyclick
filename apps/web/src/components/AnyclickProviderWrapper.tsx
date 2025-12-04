@@ -2,6 +2,7 @@
 
 import {
   AnyclickProvider,
+  FunModeBridge,
   filterMenuItemsByRole,
 } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
@@ -101,6 +102,7 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
           hideDefaultCursor: true,
         }}
       >
+        <FunModeBridge />
         {children}
       </PointerProvider>
     </AnyclickProvider>

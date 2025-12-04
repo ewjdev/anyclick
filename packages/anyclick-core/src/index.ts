@@ -1,23 +1,23 @@
 // Types
 export type {
-  BuiltInFeedbackType,
-  FeedbackType,
+  AnyclickBuiltInType,
+  AnyclickType,
   AncestorInfo,
   ElementContext,
   PageContext,
-  FeedbackPayload,
-  FeedbackAdapter,
-  FeedbackClientOptions,
-  FeedbackResult,
-  FeedbackEvent,
+  AnyclickPayload,
+  AnyclickAdapter,
+  AnyclickClientOptions,
+  AnyclickResult,
+  AnyclickEvent,
   ScreenshotCaptureMode,
   ScreenshotCapture,
   ScreenshotData,
   ScreenshotConfig,
   ScreenshotResult,
   ScreenshotError,
-  FeedbackTriggerEvent,
-  FeedbackMenuEvent,
+  AnyclickTriggerEvent,
+  AnyclickMenuEvent,
 } from "./types";
 
 export { DEFAULT_SENSITIVE_SELECTORS } from "./types";
@@ -40,7 +40,7 @@ export {
 } from "./dom";
 
 // Payload building
-export { buildPageContext, buildFeedbackPayload } from "./payload";
+export { buildPageContext, buildAnyclickPayload } from "./payload";
 
 // Screenshot utilities
 export {
@@ -53,4 +53,4 @@ export {
 } from "./screenshot";
 
 // Client
-export { FeedbackClient, createFeedbackClient } from "./client";
+export { AnyclickClient, createAnyclickClient } from "./client";

@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Shield,
+  Gauge,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -24,6 +25,11 @@ const navigation = [
     name: "Custom Pointer",
     href: "/examples/custom-pointer",
     icon: MousePointer2,
+  },
+  {
+    name: "Pointer Modes",
+    href: "/examples/modes",
+    icon: Gauge,
   },
   { name: "Custom Menu", href: "/examples/custom-menu", icon: Palette },
   {

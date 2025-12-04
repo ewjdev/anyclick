@@ -3,6 +3,7 @@
 
 // New exports
 export { AnyclickProvider } from "./AnyclickProvider";
+export { FunModeBridge } from "./FunModeBridge";
 export { ContextMenu } from "./ContextMenu";
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
@@ -28,6 +29,7 @@ export type {
   AnyclickProviderProps,
   AnyclickContextValue,
   AnyclickTheme,
+  FunModeThemeConfig,
   FeedbackMenuItem,
   ContextMenuProps,
   HighlightColors,

@@ -22,7 +22,7 @@
 
 ### API Changes
 
-- `FeedbackClient.onContextMenu` callback signature updated to `(event: MouseEvent, element: Element) => boolean | void`
+- `AnyclickClient.onContextMenu` callback signature updated to `(event: MouseEvent, element: Element) => boolean | void`
   - Return `false` to allow native context menu (e.g., for disabled scopes)
   - Return `true` or `void` to prevent native menu and show custom menu
 

@@ -26,6 +26,7 @@ import {
   defaultPointerConfig,
 } from "./types";
 import { CustomPointer } from "./CustomPointer";
+import { GoKartPointer } from "./GoKartPointer";
 
 /**
  * Fully merged theme with required values
@@ -183,6 +184,17 @@ export function mergeConfigWithDefaults(
     respectReducedMotion:
       config?.respectReducedMotion ?? defaultPointerConfig.respectReducedMotion,
     offset: config?.offset ?? defaultPointerConfig.offset,
+    mode: config?.mode ?? defaultPointerConfig.mode,
+    funConfig: {
+      ...defaultPointerConfig.funConfig,
+      ...config?.funConfig,
+      getTrackElement:
+        config?.funConfig?.getTrackElement ??
+        defaultPointerConfig.funConfig.getTrackElement,
+      getObstacles:
+        config?.funConfig?.getObstacles ??
+        defaultPointerConfig.funConfig.getObstacles,
+    },
   };
 }
 
@@ -204,6 +216,17 @@ export function mergeConfigWithParent(
     respectReducedMotion:
       childConfig.respectReducedMotion ?? parentConfig.respectReducedMotion,
     offset: childConfig.offset ?? parentConfig.offset,
+    mode: childConfig.mode ?? parentConfig.mode,
+    funConfig: {
+      ...parentConfig.funConfig,
+      ...childConfig.funConfig,
+      getTrackElement:
+        childConfig.funConfig?.getTrackElement ??
+        parentConfig.funConfig?.getTrackElement,
+      getObstacles:
+        childConfig.funConfig?.getObstacles ??
+        parentConfig.funConfig?.getObstacles,
+    },
   };
 }
 
@@ -374,14 +397,22 @@ function RootPointerProvider({
           <div className={className} style={style}>
             {children}
           </div>
-          {shouldShowPointer && (
-            <CustomPointer
-              theme={activeTheme}
-              config={activeConfig}
-              enabled={enabled}
-              onInteractionChange={handleInteractionChange}
-            />
-          )}
+          {shouldShowPointer &&
+            (activeConfig.mode === "fun" ? (
+              <GoKartPointer
+                theme={activeTheme}
+                config={activeConfig}
+                enabled={enabled}
+                onInteractionChange={handleInteractionChange}
+              />
+            ) : (
+              <CustomPointer
+                theme={activeTheme}
+                config={activeConfig}
+                enabled={enabled}
+                onInteractionChange={handleInteractionChange}
+              />
+            ))}
         </PointerContext.Provider>
       </ParentThemeContext.Provider>
     </RootPointerContext.Provider>

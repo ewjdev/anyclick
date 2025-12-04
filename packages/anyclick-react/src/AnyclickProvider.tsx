@@ -8,11 +8,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createFeedbackClient } from "@ewjdev/anyclick-core";
+import { createAnyclickClient } from "@ewjdev/anyclick-core";
 import type {
-  FeedbackClient,
-  FeedbackMenuEvent,
-  FeedbackType,
+  AnyclickClient,
+  AnyclickMenuEvent,
+  AnyclickType,
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
 import { AnyclickContext, useAnyclick } from "./context";
@@ -27,13 +27,13 @@ import type {
   AnyclickContextValue,
   AnyclickProviderProps,
   AnyclickTheme,
-  FeedbackMenuItem,
+  AnyclickMenuItem,
 } from "./types";
 
 /**
  * Default menu items
  */
-const defaultMenuItems: FeedbackMenuItem[] = [
+const defaultMenuItems: AnyclickMenuItem[] = [
   { type: "issue", label: "Report an issue", showComment: true },
   { type: "feature", label: "Request a feature", showComment: true },
   { type: "like", label: "I like this!", showComment: false },
@@ -85,7 +85,7 @@ export function AnyclickProvider({
   const [containerReady, setContainerReady] = useState(!scoped);
 
   // Client reference
-  const clientRef = useRef<FeedbackClient | null>(null);
+  const clientRef = useRef<AnyclickClient | null>(null);
 
   // Callback ref to detect when container element is mounted
   const setContainerRef = useCallback(
@@ -181,7 +181,7 @@ export function AnyclickProvider({
   // Returns false to allow native context menu (for disabled scopes)
   // Returns true (or void) to show custom menu
   const handleContextMenu = useCallback(
-    (event: FeedbackMenuEvent, element: Element): boolean => {
+    (event: AnyclickMenuEvent, element: Element): boolean => {
       // For non-scoped (global) providers, check if the element is inside
       // a disabled scoped provider's container - if so, allow native menu
       if (!scoped && isElementInDisabledScope(element)) {
@@ -333,7 +333,7 @@ export function AnyclickProvider({
       });
     }
 
-    const client = createFeedbackClient({
+    const client = createAnyclickClient({
       adapter,
       targetFilter,
       maxInnerTextLength,
@@ -388,7 +388,7 @@ export function AnyclickProvider({
   const submitFeedback = useCallback(
     async (
       element: Element,
-      type: FeedbackType,
+      type: AnyclickType,
       comment?: string,
       screenshots?: ScreenshotData,
     ) => {
@@ -397,7 +397,7 @@ export function AnyclickProvider({
 
       setIsSubmitting(true);
       try {
-        await client.submitFeedback(element, type, {
+        await client.submitAnyclick(element, type, {
           comment,
           metadata,
           screenshots,
@@ -437,7 +437,7 @@ export function AnyclickProvider({
 
   // Handle menu selection
   const handleMenuSelect = useCallback(
-    (type: FeedbackType, comment?: string, screenshots?: ScreenshotData) => {
+    (type: AnyclickType, comment?: string, screenshots?: ScreenshotData) => {
       if (targetElement) {
         submitFeedback(targetElement, type, comment, screenshots);
       }

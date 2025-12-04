@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import type {
-  ContextMenuProps,
-  FeedbackMenuItem,
-  MenuPositionMode,
-} from "./types";
-import type { FeedbackType, ScreenshotData } from "@ewjdev/anyclick-core";
+import type { ContextMenuProps } from "./types";
+import type { AnyclickType, ScreenshotData } from "@ewjdev/anyclick-core";
+import type { AnyclickMenuItem, MenuPositionMode } from "./types";
 import {
   captureAllScreenshots,
   isScreenshotSupported,
@@ -48,6 +45,25 @@ const defaultIcons: Record<string, React.ReactNode> = {
   like: <ThumbsUpIcon className="w-4 h-4" />,
 };
 
+const DefaultHeader = ({
+  styles,
+  className,
+  title = "Send Feedback",
+  children,
+}: {
+  styles?: React.CSSProperties;
+  className?: string;
+  title?: string;
+  children?: React.ReactNode;
+}) => {
+  return (
+    <div style={styles} className={className}>
+      <span>{title}</span>
+      {children}
+    </div>
+  );
+};
+
 /**
  * Menu item component with touch-friendly sizing
  */
@@ -57,7 +73,7 @@ function MenuItem({
   disabled,
   hasChildren,
 }: {
-  item: FeedbackMenuItem;
+  item: AnyclickMenuItem;
   onClick: () => void;
   disabled: boolean;
   hasChildren?: boolean;
@@ -268,11 +284,13 @@ export function ContextMenu({
   highlightConfig,
   screenshotConfig,
   positionMode = "inView",
+  header,
+  footer,
 }: ContextMenuProps) {
-  const [selectedType, setSelectedType] = useState<FeedbackType | null>(null);
+  const [selectedType, setSelectedType] = useState<AnyclickType | null>(null);
   const [currentView, setCurrentView] = useState<MenuView>("menu");
   const [pendingComment, setPendingComment] = useState<string | undefined>();
-  const [submenuStack, setSubmenuStack] = useState<FeedbackMenuItem[][]>([]);
+  const [submenuStack, setSubmenuStack] = useState<AnyclickMenuItem[][]>([]);
   const [screenshots, setScreenshots] = useState<ScreenshotData | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -527,7 +545,7 @@ export function ContextMenu({
     return null;
   }
 
-  const handleItemClick = (item: FeedbackMenuItem) => {
+  const handleItemClick = (item: AnyclickMenuItem) => {
     // If item has children, navigate to submenu
     if (item.children && item.children.length > 0) {
       setSubmenuStack((prev) => [...prev, item.children!]);
@@ -630,17 +648,8 @@ export function ContextMenu({
       role="menu"
       aria-label="Feedback options"
     >
-      {/* Header with optional drag handle */}
-      {currentView !== "screenshot-preview" && (
-        <div
-          style={{
-            ...menuStyles.header,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>Send Feedback</span>
+      {!header && currentView !== "screenshot-preview" && (
+        <DefaultHeader styles={menuStyles.header} title="Send Feedback">
           {positionMode === "dynamic" && (
             <div
               data-drag-handle
@@ -666,8 +675,9 @@ export function ContextMenu({
               <GripVertical className="w-4 h-4" />
             </div>
           )}
-        </div>
+        </DefaultHeader>
       )}
+      {!!header && header}
 
       {currentView === "menu" && (
         <div style={menuStyles.itemList}>
