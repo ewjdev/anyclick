@@ -399,6 +399,16 @@ export function ContextMenu({
   // Determine container width based on view
   const containerWidth = currentView === "screenshot-preview" ? 360 : undefined;
 
+  // Debug: Log received style
+  if (process.env.NODE_ENV === "development" && visible) {
+    console.log("[ContextMenu] Style Debug", {
+      styleExists: !!style,
+      styleKeys: style ? Object.keys(style) : [],
+      styleValues: style,
+      className,
+    });
+  }
+
   return (
     <div
       ref={menuRef}
@@ -468,7 +478,7 @@ const screenshotIndicatorStyle: React.CSSProperties = {
   gap: "6px",
   padding: "8px 12px",
   fontSize: "11px",
-  color: "#9ca3af",
-  borderTop: "1px solid #f3f4f6",
+  color: "var(--anyclick-menu-text-muted, #9ca3af)",
+  borderTop: "1px solid var(--anyclick-menu-border, #f3f4f6)",
   marginTop: "4px",
 };

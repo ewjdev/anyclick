@@ -69,6 +69,13 @@ interface ProviderStore {
    * Check if any ancestor provider has disabled anyclick
    */
   isDisabledByAncestor: (providerId: string) => boolean;
+
+  /**
+   * Check if an element is inside a disabled scoped provider's container
+   * This is used to prevent the global provider from handling events
+   * in areas where a disabled scoped provider should block them
+   */
+  isElementInDisabledScope: (element: Element) => boolean;
 }
 
 /**
@@ -169,6 +176,9 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     const provider = providers.get(providerId);
 
     if (!provider) {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[Store:getMergedTheme] Provider not found: ${providerId}`);
+      }
       return {};
     }
 
@@ -181,6 +191,15 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
       current = current.parentId
         ? providers.get(current.parentId)
         : undefined;
+    }
+
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Store:getMergedTheme] Provider: ${providerId}`, {
+        ancestorCount: ancestors.length,
+        ancestorIds: ancestors.map(a => a.id),
+        providerHasTheme: !!provider.theme,
+        providerThemeMenuStyle: provider.theme?.menuStyle ? Object.keys(provider.theme.menuStyle) : [],
+      });
     }
 
     // Merge themes from root to current (later themes override earlier)
@@ -212,6 +231,13 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
       }
     }
 
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Store:getMergedTheme] Result for ${providerId}`, {
+        hasMenuStyle: !!mergedTheme.menuStyle,
+        menuStyleKeys: mergedTheme.menuStyle ? Object.keys(mergedTheme.menuStyle) : [],
+      });
+    }
+
     return mergedTheme;
   },
 
@@ -231,6 +257,27 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
       current = current.parentId
         ? providers.get(current.parentId)
         : undefined;
+    }
+
+    return false;
+  },
+
+  isElementInDisabledScope: (element) => {
+    const { providers } = get();
+
+    // Check all scoped providers (including disabled ones)
+    for (const provider of providers.values()) {
+      // Only check scoped providers that are disabled
+      if (!provider.scoped) continue;
+      if (!provider.disabled && !provider.theme?.disabled) continue;
+
+      const container = provider.containerRef.current;
+      if (!container) continue;
+
+      // If element is inside this disabled scoped provider's container
+      if (container.contains(element)) {
+        return true;
+      }
     }
 
     return false;

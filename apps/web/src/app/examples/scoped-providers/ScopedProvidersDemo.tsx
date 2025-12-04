@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
@@ -9,6 +10,7 @@ import {
   ShieldOff,
   Sparkles,
   MousePointer2,
+  Paintbrush,
 } from "lucide-react";
 
 // Create a mock adapter for the demo (sends to API but we don't need it to actually work)
@@ -169,8 +171,98 @@ export function ScopedProvidersDemo() {
         </PointerProvider>
       </AnyclickProvider>
 
+      {/* Custom styled menu section - amber theme with glassmorphism menu */}
+      <AnyclickProvider
+        adapter={demoAdapter}
+        scoped
+        theme={{
+          highlightConfig: {
+            enabled: true,
+            colors: {
+              targetColor: "#f59e0b", // Amber
+              containerColor: "#d97706", // Darker amber
+            },
+          },
+          menuStyle: {
+            // Override container styles
+            background:
+              "linear-gradient(135deg, rgba(30, 20, 10, 0.95) 0%, rgba(40, 25, 15, 0.98) 100%)",
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(245, 158, 11, 0.4)",
+            borderRadius: "16px",
+            boxShadow:
+              "0 8px 32px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)",
+            // CSS custom properties for internal elements
+            "--anyclick-menu-bg": "transparent",
+            "--anyclick-menu-text": "#fef3c7",
+            "--anyclick-menu-text-muted": "#fbbf24",
+            "--anyclick-menu-border": "rgba(245, 158, 11, 0.3)",
+            "--anyclick-menu-hover": "rgba(245, 158, 11, 0.15)",
+            "--anyclick-menu-accent": "#f59e0b",
+            "--anyclick-menu-accent-text": "#1c1917",
+            "--anyclick-menu-input-bg": "rgba(0, 0, 0, 0.3)",
+            "--anyclick-menu-input-border": "rgba(245, 158, 11, 0.3)",
+            "--anyclick-menu-cancel-bg": "rgba(245, 158, 11, 0.2)",
+            "--anyclick-menu-cancel-text": "#fef3c7",
+          } as CSSProperties,
+        }}
+        menuItems={[
+          { type: "issue", label: "🐛 Report Bug", showComment: true },
+          { type: "feature", label: "✨ New Idea", showComment: true },
+          { type: "like", label: "🔥 This is fire!", showComment: false },
+        ]}
+      >
+        <PointerProvider
+          theme={{
+            colors: {
+              pointerColor: "#f59e0b",
+              circleColor: "rgba(245, 158, 11, 0.4)",
+            },
+            pointerIcon: (
+              <MousePointer2
+                size={24}
+                strokeWidth={2}
+                fill="rgba(245, 158, 11, 0.3)"
+                stroke="#f59e0b"
+              />
+            ),
+          }}
+          config={{
+            visibility: "always",
+            hideDefaultCursor: true,
+          }}
+        >
+          <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Paintbrush className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-medium text-amber-400">
+                Custom Styled Menu (Glassmorphism)
+              </span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">
+              This section demonstrates a fully custom-styled context menu with
+              glassmorphism effect, custom border radius, and emoji icons.
+              Right-click to see the custom menu design!
+            </p>
+            <div className="flex gap-2">
+              <button className="px-3 py-1.5 rounded bg-amber-500/20 text-amber-400 text-sm hover:bg-amber-500/30 transition-colors">
+                Amber Button
+              </button>
+              <span className="px-3 py-1.5 rounded bg-orange-500/10 text-orange-300 text-sm">
+                Orange Element
+              </span>
+            </div>
+          </div>
+        </PointerProvider>
+      </AnyclickProvider>
+
       {/* Disabled section - no feedback, no custom pointer */}
-      <AnyclickProvider adapter={demoAdapter} scoped theme={{ disabled: true }}>
+      <AnyclickProvider
+        adapter={demoAdapter}
+        scoped
+        disabled
+        theme={{ disabled: true }}
+      >
         <PointerProvider
           config={{
             visibility: "never", // Disable custom pointer in this section
@@ -209,7 +301,7 @@ export function ScopedProvidersDemo() {
         <code className="bg-blue-500/20 px-1 rounded">AnyclickProvider</code>{" "}
         AND <code className="bg-blue-500/20 px-1 rounded">PointerProvider</code>
         , demonstrating different highlight colors, menu items, pointer themes,
-        and disabled states.
+        custom menu styling, and disabled states.
       </div>
     </div>
   );

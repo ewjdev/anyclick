@@ -70,7 +70,7 @@ export {
 } from "@ewjdev/anyclick-core";
 
 // Styles (for customization)
-export { menuStyles, darkMenuStyles } from "./styles";
+export { menuStyles, darkMenuStyles, menuCSSVariables } from "./styles";
 
 // Highlight utilities (for customization)
 export {

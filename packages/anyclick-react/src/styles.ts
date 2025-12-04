@@ -1,5 +1,44 @@
 import type { CSSProperties } from "react";
 
+/**
+ * CSS custom properties for menu theming.
+ * These can be overridden via the `style` prop on AnyclickProvider.
+ * 
+ * Example:
+ * ```tsx
+ * <AnyclickProvider
+ *   theme={{
+ *     menuStyle: {
+ *       '--anyclick-menu-bg': 'rgba(0, 0, 0, 0.9)',
+ *       '--anyclick-menu-text': '#ffffff',
+ *       '--anyclick-menu-border': 'rgba(255, 255, 255, 0.1)',
+ *       '--anyclick-menu-hover': 'rgba(255, 255, 255, 0.1)',
+ *       '--anyclick-menu-accent': '#f59e0b',
+ *     }
+ *   }}
+ * />
+ * ```
+ */
+export const menuCSSVariables = {
+  // Background colors
+  "--anyclick-menu-bg": "#ffffff",
+  "--anyclick-menu-hover": "#f5f5f5",
+  // Text colors
+  "--anyclick-menu-text": "#333333",
+  "--anyclick-menu-text-muted": "#666666",
+  // Border colors
+  "--anyclick-menu-border": "#e5e5e5",
+  // Accent/action colors
+  "--anyclick-menu-accent": "#0066cc",
+  "--anyclick-menu-accent-text": "#ffffff",
+  // Input colors
+  "--anyclick-menu-input-bg": "#ffffff",
+  "--anyclick-menu-input-border": "#dddddd",
+  // Cancel button
+  "--anyclick-menu-cancel-bg": "#f0f0f0",
+  "--anyclick-menu-cancel-text": "#666666",
+} as const;
+
 export const menuStyles: Record<string, CSSProperties> = {
   overlay: {
     position: "fixed",
@@ -10,18 +49,20 @@ export const menuStyles: Record<string, CSSProperties> = {
     position: "fixed",
     zIndex: 9999,
     minWidth: "200px",
-    backgroundColor: "#ffffff",
+    backgroundColor: "var(--anyclick-menu-bg, #ffffff)",
     borderRadius: "8px",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)",
     overflow: "hidden",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: "14px",
+    // Set default CSS variables
+    ...menuCSSVariables,
   },
   header: {
     padding: "12px 16px",
-    borderBottom: "1px solid #e5e5e5",
-    color: "#666",
+    borderBottom: "1px solid var(--anyclick-menu-border, #e5e5e5)",
+    color: "var(--anyclick-menu-text-muted, #666)",
     fontSize: "12px",
     fontWeight: 500,
     textTransform: "uppercase" as const,
@@ -37,7 +78,7 @@ export const menuStyles: Record<string, CSSProperties> = {
     padding: "10px 16px",
     cursor: "pointer",
     transition: "background-color 0.15s",
-    color: "#333",
+    color: "var(--anyclick-menu-text, #333)",
     border: "none",
     backgroundColor: "transparent",
     width: "100%",
@@ -45,7 +86,7 @@ export const menuStyles: Record<string, CSSProperties> = {
     fontSize: "14px",
   },
   itemHover: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "var(--anyclick-menu-hover, #f5f5f5)",
   },
   itemIcon: {
     display: "flex",
@@ -57,19 +98,21 @@ export const menuStyles: Record<string, CSSProperties> = {
   },
   commentSection: {
     padding: "12px 16px",
-    borderTop: "1px solid #e5e5e5",
+    borderTop: "1px solid var(--anyclick-menu-border, #e5e5e5)",
   },
   commentInput: {
     width: "100%",
     minHeight: "60px",
     padding: "8px 12px",
-    border: "1px solid #ddd",
+    border: "1px solid var(--anyclick-menu-input-border, #ddd)",
     borderRadius: "6px",
     fontSize: "14px",
     fontFamily: "inherit",
     resize: "vertical" as const,
     outline: "none",
     boxSizing: "border-box" as const,
+    backgroundColor: "var(--anyclick-menu-input-bg, #ffffff)",
+    color: "var(--anyclick-menu-text, #333)",
   },
   buttonRow: {
     display: "flex",
@@ -87,15 +130,15 @@ export const menuStyles: Record<string, CSSProperties> = {
     border: "none",
   },
   cancelButton: {
-    backgroundColor: "#f0f0f0",
-    color: "#666",
+    backgroundColor: "var(--anyclick-menu-cancel-bg, #f0f0f0)",
+    color: "var(--anyclick-menu-cancel-text, #666)",
     display: "flex",
     alignItems: "center",
     gap: "2px",
   },
   submitButton: {
-    backgroundColor: "#0066cc",
-    color: "#ffffff",
+    backgroundColor: "var(--anyclick-menu-accent, #0066cc)",
+    color: "var(--anyclick-menu-accent-text, #ffffff)",
     display: "flex",
     alignItems: "center",
     gap: "2px",

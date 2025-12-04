@@ -126,6 +126,7 @@ export function AnyclickProvider({
     getMergedTheme,
     isDisabledByAncestor,
     findParentProvider,
+    isElementInDisabledScope,
   } = useProviderStore();
 
   // Determine parent ID
@@ -175,6 +176,20 @@ export function AnyclickProvider({
   // Context menu handler
   const handleContextMenu = useCallback(
     (event: MouseEvent, element: Element) => {
+      // For non-scoped (global) providers, check if the element is inside
+      // a disabled scoped provider's container - if so, don't show menu
+      if (!scoped && isElementInDisabledScope(element)) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            `[AnyclickProvider:${providerId}] Skipping - element is in disabled scope`,
+            {
+              targetTag: element.tagName,
+            },
+          );
+        }
+        return;
+      }
+
       const mergedTheme = getMergedTheme(providerId);
 
       if (process.env.NODE_ENV === "development") {
@@ -199,7 +214,13 @@ export function AnyclickProvider({
       setMenuPosition({ x: event.clientX, y: event.clientY });
       setMenuVisible(true);
     },
-    [providerId, getMergedTheme, highlightConfig, scoped],
+    [
+      providerId,
+      getMergedTheme,
+      highlightConfig,
+      scoped,
+      isElementInDisabledScope,
+    ],
   );
 
   // Register this provider in the store
@@ -393,14 +414,56 @@ export function AnyclickProvider({
   );
 
   // Get merged theme for this provider
-  const mergedTheme = useMemo(
-    () => getMergedTheme(providerId),
-    [providerId, getMergedTheme],
+  // We use the store's getMergedTheme for inherited values (like highlightConfig),
+  // but for this provider's own theme values, we use localTheme directly to avoid
+  // timing issues with useMemo running before the provider is registered.
+  const inheritedTheme = getMergedTheme(providerId);
+
+  // Merge: inherited theme first, then local theme overrides
+  const mergedTheme: AnyclickTheme = useMemo(
+    () => ({
+      ...inheritedTheme,
+      ...localTheme,
+      // Deep merge for nested configs
+      highlightConfig: {
+        ...inheritedTheme.highlightConfig,
+        ...localTheme.highlightConfig,
+        colors: {
+          ...inheritedTheme.highlightConfig?.colors,
+          ...localTheme.highlightConfig?.colors,
+        },
+      },
+      screenshotConfig: {
+        ...inheritedTheme.screenshotConfig,
+        ...localTheme.screenshotConfig,
+      },
+    }),
+    [inheritedTheme, localTheme],
   );
 
   // Apply merged theme styles
   const effectiveMenuStyle = mergedTheme.menuStyle ?? menuStyle;
   const effectiveMenuClassName = mergedTheme.menuClassName ?? menuClassName;
+
+  // Debug: Log theme flow
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[AnyclickProvider:${providerId}] Theme Debug`, {
+      scoped,
+      localThemeHasMenuStyle: !!localTheme.menuStyle,
+      localThemeMenuStyleKeys: localTheme.menuStyle
+        ? Object.keys(localTheme.menuStyle)
+        : [],
+      mergedThemeHasMenuStyle: !!mergedTheme.menuStyle,
+      mergedThemeMenuStyleKeys: mergedTheme.menuStyle
+        ? Object.keys(mergedTheme.menuStyle)
+        : [],
+      effectiveMenuStyleExists: !!effectiveMenuStyle,
+      effectiveMenuStyleKeys: effectiveMenuStyle
+        ? Object.keys(effectiveMenuStyle)
+        : [],
+      menuStyleProp: !!menuStyle,
+    });
+  }
   const effectiveHighlightConfig =
     mergedTheme.highlightConfig ?? highlightConfig;
   const effectiveScreenshotConfig =
