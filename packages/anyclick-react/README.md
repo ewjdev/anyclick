@@ -54,7 +54,7 @@ That's it! Users can now right-click any element to submit feedback.
 | Prop              | Type                       | Description                                    |
 | ----------------- | -------------------------- | ---------------------------------------------- |
 | `adapter`         | `AnyclickAdapter`          | Required. The adapter for submitting anyclick  |
-| `menuItems`       | `ContextMenuItem[]`       | Custom menu items                              |
+| `menuItems`       | `ContextMenuItem[]`        | Custom menu items                              |
 | `metadata`        | `Record<string, unknown>`  | Additional data included with every submission |
 | `theme`           | `AnyclickTheme \| null`    | Theme configuration (inherits from parent)     |
 | `scoped`          | `boolean`                  | Limit capture to this provider's children only |
@@ -210,6 +210,7 @@ const qaPreset = createPresetMenu("qa");
 ```
 
 Preset defaults (examples):
+
 - QA: bug / repro / UX papercut + “Performance trace” (coming soon)
 - PM: feature idea / UX papercut + “Impact sizing” (coming soon)
 - Designer: visual bug / accessibility + “Motion glitch” (coming soon)

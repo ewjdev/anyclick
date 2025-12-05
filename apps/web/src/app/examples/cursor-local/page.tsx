@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  Monitor,
-  Zap,
-  FolderOpen,
-} from "lucide-react";
+import { ArrowRight, Monitor, Zap, FolderOpen } from "lucide-react";
 import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {

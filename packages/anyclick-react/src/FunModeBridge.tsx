@@ -9,7 +9,9 @@ import {
 import { useProviderStore } from "./store";
 import type { AnyclickTheme, FunModeThemeConfig } from "./types";
 
-function isFunModeEnabled(theme?: AnyclickTheme | null): theme is AnyclickTheme {
+function isFunModeEnabled(
+  theme?: AnyclickTheme | null,
+): theme is AnyclickTheme {
   if (!theme) return false;
   if (theme.funMode === undefined) return false;
   if (typeof theme.funMode === "boolean") return theme.funMode;
@@ -21,7 +23,9 @@ function buildFunConfig(
   container: Element,
 ): FunModeConfig {
   const funTheme =
-    typeof theme?.funMode === "object" ? (theme.funMode as FunModeThemeConfig) : {};
+    typeof theme?.funMode === "object"
+      ? (theme.funMode as FunModeThemeConfig)
+      : {};
   const resolveTrackElement = (): HTMLElement => {
     // Some scoped containers use display: contents and report zero bounds.
     // Walk up to the first ancestor with a real box; fall back to body.
@@ -110,7 +114,10 @@ export function FunModeBridge() {
       if (!cachedConfigs.current[provider.id]) {
         cachedConfigs.current[provider.id] = {
           mode: "fun",
-          funConfig: buildFunConfig(provider.theme, provider.containerRef.current),
+          funConfig: buildFunConfig(
+            provider.theme,
+            provider.containerRef.current,
+          ),
         };
       }
       setConfig(cachedConfigs.current[provider.id]);
@@ -126,4 +133,3 @@ export function FunModeBridge() {
 }
 
 export default FunModeBridge;
-

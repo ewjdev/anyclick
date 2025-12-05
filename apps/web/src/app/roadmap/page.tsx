@@ -95,9 +95,9 @@ export default function RoadmapPage() {
               What&apos;s coming for notifications and the dashboard
             </h2>
             <p className="text-gray-400 max-w-3xl">
-              The core error ingest plan stays focused on fidelity, reliability, and
-              privacy. This roadmap tracks the UX layers we&apos;ll ship on top:
-              in-app notifications for captured errors and a self-hostable
+              The core error ingest plan stays focused on fidelity, reliability,
+              and privacy. This roadmap tracks the UX layers we&apos;ll ship on
+              top: in-app notifications for captured errors and a self-hostable
               dashboard to triage them.
             </p>
           </div>
@@ -133,4 +133,3 @@ export default function RoadmapPage() {
     </div>
   );
 }
-

@@ -92,7 +92,7 @@ export default function BasicExamplePage() {
         <h3 className="text-lg font-semibold mb-3 mt-8">
           1. Create the Provider
         </h3>
-        <CodeBlock 
+        <CodeBlock
           filename="app/providers.tsx"
           language="tsx"
           code={`'use client';
@@ -112,11 +112,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {children}
     </FeedbackProvider>
   );
-}`} 
+}`}
         />
 
         <h3 className="text-lg font-semibold mb-3 mt-8">2. Wrap Your App</h3>
-        <CodeBlock 
+        <CodeBlock
           filename="app/layout.tsx"
           language="tsx"
           code={`import { Providers } from './providers';
@@ -133,11 +133,11 @@ export default function RootLayout({
       </body>
     </html>
   );
-}`} 
+}`}
         />
 
         <h3 className="text-lg font-semibold mb-3 mt-8">3. Create API Route</h3>
-        <CodeBlock 
+        <CodeBlock
           filename="app/api/feedback/route.ts"
           language="typescript"
           code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
@@ -156,7 +156,7 @@ export async function POST(request: Request) {
   const payload: FeedbackPayload = await request.json();
   const result = await github.submit(payload);
   return Response.json(result);
-}`} 
+}`}
         />
       </div>
 
@@ -167,13 +167,13 @@ export async function POST(request: Request) {
           When no <code className="text-cyan-400">menuItems</code> prop is
           provided, these defaults are used:
         </p>
-        <CodeBlock 
+        <CodeBlock
           language="typescript"
           code={`const defaultMenuItems = [
   { type: 'issue', label: 'Report an issue', showComment: true },
   { type: 'feature', label: 'Request a feature', showComment: true },
   { type: 'like', label: 'I like this!', showComment: false },
-];`} 
+];`}
         />
       </div>
 

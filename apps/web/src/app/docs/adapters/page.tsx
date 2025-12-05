@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowRight,
-  GitBranch,
-  Terminal,
-  Monitor,
-  Cloud,
-} from "lucide-react";
+import { ArrowRight, GitBranch, Terminal, Monitor, Cloud } from "lucide-react";
 import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {

@@ -2509,117 +2509,117 @@ export function InspectDialog({
             {/* Scrollable Content - only show for non-blacklisted elements */}
             {!isBlacklisted(targetElement) && (
               <div style={inspectStyles.content}>
-              {/* Quick Info */}
-              <Section title="Layout" icon={<Box size={14} />} defaultOpen>
-                <PropertyRow
-                  label="Size"
-                  value={`${boxModel.total.width} × ${boxModel.total.height}px`}
-                />
-                <PropertyRow
-                  label="Position"
-                  value={`${boxModel.position.left}, ${boxModel.position.top}`}
-                />
-                <PropertyRow
-                  label="Padding"
-                  value={`${boxModel.padding.top} ${boxModel.padding.right} ${boxModel.padding.bottom} ${boxModel.padding.left}`}
-                />
-                <PropertyRow
-                  label="Margin"
-                  value={`${boxModel.margin.top} ${boxModel.margin.right} ${boxModel.margin.bottom} ${boxModel.margin.left}`}
-                />
-              </Section>
-
-              {/* Accessibility */}
-              <Section
-                title="Accessibility"
-                icon={<Accessibility size={14} />}
-                badge={accessibility.hidden ? "Hidden" : undefined}
-              >
-                {accessibility.role && (
-                  <PropertyRow label="Role" value={accessibility.role} />
-                )}
-                {accessibility.accessibleName && (
+                {/* Quick Info */}
+                <Section title="Layout" icon={<Box size={14} />} defaultOpen>
                   <PropertyRow
-                    label="Name"
-                    value={accessibility.accessibleName}
+                    label="Size"
+                    value={`${boxModel.total.width} × ${boxModel.total.height}px`}
                   />
-                )}
-                <PropertyRow
-                  label="Focusable"
-                  value={accessibility.keyboardFocusable ? "Yes" : "No"}
-                />
-                {accessibility.tabIndex !== null && (
                   <PropertyRow
-                    label="Tab Index"
-                    value={String(accessibility.tabIndex)}
+                    label="Position"
+                    value={`${boxModel.position.left}, ${boxModel.position.top}`}
                   />
-                )}
-                {Object.entries(accessibility.ariaAttributes).length > 0 && (
-                  <div style={inspectStyles.subSection}>
-                    <div style={inspectStyles.subSectionHeader}>
-                      ARIA Attributes
-                    </div>
-                    {Object.entries(accessibility.ariaAttributes).map(
-                      ([attr, value]) => (
-                        <PropertyRow
-                          key={attr}
-                          label={attr}
-                          value={value}
-                          mono
-                        />
-                      ),
-                    )}
-                  </div>
-                )}
-              </Section>
-
-              {/* Inline Styles (Editable) */}
-              <EditableStylesSection
-                targetElement={targetElement}
-                refreshInfo={refreshElementInfo}
-              />
-
-              {/* Computed Styles with Origin Tracing */}
-              <Section
-                title="Computed Styles"
-                icon={<Palette size={14} />}
-                badge={`${styleCategories.length} categories`}
-              >
-                {styleCategories.map(([category, styles]) => (
-                  <StylesSection
-                    key={category}
-                    category={category}
-                    styles={styles as Record<string, string>}
-                    showOrigin
-                  />
-                ))}
-              </Section>
-
-              {/* Data Attributes (Editable) */}
-              <EditableDataAttributesSection
-                targetElement={targetElement}
-                dataAttributes={dataAttributes}
-                refreshInfo={refreshElementInfo}
-              />
-
-              {/* Attributes (Editable) */}
-              <EditableAttributesSection
-                targetElement={targetElement}
-                attributes={attributes}
-                refreshInfo={refreshElementInfo}
-              />
-
-              {/* Source Location */}
-              {sourceLocation && (
-                <Section title="Source" icon={<Code size={14} />} defaultOpen>
                   <PropertyRow
-                    label="File"
-                    value={formatSourceLocation(sourceLocation)}
-                    mono
-                    copyable
+                    label="Padding"
+                    value={`${boxModel.padding.top} ${boxModel.padding.right} ${boxModel.padding.bottom} ${boxModel.padding.left}`}
+                  />
+                  <PropertyRow
+                    label="Margin"
+                    value={`${boxModel.margin.top} ${boxModel.margin.right} ${boxModel.margin.bottom} ${boxModel.margin.left}`}
                   />
                 </Section>
-              )}
+
+                {/* Accessibility */}
+                <Section
+                  title="Accessibility"
+                  icon={<Accessibility size={14} />}
+                  badge={accessibility.hidden ? "Hidden" : undefined}
+                >
+                  {accessibility.role && (
+                    <PropertyRow label="Role" value={accessibility.role} />
+                  )}
+                  {accessibility.accessibleName && (
+                    <PropertyRow
+                      label="Name"
+                      value={accessibility.accessibleName}
+                    />
+                  )}
+                  <PropertyRow
+                    label="Focusable"
+                    value={accessibility.keyboardFocusable ? "Yes" : "No"}
+                  />
+                  {accessibility.tabIndex !== null && (
+                    <PropertyRow
+                      label="Tab Index"
+                      value={String(accessibility.tabIndex)}
+                    />
+                  )}
+                  {Object.entries(accessibility.ariaAttributes).length > 0 && (
+                    <div style={inspectStyles.subSection}>
+                      <div style={inspectStyles.subSectionHeader}>
+                        ARIA Attributes
+                      </div>
+                      {Object.entries(accessibility.ariaAttributes).map(
+                        ([attr, value]) => (
+                          <PropertyRow
+                            key={attr}
+                            label={attr}
+                            value={value}
+                            mono
+                          />
+                        ),
+                      )}
+                    </div>
+                  )}
+                </Section>
+
+                {/* Inline Styles (Editable) */}
+                <EditableStylesSection
+                  targetElement={targetElement}
+                  refreshInfo={refreshElementInfo}
+                />
+
+                {/* Computed Styles with Origin Tracing */}
+                <Section
+                  title="Computed Styles"
+                  icon={<Palette size={14} />}
+                  badge={`${styleCategories.length} categories`}
+                >
+                  {styleCategories.map(([category, styles]) => (
+                    <StylesSection
+                      key={category}
+                      category={category}
+                      styles={styles as Record<string, string>}
+                      showOrigin
+                    />
+                  ))}
+                </Section>
+
+                {/* Data Attributes (Editable) */}
+                <EditableDataAttributesSection
+                  targetElement={targetElement}
+                  dataAttributes={dataAttributes}
+                  refreshInfo={refreshElementInfo}
+                />
+
+                {/* Attributes (Editable) */}
+                <EditableAttributesSection
+                  targetElement={targetElement}
+                  attributes={attributes}
+                  refreshInfo={refreshElementInfo}
+                />
+
+                {/* Source Location */}
+                {sourceLocation && (
+                  <Section title="Source" icon={<Code size={14} />} defaultOpen>
+                    <PropertyRow
+                      label="File"
+                      value={formatSourceLocation(sourceLocation)}
+                      mono
+                      copyable
+                    />
+                  </Section>
+                )}
               </div>
             )}
 
