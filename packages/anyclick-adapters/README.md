@@ -21,4 +21,3 @@ adapter.deactivate?.({ setConfig });
 
 - `experimental: true` adapters log a one-time console warning.
 - APIs are not stable; pin versions and test before upgrading.
-

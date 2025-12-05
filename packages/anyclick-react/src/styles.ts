@@ -1,10 +1,24 @@
+/**
+ * Style definitions for anyclick-react components.
+ *
+ * This module provides consolidated styling for all UI components,
+ * including CSS custom properties for theming and dark mode support.
+ *
+ * @module styles
+ * @since 1.0.0
+ */
 import type { CSSProperties } from "react";
+
+// ============================================================================
+// CSS Custom Properties
+// ============================================================================
 
 /**
  * CSS custom properties for menu theming.
+ *
  * These can be overridden via the `style` prop on AnyclickProvider.
  *
- * Example:
+ * @example
  * ```tsx
  * <AnyclickProvider
  *   theme={{
@@ -18,142 +32,274 @@ import type { CSSProperties } from "react";
  *   }}
  * />
  * ```
+ *
+ * @since 1.0.0
  */
 export const menuCSSVariables = {
-  // Background colors
-  "--anyclick-menu-bg": "#ffffff",
-  "--anyclick-menu-hover": "#f5f5f5",
-  // Text colors
-  "--anyclick-menu-text": "#333333",
-  "--anyclick-menu-text-muted": "#666666",
-  // Border colors
-  "--anyclick-menu-border": "#e5e5e5",
-  // Accent/action colors
   "--anyclick-menu-accent": "#0066cc",
   "--anyclick-menu-accent-text": "#ffffff",
-  // Input colors
-  "--anyclick-menu-input-bg": "#ffffff",
-  "--anyclick-menu-input-border": "#dddddd",
-  // Cancel button
+  "--anyclick-menu-bg": "#ffffff",
+  "--anyclick-menu-border": "#e5e5e5",
   "--anyclick-menu-cancel-bg": "#f0f0f0",
   "--anyclick-menu-cancel-text": "#666666",
+  "--anyclick-menu-hover": "#f5f5f5",
+  "--anyclick-menu-input-bg": "#ffffff",
+  "--anyclick-menu-input-border": "#dddddd",
+  "--anyclick-menu-text": "#333333",
+  "--anyclick-menu-text-muted": "#666666",
 } as const;
 
+// ============================================================================
+// Badge Styles
+// ============================================================================
+
+/**
+ * Badge tone color configuration.
+ * @internal
+ */
+const badgeToneColors = {
+  info: {
+    backgroundColor: "rgba(59, 130, 246, 0.15)",
+    border: "1px solid rgba(59, 130, 246, 0.3)",
+    color: "#60a5fa",
+  },
+  neutral: {
+    backgroundColor: "rgba(148, 163, 184, 0.15)",
+    border: "1px solid rgba(148, 163, 184, 0.3)",
+    color: "#cbd5e1",
+  },
+  success: {
+    backgroundColor: "rgba(34, 197, 94, 0.15)",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
+    color: "#4ade80",
+  },
+  warning: {
+    backgroundColor: "rgba(251, 191, 36, 0.15)",
+    border: "1px solid rgba(251, 191, 36, 0.3)",
+    color: "#fbbf24",
+  },
+} as const;
+
+/**
+ * Gets badge styles for a specific tone.
+ *
+ * @param tone - The badge tone (info, neutral, success, warning)
+ * @returns CSSProperties for the badge
+ *
+ * @example
+ * ```tsx
+ * const style = getBadgeStyle("success");
+ * // => { backgroundColor: "rgba(34, 197, 94, 0.15)", ... }
+ * ```
+ *
+ * @since 1.2.0
+ */
+export function getBadgeStyle(
+  tone: "info" | "neutral" | "success" | "warning" = "neutral",
+): CSSProperties {
+  const toneColors = badgeToneColors[tone];
+  return {
+    alignItems: "center",
+    backgroundColor: toneColors.backgroundColor,
+    border: toneColors.border,
+    borderRadius: "9999px",
+    color: toneColors.color,
+    display: "inline-flex",
+    fontSize: "10px",
+    lineHeight: 1.2,
+    padding: "2px 6px",
+  };
+}
+
+// ============================================================================
+// Menu Styles
+// ============================================================================
+
+/**
+ * Core menu component styles.
+ *
+ * @since 1.0.0
+ */
 export const menuStyles: Record<string, CSSProperties> = {
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    zIndex: 9998,
+  backButton: {
+    borderBottom: "1px solid var(--anyclick-menu-border, #e5e5e5)",
+    marginBottom: "4px",
+    minHeight: "44px",
+  },
+  button: {
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 500,
+    padding: "6px 12px",
+    transition: "background-color 0.15s, opacity 0.15s",
+  },
+  buttonRow: {
+    display: "flex",
+    gap: "8px",
+    justifyContent: "flex-end",
+    marginTop: "8px",
+  },
+  cancelButton: {
+    alignItems: "center",
+    backgroundColor: "var(--anyclick-menu-cancel-bg, #f0f0f0)",
+    color: "var(--anyclick-menu-cancel-text, #666)",
+    display: "flex",
+    gap: "2px",
+  },
+  commentInput: {
+    backgroundColor: "var(--anyclick-menu-input-bg, #ffffff)",
+    border: "1px solid var(--anyclick-menu-input-border, #ddd)",
+    borderRadius: "6px",
+    boxSizing: "border-box" as const,
+    color: "var(--anyclick-menu-text, #333)",
+    fontFamily: "inherit",
+    fontSize: "14px",
+    minHeight: "60px",
+    outline: "none",
+    padding: "8px 12px",
+    resize: "vertical" as const,
+    width: "100%",
+  },
+  commentSection: {
+    borderTop: "1px solid var(--anyclick-menu-border, #e5e5e5)",
+    padding: "12px 16px",
   },
   container: {
-    position: "fixed",
-    zIndex: 9999,
-    minWidth: "200px",
     backgroundColor: "var(--anyclick-menu-bg, #ffffff)",
     borderRadius: "8px",
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05)",
-    overflow: "hidden",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: "14px",
-    // Set default CSS variables
+    minWidth: "200px",
+    overflow: "hidden",
+    position: "fixed",
+    zIndex: 9999,
     ...menuCSSVariables,
   },
+  dragHandle: {
+    alignItems: "center",
+    borderRadius: "4px",
+    display: "flex",
+    marginRight: "-4px",
+    opacity: 0.5,
+    padding: "4px",
+    transition: "opacity 0.15s",
+  },
   header: {
-    padding: "8px 12px",
+    alignItems: "center",
     borderBottom: "1px solid var(--anyclick-menu-border, #e5e5e5)",
     color: "var(--anyclick-menu-text-muted, #666)",
+    display: "flex",
     fontSize: "12px",
     fontWeight: 500,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-    display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-  },
-  itemList: {
-    padding: "0px 0px",
+    letterSpacing: "0.5px",
+    padding: "8px 12px",
+    textTransform: "uppercase" as const,
   },
   item: {
-    display: "flex",
     alignItems: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    color: "var(--anyclick-menu-text, #333)",
+    cursor: "pointer",
+    display: "flex",
+    fontSize: "14px",
     gap: "10px",
     padding: "10px 16px",
-    cursor: "pointer",
-    transition: "background-color 0.15s",
-    color: "var(--anyclick-menu-text, #333)",
-    border: "none",
-    backgroundColor: "transparent",
-    width: "100%",
     textAlign: "left" as const,
-    fontSize: "14px",
+    transition: "background-color 0.15s",
+    width: "100%",
+  },
+  itemDisabled: {
+    cursor: "not-allowed",
+    opacity: 0.5,
   },
   itemHover: {
     backgroundColor: "var(--anyclick-menu-hover, #f5f5f5)",
   },
   itemIcon: {
-    display: "flex",
     alignItems: "center",
+    display: "flex",
+    fontSize: "16px",
+    height: "20px",
     justifyContent: "center",
     width: "20px",
-    height: "20px",
-    fontSize: "16px",
   },
-  commentSection: {
-    padding: "12px 16px",
-    borderTop: "1px solid var(--anyclick-menu-border, #e5e5e5)",
-  },
-  commentInput: {
-    width: "100%",
-    minHeight: "60px",
-    padding: "8px 12px",
-    border: "1px solid var(--anyclick-menu-input-border, #ddd)",
-    borderRadius: "6px",
-    fontSize: "14px",
-    fontFamily: "inherit",
-    resize: "vertical" as const,
-    outline: "none",
-    boxSizing: "border-box" as const,
-    backgroundColor: "var(--anyclick-menu-input-bg, #ffffff)",
-    color: "var(--anyclick-menu-text, #333)",
-  },
-  buttonRow: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "8px",
-    marginTop: "8px",
-  },
-  button: {
-    padding: "6px 12px",
-    borderRadius: "6px",
-    fontSize: "13px",
-    fontWeight: 500,
-    cursor: "pointer",
-    transition: "background-color 0.15s, opacity 0.15s",
-    border: "none",
-  },
-  cancelButton: {
-    backgroundColor: "var(--anyclick-menu-cancel-bg, #f0f0f0)",
-    color: "var(--anyclick-menu-cancel-text, #666)",
-    display: "flex",
+  itemLabel: {
     alignItems: "center",
-    gap: "2px",
+    display: "inline-flex",
+    flex: 1,
+    gap: "8px",
+  },
+  itemList: {
+    padding: "0px 0px",
+  },
+  overlay: {
+    inset: 0,
+    position: "fixed",
+    zIndex: 9998,
+  },
+  screenshotIndicator: {
+    display: "flex",
+    flex: 1,
+    justifyContent: "flex-end",
+    marginLeft: "4px",
+    opacity: 0.7,
+  },
+  submenuIcon: {
+    marginLeft: "auto",
+    opacity: 0.5,
   },
   submitButton: {
+    alignItems: "center",
     backgroundColor: "var(--anyclick-menu-accent, #0066cc)",
     color: "var(--anyclick-menu-accent-text, #ffffff)",
     display: "flex",
-    alignItems: "center",
     gap: "2px",
   },
   submitButtonDisabled: {
-    opacity: 0.6,
     cursor: "not-allowed",
+    opacity: 0.6,
+  },
+  touchFriendly: {
+    minHeight: "38px",
+    userSelect: "none",
+    WebkitTouchCallout: "none",
+    WebkitUserSelect: "none",
   },
 };
 
-// Dark mode styles
+// ============================================================================
+// Dark Mode Styles
+// ============================================================================
+
+/**
+ * Dark mode menu styles.
+ *
+ * Apply these styles for dark theme support.
+ *
+ * @since 1.0.0
+ */
 export const darkMenuStyles: Record<string, CSSProperties> = {
+  cancelButton: {
+    ...menuStyles.cancelButton,
+    backgroundColor: "#333",
+    color: "#ccc",
+  },
+  commentInput: {
+    ...menuStyles.commentInput,
+    backgroundColor: "#2a2a2a",
+    border: "1px solid #444",
+    color: "#e0e0e0",
+  },
+  commentSection: {
+    ...menuStyles.commentSection,
+    borderTop: "1px solid #333",
+  },
   container: {
     ...menuStyles.container,
     backgroundColor: "#1a1a1a",
@@ -172,72 +318,65 @@ export const darkMenuStyles: Record<string, CSSProperties> = {
   itemHover: {
     backgroundColor: "#2a2a2a",
   },
-  commentSection: {
-    ...menuStyles.commentSection,
-    borderTop: "1px solid #333",
-  },
-  commentInput: {
-    ...menuStyles.commentInput,
-    backgroundColor: "#2a2a2a",
-    border: "1px solid #444",
-    color: "#e0e0e0",
-  },
-  cancelButton: {
-    ...menuStyles.cancelButton,
-    backgroundColor: "#333",
-    color: "#ccc",
-  },
 };
 
-export const screenshotPreviewStyles: Record<string, React.CSSProperties> = {
+// ============================================================================
+// Screenshot Preview Styles
+// ============================================================================
+
+/**
+ * Screenshot preview component styles.
+ *
+ * @since 1.0.0
+ */
+export const screenshotPreviewStyles: Record<string, CSSProperties> = {
+  actions: {
+    alignItems: "center",
+    borderTop: "1px solid #e5e7eb",
+    display: "flex",
+    justifyContent: "space-between",
+    paddingTop: "8px",
+  },
+  actionsRight: {
+    display: "flex",
+    gap: "8px",
+  },
   container: {
-    width: "100%",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
+    width: "100%",
   },
   containerExpanded: {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "90vw",
-    maxWidth: "800px",
-    maxHeight: "90vh",
     backgroundColor: "#fff",
     borderRadius: "12px",
     boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+    left: "50%",
+    maxHeight: "90vh",
+    maxWidth: "800px",
     padding: "16px",
+    position: "fixed",
+    top: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "90vw",
     zIndex: 10000,
   },
-  loadingContainer: {
-    display: "flex",
-    flexDirection: "column",
+  continueButton: {
     alignItems: "center",
-    justifyContent: "center",
-    gap: "12px",
-    padding: "24px",
-  },
-  loadingText: {
-    fontSize: "13px",
-    color: "#6b7280",
-  },
-  emptyContainer: {
+    backgroundColor: "#3b82f6",
+    border: "none",
+    borderRadius: "6px",
+    color: "#fff",
+    cursor: "pointer",
     display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    padding: "24px",
-  },
-  emptyText: {
-    fontSize: "13px",
-    color: "#6b7280",
+    fontSize: "12px",
     fontWeight: "500",
+    gap: "6px",
+    padding: "8px 12px",
   },
-  emptySubtext: {
-    fontSize: "11px",
+  dimensionsInfo: {
     color: "#9ca3af",
+    fontSize: "11px",
     textAlign: "center" as const,
   },
   emptyActions: {
@@ -245,82 +384,166 @@ export const screenshotPreviewStyles: Record<string, React.CSSProperties> = {
     gap: "8px",
     marginTop: "8px",
   },
-  retakeButtonOutline: {
-    display: "flex",
+  emptyContainer: {
     alignItems: "center",
-    gap: "6px",
-    padding: "8px 12px",
-    fontSize: "12px",
-    color: "#6b7280",
-    backgroundColor: "transparent",
-    border: "1px solid #e5e7eb",
-    borderRadius: "6px",
-    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    justifyContent: "center",
+    padding: "24px",
   },
-  continueButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "8px 12px",
+  emptySubtext: {
+    color: "#9ca3af",
+    fontSize: "11px",
+    textAlign: "center" as const,
+  },
+  emptyText: {
+    color: "#6b7280",
+    fontSize: "13px",
+    fontWeight: "500",
+  },
+  errorMessage: {
+    color: "#6b7280",
     fontSize: "12px",
-    color: "#fff",
+    lineHeight: "1.4",
+    maxWidth: "250px",
+  },
+  errorPreview: {
+    alignItems: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    justifyContent: "center",
+    padding: "16px",
+    textAlign: "center" as const,
+  },
+  errorTitle: {
+    color: "#ef4444",
+    fontSize: "14px",
+    fontWeight: "600",
+  },
+  header: {
+    alignItems: "center",
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "0 4px",
+  },
+  headerActions: {
+    alignItems: "center",
+    display: "flex",
+    gap: "8px",
+  },
+  headerTitle: {
+    color: "#374151",
+    fontSize: "12px",
+    fontWeight: "600",
+    letterSpacing: "0.05em",
+    textTransform: "uppercase" as const,
+  },
+  iconButton: {
+    alignItems: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    borderRadius: "4px",
+    color: "#6b7280",
+    cursor: "pointer",
+    display: "flex",
+    height: "24px",
+    justifyContent: "center",
+    width: "24px",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    justifyContent: "center",
+    padding: "24px",
+  },
+  loadingText: {
+    color: "#6b7280",
+    fontSize: "13px",
+  },
+  noPreview: {
+    alignItems: "center",
+    color: "#9ca3af",
+    display: "flex",
+    flexDirection: "column",
+    fontSize: "12px",
+    gap: "8px",
+  },
+  previewContainer: {
+    alignItems: "center",
+    backgroundColor: "#f9fafb",
+    borderRadius: "8px",
+    display: "flex",
+    height: "150px",
+    justifyContent: "center",
+    overflow: "hidden",
+    position: "relative",
+    width: "100%",
+  },
+  previewContainerExpanded: {
+    height: "60vh",
+    maxHeight: "500px",
+  },
+  previewImage: {
+    maxHeight: "100%",
+    maxWidth: "100%",
+    objectFit: "contain",
+  },
+  retakeButton: {
+    alignItems: "center",
     backgroundColor: "#3b82f6",
     border: "none",
     borderRadius: "6px",
+    color: "#fff",
     cursor: "pointer",
+    display: "flex",
+    fontSize: "13px",
     fontWeight: "500",
+    gap: "6px",
+    padding: "8px 16px",
   },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
+  retakeButtonOutline: {
     alignItems: "center",
-    padding: "0 4px",
-  },
-  headerTitle: {
+    backgroundColor: "transparent",
+    border: "1px solid #e5e7eb",
+    borderRadius: "6px",
+    color: "#6b7280",
+    cursor: "pointer",
+    display: "flex",
     fontSize: "12px",
-    fontWeight: "600",
-    color: "#374151",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.05em",
+    gap: "6px",
+    padding: "8px 12px",
   },
-  headerActions: {
-    display: "flex",
+  retakeButtonSmall: {
     alignItems: "center",
-    gap: "8px",
+    backgroundColor: "transparent",
+    border: "1px solid #e5e7eb",
+    borderRadius: "4px",
+    color: "#6b7280",
+    cursor: "pointer",
+    display: "flex",
+    fontSize: "11px",
+    gap: "4px",
+    padding: "4px 8px",
   },
   sizeLabel: {
-    fontSize: "11px",
     color: "#9ca3af",
-  },
-  iconButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "24px",
-    height: "24px",
-    border: "none",
-    backgroundColor: "transparent",
-    borderRadius: "4px",
-    cursor: "pointer",
-    color: "#6b7280",
-  },
-  tabContainer: {
-    display: "flex",
-    gap: "4px",
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: "8px",
+    fontSize: "11px",
   },
   tab: {
-    display: "flex",
     alignItems: "center",
-    gap: "4px",
-    padding: "2px 5px",
-    fontSize: "12px",
-    color: "#6b7280",
     backgroundColor: "transparent",
     border: "none",
     borderRadius: "4px",
+    color: "#6b7280",
     cursor: "pointer",
+    display: "flex",
+    fontSize: "12px",
+    gap: "4px",
+    padding: "2px 5px",
     transition: "all 0.15s ease",
   },
   tabActive: {
@@ -328,100 +551,17 @@ export const screenshotPreviewStyles: Record<string, React.CSSProperties> = {
     color: "#3b82f6",
     fontWeight: "500",
   },
+  tabContainer: {
+    borderBottom: "1px solid #e5e7eb",
+    display: "flex",
+    gap: "4px",
+    paddingBottom: "8px",
+  },
   tabError: {
     color: "#ef4444",
   },
   tabSize: {
+    color: "#9ca3af",
     fontSize: "10px",
-    color: "#9ca3af",
-  },
-  previewContainer: {
-    position: "relative",
-    width: "100%",
-    height: "150px",
-    backgroundColor: "#f9fafb",
-    borderRadius: "8px",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  previewContainerExpanded: {
-    height: "60vh",
-    maxHeight: "500px",
-  },
-  previewImage: {
-    maxWidth: "100%",
-    maxHeight: "100%",
-    objectFit: "contain",
-  },
-  noPreview: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "8px",
-    fontSize: "12px",
-    color: "#9ca3af",
-  },
-  errorPreview: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    padding: "16px",
-    textAlign: "center" as const,
-  },
-  errorTitle: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#ef4444",
-  },
-  errorMessage: {
-    fontSize: "12px",
-    color: "#6b7280",
-    maxWidth: "250px",
-    lineHeight: "1.4",
-  },
-  dimensionsInfo: {
-    fontSize: "11px",
-    color: "#9ca3af",
-    textAlign: "center" as const,
-  },
-  actions: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: "8px",
-    borderTop: "1px solid #e5e7eb",
-  },
-  actionsRight: {
-    display: "flex",
-    gap: "8px",
-  },
-  retakeButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "8px 16px",
-    fontSize: "13px",
-    color: "#fff",
-    backgroundColor: "#3b82f6",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "500",
-  },
-  retakeButtonSmall: {
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    padding: "4px 8px",
-    fontSize: "11px",
-    color: "#6b7280",
-    backgroundColor: "transparent",
-    border: "1px solid #e5e7eb",
-    borderRadius: "4px",
-    cursor: "pointer",
   },
 };

@@ -1,6 +1,6 @@
 // Types
 export type {
-  AnyclickBuiltInType,
+  BuiltInAnyclickType,
   AnyclickType,
   AncestorInfo,
   ElementContext,
@@ -54,3 +54,23 @@ export {
 
 // Client
 export { AnyclickClient, createAnyclickClient } from "./client";
+
+// Inspect utilities
+export {
+  CURATED_STYLE_PROPERTIES,
+  ALL_CURATED_PROPERTIES,
+  getComputedStyles,
+  getAccessibilityInfo,
+  getBoxModelInfo,
+  getAttributes,
+  getElementInspectInfo,
+  formatStylesAsCSS,
+  formatBoxModel,
+} from "./inspect";
+
+export type {
+  ComputedStylesInfo,
+  AccessibilityInfo,
+  BoxModelInfo,
+  ElementInspectInfo,
+} from "./inspect";

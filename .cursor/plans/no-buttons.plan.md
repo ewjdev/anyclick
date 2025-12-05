@@ -1,4 +1,4 @@
- # No Buttons??
+# No Buttons??
 
 If "Any click" automatically has the right context to provide actions why do we need UI buttons?
 

@@ -10,6 +10,7 @@ import {
   Shield,
   MousePointer2,
   Layers,
+  Users,
   Gauge,
 } from "lucide-react";
 
@@ -28,6 +29,15 @@ const examples = [
     icon: Box,
     color: "violet",
     tags: ["React", "Provider", "Default Menu"],
+  },
+  {
+    title: "Role-based Presets",
+    description:
+      "Drop-in menus for QA, PM, Designer, and Developer with coming-soon tags baked in.",
+    href: "/examples/role-presets",
+    icon: Users,
+    color: "cyan",
+    tags: ["Presets", "Roles", "Menu", "DX"],
   },
   {
     title: "Custom Pointer",

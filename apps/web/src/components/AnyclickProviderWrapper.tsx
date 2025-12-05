@@ -1,72 +1,34 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { useMemo } from "react";
+import {
+  InspectDialogManager,
+  ModificationIndicator,
+} from "@ewjdev/anyclick-devtools";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import {
   AnyclickProvider,
   FunModeBridge,
-  filterMenuItemsByRole,
+  createPresetMenu,
 } from "@ewjdev/anyclick-react";
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import type { AnyclickMenuItem } from "@ewjdev/anyclick-react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
-import type { ReactNode } from "react";
-import { useMemo } from "react";
-import { CodeIcon, CloudIcon, MonitorIcon, MousePointer2 } from "lucide-react";
+import { MousePointer2 } from "lucide-react";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
 });
 
-// Check if we're in development mode
-const isDev = process.env.NODE_ENV === "development";
-
-/**
- * All available menu items with role requirements
- */
-const allMenuItems: AnyclickMenuItem[] = [
-  { type: "issue", label: "Report an issue", showComment: true },
-  { type: "feature", label: "Request a feature", showComment: true },
-  { type: "like", label: "I like this!", showComment: false },
-  // Developer-only: Build with Cursor (with submenu for local vs cloud)
-  {
-    type: "cursor_menu",
-    label: "Build with Cursor",
-    icon: <CodeIcon className="w-4 h-4" />,
-    requiredRoles: ["dev", "esl_admin", "super_admin"],
-    children: [
-      // Local option only available in development
-      ...(isDev
-        ? [
-            {
-              type: "cursor_local" as const,
-              label: "Local (cursor-agent)",
-              icon: <MonitorIcon className="w-4 h-4" />,
-              showComment: true,
-            },
-          ]
-        : []),
-      {
-        type: "cursor_cloud" as const,
-        label: "Cloud Agent",
-        icon: <CloudIcon className="w-4 h-4" />,
-        showComment: true,
-      },
-    ],
-  },
-];
-
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
-  const userContext = useMemo(() => ({}), []);
-  // Filter menu items based on user roles
-  const menuItems = useMemo(() => {
-    return filterMenuItemsByRole(allMenuItems, userContext);
-  }, [userContext]);
+  // Use chrome preset for developer-focused menu with inspect, copy, etc.
+  const chromePreset = useMemo(() => createPresetMenu("chrome"), []);
 
   return (
     <AnyclickProvider
       adapter={adapter}
-      menuItems={menuItems}
-      metadata={userContext}
+      menuItems={chromePreset.menuItems}
+      metadata={chromePreset.metadata}
+      header={<></>}
       theme={{
         highlightConfig: {
           enabled: true,
@@ -75,10 +37,8 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
             containerColor: "#8b5cf6",
           },
         },
-        screenshotConfig: {
-          enabled: true,
-          sensitiveSelectors: DEFAULT_SENSITIVE_SELECTORS,
-        },
+        screenshotConfig: chromePreset.screenshotConfig,
+        ...chromePreset.theme,
       }}
     >
       <PointerProvider
@@ -103,6 +63,18 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
         }}
       >
         <FunModeBridge />
+        <InspectDialogManager
+          ideConfig={{
+            protocol: "cursor",
+            basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+          }}
+        />
+        <ModificationIndicator
+          position="bottom-right"
+          size={48}
+          autoApply
+          primaryColor="#3b82f6"
+        />
         {children}
       </PointerProvider>
     </AnyclickProvider>

@@ -166,13 +166,13 @@ export class AnyclickClient {
     // Store the pending element for later submission
     this.pendingElement = this.touchTargetElement;
 
-      // Create synthetic event for positioning
-      const menuEvent: AnyclickMenuEvent = {
-        clientX: this.touchStartPosition.x,
-        clientY: this.touchStartPosition.y,
-        originalEvent: this.touchStartEvent,
-        isTouch: true,
-      };
+    // Create synthetic event for positioning
+    const menuEvent: AnyclickMenuEvent = {
+      clientX: this.touchStartPosition.x,
+      clientY: this.touchStartPosition.y,
+      originalEvent: this.touchStartEvent,
+      isTouch: true,
+    };
 
     if (process.env.NODE_ENV === "development") {
       console.log("[Anyclick] Touch hold triggered", {

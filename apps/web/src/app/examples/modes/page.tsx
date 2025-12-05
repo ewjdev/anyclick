@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AnyclickProvider, AnyclickMenuItem } from "@ewjdev/anyclick-react";
+import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { createGameModeAdapter } from "@ewjdev/anyclick-adapters";
 import { usePointer } from "@ewjdev/anyclick-pointer";
@@ -104,7 +104,7 @@ export default function PointerModesPage() {
           label: "Exit game mode",
           onClick: () => toggleMode(false),
         },
-      ] as AnyclickMenuItem[],
+      ] as ContextMenuItem[],
     [toggleMode],
   );
 

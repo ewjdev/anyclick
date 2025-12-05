@@ -1,5 +1,11 @@
 # @ewjdev/anyclick-pointer
 
+## 1.4.0
+
+### Minor Changes
+
+- Update anyclick-core to 1.3.0
+
 ## 1.2.0
 
 ### Minor Changes

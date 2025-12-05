@@ -24,7 +24,6 @@ Scoped providers (`scoped={true}`) create a boundary using `containerRef` that l
    funMode?: boolean | FunModeConfig;
    ```
 
-
 Where `FunModeConfig` includes track rules, power-up settings, quest definitions, etc.
 
 2. **PointerProvider Enhancement**: Extend `PointerConfig` in `packages/anyclick-pointer/src/types.ts` to support fun mode:
@@ -32,7 +31,6 @@ Where `FunModeConfig` includes track rules, power-up settings, quest definitions
    mode?: 'normal' | 'fun' | 'calm';
    funConfig?: FunModeConfig;
    ```
-
 
 The `CustomPointer` component (`packages/anyclick-pointer/src/CustomPointer.tsx`) will conditionally render `GoKartPointer` when `mode === 'fun'`.
 
@@ -242,24 +240,24 @@ When fun mode activates for a scoped provider:
 // Pseudo-code for track analysis
 const container = provider.containerRef.current;
 const parent = container.parentElement;
-const siblings = Array.from(parent.children).filter(el => el !== container);
+const siblings = Array.from(parent.children).filter((el) => el !== container);
 const children = Array.from(container.children);
 
 // Outer wall = container's bounding box
 const outerWall = container.getBoundingClientRect();
 
 // Obstacles = sibling bounding boxes
-const obstacles = siblings.map(sibling => ({
+const obstacles = siblings.map((sibling) => ({
   element: sibling,
   bounds: sibling.getBoundingClientRect(),
-  type: 'obstacle'
+  type: "obstacle",
 }));
 
 // Inner tracks = child bounding boxes
-const innerTracks = children.map(child => ({
+const innerTracks = children.map((child) => ({
   element: child,
   bounds: child.getBoundingClientRect(),
-  type: 'track'
+  type: "track",
 }));
 ```
 
@@ -271,13 +269,13 @@ When cursor moves, check which fun mode providers are active:
 // Use existing store to find providers
 const providers = useProviderStore.getState().providers;
 const funProviders = Array.from(providers.values()).filter(
-  p => p.theme?.funMode && p.scoped && p.containerRef.current
+  (p) => p.theme?.funMode && p.scoped && p.containerRef.current,
 );
 
 // Check if cursor is within any fun provider's container
 const cursorElement = document.elementFromPoint(x, y);
-const activeFunProvider = funProviders.find(p => 
-  p.containerRef.current?.contains(cursorElement)
+const activeFunProvider = funProviders.find((p) =>
+  p.containerRef.current?.contains(cursorElement),
 );
 ```
 
@@ -288,8 +286,8 @@ Fun mode configs merge hierarchically like other theme properties:
 ```typescript
 // Child provider inherits parent's fun mode, can override
 <AnyclickProvider theme={{ funMode: { powerUps: true } }}>
-  <AnyclickProvider 
-    scoped 
+  <AnyclickProvider
+    scoped
     theme={{ funMode: { powerUps: false, quests: true } }}
   >
     {/* This scoped provider has powerUps: false, quests: true */}
@@ -329,18 +327,18 @@ packages/anyclick-react/src/
 
 ```tsx
 // Enable fun mode on a scoped provider
-<AnyclickProvider 
+<AnyclickProvider
   scoped
   theme={{
     funMode: {
       enabled: true,
       powerUps: true,
-      quests: ['collectButtons', 'parkInForm'],
+      quests: ["collectButtons", "parkInForm"],
       trackRules: {
         tightHairpin: false,
-        checkpointSiblings: true
-      }
-    }
+        checkpointSiblings: true,
+      },
+    },
   }}
 >
   <div className="dashboard">

@@ -1,13 +1,13 @@
 /**
  * Built-in anyclick types
  */
-export type AnyclickBuiltInType = "issue" | "feature" | "like";
+export type BuiltInAnyclickType = "issue" | "feature" | "like";
 
 /**
  * Type of anyclick the user is submitting
  * Supports built-in types and custom string types for extensibility
  */
-export type AnyclickType = AnyclickBuiltInType | (string & {});
+export type AnyclickType = BuiltInAnyclickType | (string & {});
 
 /**
  * Information about a single ancestor element in the DOM hierarchy

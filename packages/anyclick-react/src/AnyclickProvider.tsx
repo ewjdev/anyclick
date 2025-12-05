@@ -1,68 +1,91 @@
 "use client";
 
+/**
+ * AnyclickProvider - Main provider component for anyclick functionality.
+ *
+ * Wraps your app to enable right-click feedback capture. Supports scoped
+ * providers and nested theming with inheritance.
+ *
+ * @module AnyclickProvider
+ * @since 1.0.0
+ */
 import React, {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import { createAnyclickClient } from "@ewjdev/anyclick-core";
 import type {
   AnyclickClient,
   AnyclickMenuEvent,
   AnyclickType,
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
-import { AnyclickContext, useAnyclick } from "./context";
+import { createAnyclickClient } from "@ewjdev/anyclick-core";
 import { ContextMenu } from "./ContextMenu";
+import { AnyclickContext, useAnyclick } from "./context";
 import { findContainerParent } from "./highlight";
-import {
-  useProviderStore,
-  generateProviderId,
-  type ProviderInstance,
-} from "./store";
+import { type ProviderInstance, useProviderStore } from "./store";
 import type {
   AnyclickContextValue,
   AnyclickProviderProps,
   AnyclickTheme,
-  AnyclickMenuItem,
+  ContextMenuItem,
 } from "./types";
 
 /**
- * Default menu items
+ * Default menu items shown when no custom items are provided.
  */
-const defaultMenuItems: AnyclickMenuItem[] = [
-  { type: "issue", label: "Report an issue", showComment: true },
-  { type: "feature", label: "Request a feature", showComment: true },
-  { type: "like", label: "I like this!", showComment: false },
+const defaultMenuItems: ContextMenuItem[] = [
+  { label: "Report an issue", showComment: true, type: "issue" },
+  { label: "Request a feature", showComment: true, type: "feature" },
+  { label: "I like this!", showComment: false, type: "like" },
 ];
 
 /**
- * AnyclickProvider component - wraps your app to enable feedback capture
- * Supports scoped providers and nested theming
+ * AnyclickProvider component - wraps your app to enable feedback capture.
+ *
+ * Supports scoped providers and nested theming with inheritance.
+ * Child providers automatically inherit and can override parent themes.
+ *
+ * @example
+ * ```tsx
+ * <AnyclickProvider
+ *   adapter={myAdapter}
+ *   menuItems={[
+ *     { type: "bug", label: "Report Bug", showComment: true },
+ *   ]}
+ *   onSubmitSuccess={(payload) => console.log("Submitted:", payload)}
+ * >
+ *   <App />
+ * </AnyclickProvider>
+ * ```
+ *
+ * @since 1.0.0
  */
 export function AnyclickProvider({
   adapter,
   children,
-  targetFilter,
-  menuItems = defaultMenuItems,
+  cooldownMs,
+  disabled = false,
+  header,
+  highlightConfig,
+  maxAncestors,
   maxInnerTextLength,
   maxOuterHTMLLength,
-  maxAncestors,
-  cooldownMs,
-  stripAttributes,
-  metadata,
-  onSubmitSuccess,
-  onSubmitError,
-  menuStyle,
   menuClassName,
-  disabled = false,
-  highlightConfig,
-  header,
-  screenshotConfig,
+  menuItems = defaultMenuItems,
+  menuStyle,
+  metadata,
+  onSubmitError,
+  onSubmitSuccess,
   scoped = false,
+  screenshotConfig,
+  stripAttributes,
+  targetFilter,
   theme,
   touchHoldDurationMs,
   touchMoveThreshold,
@@ -75,9 +98,8 @@ export function AnyclickProvider({
     null,
   );
 
-  // Generate a stable ID for this provider instance
-  const providerIdRef = useRef<string>(generateProviderId());
-  const providerId = providerIdRef.current;
+  // Generate a stable ID for this provider instance using React's useId
+  const providerId = useId();
 
   // Ref to the container element (for scoped providers)
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -91,15 +113,6 @@ export function AnyclickProvider({
   // Callback ref to detect when container element is mounted
   const setContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[AnyclickProvider:${providerId}] Container ref callback`, {
-          scoped,
-          nodeReceived: !!node,
-          hadPreviousNode: !!containerRef.current,
-          clientExists: !!clientRef.current,
-        });
-      }
-
       containerRef.current = node;
       if (scoped && node) {
         setContainerReady(true);
@@ -109,39 +122,35 @@ export function AnyclickProvider({
         }
       }
     },
-    [scoped, providerId],
+    [scoped],
   );
 
   // Access parent context (if nested)
   let parentContext: AnyclickContextValue | null = null;
   try {
-    // This will throw if there's no parent provider
     parentContext = useAnyclick();
   } catch {
-    // No parent provider - this is a root provider
     parentContext = null;
   }
 
   // Store access
   const {
+    findParentProvider,
+    getMergedTheme,
+    isDisabledByAncestor,
+    isElementInAnyScopedProvider,
+    isElementInDisabledScope,
     registerProvider,
     unregisterProvider,
     updateProvider,
-    getMergedTheme,
-    isDisabledByAncestor,
-    findParentProvider,
-    isElementInDisabledScope,
-    isElementInAnyScopedProvider,
   } = useProviderStore();
 
   // Determine parent ID
   const parentId = parentContext?.providerId ?? null;
 
   // Calculate depth
-  const depth = parentContext ? (parentContext.scoped ? 1 : 0) : 0;
   const actualDepth = useMemo(() => {
     if (!parentContext) return 0;
-    // Find actual depth by traversing store
     let d = 0;
     let currentId = parentId;
     const providers = useProviderStore.getState().providers;
@@ -151,7 +160,7 @@ export function AnyclickProvider({
       currentId = parent?.parentId ?? null;
     }
     return d;
-  }, [parentId]);
+  }, [parentContext, parentId]);
 
   // Determine if disabled by theme
   const isDisabledByTheme = theme === null || theme?.disabled === true;
@@ -159,12 +168,10 @@ export function AnyclickProvider({
 
   // Build the theme for this provider
   const localTheme: AnyclickTheme = useMemo(() => {
-    // If theme is null, treat as disabled
     if (theme === null) {
       return { disabled: true };
     }
 
-    // Merge explicit theme props with theme object
     const explicitThemeProps: AnyclickTheme = {};
     if (menuStyle) explicitThemeProps.menuStyle = menuStyle;
     if (menuClassName) explicitThemeProps.menuClassName = menuClassName;
@@ -176,62 +183,24 @@ export function AnyclickProvider({
       ...explicitThemeProps,
       ...theme,
     };
-  }, [theme, menuStyle, menuClassName, highlightConfig, screenshotConfig]);
+  }, [highlightConfig, menuClassName, menuStyle, screenshotConfig, theme]);
 
   // Context menu handler
-  // Returns false to allow native context menu (for disabled scopes)
-  // Returns true (or void) to show custom menu
   const handleContextMenu = useCallback(
     (event: AnyclickMenuEvent, element: Element): boolean => {
-      // For non-scoped (global) providers, check if the element is inside
-      // a disabled scoped provider's container - if so, allow native menu
+      // For non-scoped providers, check if element is in a disabled scope
       if (!scoped && isElementInDisabledScope(element)) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[AnyclickProvider:${providerId}] Allowing native menu - element is in disabled scope`,
-            {
-              targetTag: element.tagName,
-            },
-          );
-        }
-        return false; // Allow native context menu
+        return false;
       }
 
-      // For non-scoped (global) providers on TOUCH events, check if the element
-      // is inside any scoped provider's container - if so, defer to the scoped
-      // provider to handle the event with its own theme
-      // NOTE: For contextmenu (right-click) events, this is handled by capture
-      // phase and stopPropagation in the client. But touch events don't have
-      // the same propagation model, so we need to check here.
+      // For non-scoped providers on touch events, defer to scoped providers
       if (!scoped && event.isTouch && isElementInAnyScopedProvider(element)) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[AnyclickProvider:${providerId}] Deferring to scoped provider for touch event`,
-            {
-              targetTag: element.tagName,
-            },
-          );
-        }
-        return false; // Let the scoped provider handle it
+        return false;
       }
 
       const mergedTheme = getMergedTheme(providerId);
 
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[AnyclickProvider:${providerId}] handleContextMenu called`,
-          {
-            scoped,
-            targetTag: element.tagName,
-            mergedThemeColors: mergedTheme.highlightConfig?.colors,
-            position: { x: event.clientX, y: event.clientY },
-            isTouch: event.isTouch,
-          },
-        );
-      }
-
       setTargetElement(element);
-      // Get merged theme for highlight config
       const container = findContainerParent(
         element,
         mergedTheme.highlightConfig ?? highlightConfig,
@@ -240,29 +209,29 @@ export function AnyclickProvider({
       setMenuPosition({ x: event.clientX, y: event.clientY });
       setMenuVisible(true);
 
-      return true; // Handled - prevent native menu
+      return true;
     },
     [
-      providerId,
       getMergedTheme,
       highlightConfig,
-      scoped,
-      isElementInDisabledScope,
       isElementInAnyScopedProvider,
+      isElementInDisabledScope,
+      providerId,
+      scoped,
     ],
   );
 
   // Register this provider in the store
   useLayoutEffect(() => {
     const providerInstance: ProviderInstance = {
-      id: providerId,
       containerRef: containerRef as React.RefObject<Element | null>,
+      depth: actualDepth,
+      disabled: effectiveDisabled,
+      id: providerId,
+      onContextMenu: handleContextMenu,
+      parentId,
       scoped,
       theme: localTheme,
-      disabled: effectiveDisabled,
-      parentId,
-      depth: actualDepth,
-      onContextMenu: handleContextMenu,
     };
 
     registerProvider(providerInstance);
@@ -271,93 +240,61 @@ export function AnyclickProvider({
       unregisterProvider(providerId);
     };
   }, [
-    providerId,
-    scoped,
-    localTheme,
-    effectiveDisabled,
-    parentId,
     actualDepth,
+    effectiveDisabled,
     handleContextMenu,
+    localTheme,
+    parentId,
+    providerId,
     registerProvider,
+    scoped,
     unregisterProvider,
   ]);
 
   // Update provider when config changes
   useEffect(() => {
     updateProvider(providerId, {
-      theme: localTheme,
       disabled: effectiveDisabled,
       onContextMenu: handleContextMenu,
+      theme: localTheme,
     });
   }, [
-    providerId,
-    localTheme,
     effectiveDisabled,
     handleContextMenu,
+    localTheme,
+    providerId,
     updateProvider,
   ]);
 
   // Create/update the feedback client
-  // Wait for container to be ready for scoped providers
   useEffect(() => {
-    // Check if disabled by any ancestor
     if (isDisabledByAncestor(providerId)) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[AnyclickProvider:${providerId}] Skipping - disabled by ancestor`,
-        );
-      }
       return;
     }
 
-    // For scoped providers, wait until container is ready
     if (scoped && !containerReady) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[AnyclickProvider:${providerId}] Waiting for container to be ready`,
-          {
-            scoped,
-            containerReady,
-          },
-        );
-      }
       return;
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[AnyclickProvider:${providerId}] Creating client`, {
-        scoped,
-        containerReady,
-        hasContainer: !!containerRef.current,
-        effectiveDisabled,
-        localThemeColors: localTheme.highlightConfig?.colors,
-      });
     }
 
     const client = createAnyclickClient({
       adapter,
-      targetFilter,
+      container: scoped ? containerRef.current : null,
+      cooldownMs,
+      maxAncestors,
       maxInnerTextLength,
       maxOuterHTMLLength,
-      maxAncestors,
-      cooldownMs,
       stripAttributes,
-      // For scoped providers, pass the container
-      container: scoped ? containerRef.current : null,
+      targetFilter,
       touchHoldDurationMs,
       touchMoveThreshold,
     });
 
-    // Set up callbacks
     client.onSubmitSuccess = onSubmitSuccess;
     client.onSubmitError = onSubmitError;
-
-    // Set up context menu handler
     client.onContextMenu = handleContextMenu;
 
     clientRef.current = client;
 
-    // Attach event listeners if not disabled
     if (!effectiveDisabled) {
       client.attach();
     }
@@ -367,20 +304,20 @@ export function AnyclickProvider({
     };
   }, [
     adapter,
-    targetFilter,
+    containerReady,
+    cooldownMs,
+    effectiveDisabled,
+    handleContextMenu,
+    isDisabledByAncestor,
+    maxAncestors,
     maxInnerTextLength,
     maxOuterHTMLLength,
-    maxAncestors,
-    cooldownMs,
-    stripAttributes,
-    onSubmitSuccess,
     onSubmitError,
-    effectiveDisabled,
-    scoped,
-    containerReady,
+    onSubmitSuccess,
     providerId,
-    isDisabledByAncestor,
-    handleContextMenu,
+    scoped,
+    stripAttributes,
+    targetFilter,
     touchHoldDurationMs,
     touchMoveThreshold,
   ]);
@@ -426,7 +363,7 @@ export function AnyclickProvider({
       setMenuPosition(position);
       setMenuVisible(true);
     },
-    [providerId, getMergedTheme, highlightConfig],
+    [getMergedTheme, highlightConfig, providerId],
   );
 
   // Close menu
@@ -443,13 +380,10 @@ export function AnyclickProvider({
         submitAnyclick(targetElement, type, comment, screenshots);
       }
     },
-    [targetElement, submitAnyclick],
+    [submitAnyclick, targetElement],
   );
 
   // Get merged theme for this provider
-  // We use the store's getMergedTheme for inherited values (like highlightConfig),
-  // but for this provider's own theme values, we use localTheme directly to avoid
-  // timing issues with useMemo running before the provider is registered.
   const inheritedTheme = getMergedTheme(providerId);
 
   // Merge: inherited theme first, then local theme overrides
@@ -457,7 +391,6 @@ export function AnyclickProvider({
     () => ({
       ...inheritedTheme,
       ...localTheme,
-      // Deep merge for nested configs
       highlightConfig: {
         ...inheritedTheme.highlightConfig,
         ...localTheme.highlightConfig,
@@ -477,26 +410,6 @@ export function AnyclickProvider({
   // Apply merged theme styles
   const effectiveMenuStyle = mergedTheme.menuStyle ?? menuStyle;
   const effectiveMenuClassName = mergedTheme.menuClassName ?? menuClassName;
-
-  // Debug: Log theme flow
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[AnyclickProvider:${providerId}] Theme Debug`, {
-      scoped,
-      localThemeHasMenuStyle: !!localTheme.menuStyle,
-      localThemeMenuStyleKeys: localTheme.menuStyle
-        ? Object.keys(localTheme.menuStyle)
-        : [],
-      mergedThemeHasMenuStyle: !!mergedTheme.menuStyle,
-      mergedThemeMenuStyleKeys: mergedTheme.menuStyle
-        ? Object.keys(mergedTheme.menuStyle)
-        : [],
-      effectiveMenuStyleExists: !!effectiveMenuStyle,
-      effectiveMenuStyleKeys: effectiveMenuStyle
-        ? Object.keys(effectiveMenuStyle)
-        : [],
-      menuStyleProp: !!menuStyle,
-    });
-  }
   const effectiveHighlightConfig =
     mergedTheme.highlightConfig ?? highlightConfig;
   const effectiveScreenshotConfig =
@@ -505,31 +418,35 @@ export function AnyclickProvider({
   // Context value
   const contextValue: AnyclickContextValue = useMemo(
     () => ({
+      closeMenu,
       isEnabled: !effectiveDisabled && !isDisabledByAncestor(providerId),
       isSubmitting,
-      submitAnyclick,
       openMenu,
-      closeMenu,
-      theme: mergedTheme,
-      scoped,
       providerId,
+      scoped,
+      submitAnyclick,
+      theme: mergedTheme,
     }),
     [
+      closeMenu,
       effectiveDisabled,
-      providerId,
       isDisabledByAncestor,
       isSubmitting,
-      submitAnyclick,
-      openMenu,
-      closeMenu,
       mergedTheme,
+      openMenu,
+      providerId,
       scoped,
+      submitAnyclick,
     ],
   );
 
   // For scoped providers, wrap children in a container div
   const content = scoped ? (
-    <div ref={setContainerRef} style={{ display: "contents" }}>
+    <div
+      ref={setContainerRef}
+      data-anyclick-provider={providerId}
+      style={{ display: "contents" }}
+    >
       {children}
     </div>
   ) : (
@@ -540,25 +457,25 @@ export function AnyclickProvider({
     <AnyclickContext.Provider value={contextValue}>
       {content}
       <ContextMenu
-        visible={menuVisible && !effectiveDisabled}
-        position={menuPosition}
-        targetElement={targetElement}
-        containerElement={containerElement}
-        items={menuItems}
-        onSelect={handleMenuSelect}
-        onClose={closeMenu}
-        isSubmitting={isSubmitting}
-        style={effectiveMenuStyle}
         className={effectiveMenuClassName}
-        highlightConfig={effectiveHighlightConfig}
-        screenshotConfig={effectiveScreenshotConfig}
+        containerElement={containerElement}
         header={header}
+        highlightConfig={effectiveHighlightConfig}
+        isSubmitting={isSubmitting}
+        items={menuItems}
+        onClose={closeMenu}
+        onSelect={handleMenuSelect}
+        position={menuPosition}
+        screenshotConfig={effectiveScreenshotConfig}
+        style={effectiveMenuStyle}
+        targetElement={targetElement}
+        visible={menuVisible && !effectiveDisabled}
       />
     </AnyclickContext.Provider>
   );
 }
 
 /**
- * @deprecated Use AnyclickProvider instead
+ * @deprecated Use {@link AnyclickProvider} instead. Will be removed in v2.0.0.
  */
 export const FeedbackProvider = AnyclickProvider;

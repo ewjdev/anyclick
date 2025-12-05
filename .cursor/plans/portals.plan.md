@@ -1,3 +1,3 @@
- # Portals
+# Portals
 
-Developers need a way to provide a window (Card looking) into other pages. Anyclick portals allows developers to portal nextjs pages that move all other elements out and away from the current element and then show that page. I want the visual to be an important part where the window expands. Anyclick provides the interface to select the container and reload the contents of a component that makes of the page route. 
+Developers need a way to provide a window (Card looking) into other pages. Anyclick portals allows developers to portal nextjs pages that move all other elements out and away from the current element and then show that page. I want the visual to be an important part where the window expands. Anyclick provides the interface to select the container and reload the contents of a component that makes of the page route.

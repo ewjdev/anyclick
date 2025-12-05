@@ -13,16 +13,18 @@
   "author": "ewjdev",
   "license": "MIT",
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
-    "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "clean": "turbo run clean && rm -rf node_modules",
+    "dev": "turbo run dev",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
+    "release": "turbo run build && changeset publish",
+    "version-packages": "changeset version"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.0",
     "prettier": "3.5.3",
     "turbo": "^2.5.6"
   },

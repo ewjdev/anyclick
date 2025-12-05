@@ -80,11 +80,11 @@ export default function GettingStartedPage() {
           <code className="text-cyan-400">repo</code> scope and add it to your
           environment:
         </p>
-        <CodeBlock 
-          filename=".env.local" 
+        <CodeBlock
+          filename=".env.local"
           language="env"
           code={`GITHUB_TOKEN=ghp_your_token_here
-GITHUB_REPO=your-username/your-repo-name`} 
+GITHUB_REPO=your-username/your-repo-name`}
         />
 
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mt-6">
@@ -103,7 +103,7 @@ GITHUB_REPO=your-username/your-repo-name`}
           Create a server-side API route that receives feedback and creates
           GitHub Issues:
         </p>
-        <CodeBlock 
+        <CodeBlock
           filename="app/api/feedback/route.ts"
           language="typescript"
           code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
@@ -131,7 +131,7 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-}`} 
+}`}
         />
       </section>
 
@@ -142,7 +142,7 @@ export async function POST(request: Request) {
           Wrap your application with the{" "}
           <code className="text-cyan-400">FeedbackProvider</code>:
         </p>
-        <CodeBlock 
+        <CodeBlock
           filename="app/providers.tsx"
           language="tsx"
           code={`'use client';
@@ -161,13 +161,13 @@ export function Providers({ children }: { children: ReactNode }) {
       {children}
     </FeedbackProvider>
   );
-}`} 
+}`}
         />
 
         <p className="text-gray-400 mb-4 leading-relaxed mt-6">
           Then use the provider in your layout:
         </p>
-        <CodeBlock 
+        <CodeBlock
           filename="app/layout.tsx"
           language="tsx"
           code={`import { Providers } from './providers';
@@ -184,7 +184,7 @@ export default function RootLayout({
       </body>
     </html>
   );
-}`} 
+}`}
         />
       </section>
 

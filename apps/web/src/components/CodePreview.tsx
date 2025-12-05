@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Check, Copy, FileCode, Terminal } from "lucide-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { AnyclickMenuItem, AnyclickProvider } from "@ewjdev/anyclick-react";
+import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { CSSProperties, useMemo } from "react";
 
 // ============================================================================
@@ -488,7 +488,7 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
             type: "copy_code",
             onClick: handleCopy,
           },
-        ] as AnyclickMenuItem[],
+        ] as ContextMenuItem[],
       [handleCopy],
     );
 

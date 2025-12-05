@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "1.2.0",
+  "version": "1.4.1",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [
@@ -34,6 +34,11 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
+    },
+    "./presets": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     }
   },
   "files": [
@@ -45,8 +50,9 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.2.0",
-    "@ewjdev/anyclick-pointer": "^1.2.0",
+    "@ewjdev/anyclick-core": "^1.4.0",
+    "@ewjdev/anyclick-pointer": "^1.4.0",
+    "lucide-react": "^0.475.0",
     "zustand": "^5.0.2"
   },
   "peerDependencies": {

@@ -142,5 +142,3 @@ export function createSpringTransition(
     mass: overrides?.mass ?? 0.8,
   };
 }
-
-

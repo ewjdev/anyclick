@@ -1,0 +1,67 @@
+{
+  "name": "@ewjdev/anyclick-devtools",
+  "version": "1.4.0",
+  "private": false,
+  "description": "Advanced anyclick inspector and devtools UI (full InspectDialog)",
+  "keywords": [
+    "feedback",
+    "inspector",
+    "devtools",
+    "react",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-devtools"
+  },
+  "homepage": "https://anyclick.ewj.dev/docs/devtools",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
+  },
+  "dependencies": {
+    "@ewjdev/anyclick-core": "^1.4.0",
+    "@ewjdev/anyclick-react": "^1.4.0",
+    "lucide-react": "^0.475.0",
+    "zustand": "^5.0.2"
+  },
+  "peerDependencies": {
+    "react": ">=19.1.1",
+    "react-dom": ">=19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.2.0",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

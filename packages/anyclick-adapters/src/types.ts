@@ -21,4 +21,3 @@ export interface PointerAdapter {
   activate: (context: AdapterContext) => void;
   deactivate?: (context: AdapterContext) => void;
 }
-
