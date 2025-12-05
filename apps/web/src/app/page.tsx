@@ -57,6 +57,12 @@ export default function Home() {
               <Link href="/docs" className="hover:text-white transition-colors">
                 Docs
               </Link>
+              {/* <Link
+                href="/roadmap"
+                className="hover:text-white transition-colors"
+              >
+                Roadmap
+              </Link> */}
               <Link
                 href="/examples"
                 className="hover:text-white transition-colors"
@@ -98,7 +104,7 @@ export default function Home() {
             </span>
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-              that codes itself
+              Why not click on anything?
             </span>
           </h1>
 
@@ -455,7 +461,11 @@ export default function RootLayout({ children }) {
                 <p className="text-sm text-gray-400 max-w-2xl">
                   Workflow recording, Jira & Slack integrations, automatic error
                   collection, click behavior analytics, Playwright test
-                  generation, and more.
+                  generation, and more. See what&apos;s next on our{" "}
+                  <Link href="/roadmap" className="text-amber-300 underline">
+                    roadmap
+                  </Link>
+                  .
                 </p>
               </div>
               <a
@@ -802,6 +812,12 @@ export default function Layout({ children }) {
           <div className="flex items-center gap-6 text-sm text-gray-400">
             <Link href="/docs" className="hover:text-white transition-colors">
               Documentation
+            </Link>
+            <Link
+              href="/roadmap"
+              className="hover:text-white transition-colors"
+            >
+              Roadmap
             </Link>
             <Link
               href="/examples"

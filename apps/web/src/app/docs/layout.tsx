@@ -71,6 +71,12 @@ export default function DocsLayout({
               >
                 Examples
               </Link>
+              {/* <Link
+                href="/roadmap"
+                className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block"
+              >
+                Roadmap
+              </Link> */}
               <a
                 href="https://github.com/ewjdev/anyclick"
                 className="text-sm text-gray-400 hover:text-white transition-colors"
