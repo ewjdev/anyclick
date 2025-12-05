@@ -1,5 +1,5 @@
 import type { ScreenshotConfig } from "@ewjdev/anyclick-core";
-import type { AnyclickTheme, FeedbackMenuItem } from "./types";
+import type { AnyclickTheme, ContextMenuItem } from "./types";
 
 export type PresetRole = "qa" | "pm" | "designer" | "developer";
 
@@ -7,7 +7,7 @@ export interface PresetConfig {
   role: PresetRole;
   label: string;
   description: string;
-  menuItems: FeedbackMenuItem[];
+  menuItems: ContextMenuItem[];
   screenshotConfig?: Partial<ScreenshotConfig>;
   metadata?: Record<string, unknown>;
   theme?: AnyclickTheme;
@@ -201,13 +201,12 @@ export function createPresetMenu(
   }
 
   const includeComingSoon = options.includeComingSoon ?? true;
-  const menuItems = (options.overrides?.menuItems ??
-    preset.menuItems).filter((item) =>
-    includeComingSoon ? true : item.status !== "comingSoon",
+  const menuItems = (options.overrides?.menuItems ?? preset.menuItems).filter(
+    (item) => (includeComingSoon ? true : item.status !== "comingSoon"),
   );
 
   // Shallow-clone menu items so consumers can mutate safely
-  const clonedMenuItems: FeedbackMenuItem[] = menuItems.map((item) => ({
+  const clonedMenuItems: ContextMenuItem[] = menuItems.map((item) => ({
     ...item,
     children: item.children
       ? item.children.map((child) => ({ ...child }))
@@ -250,4 +249,3 @@ export function listPresets(): PresetConfig[] {
 }
 
 export { presetDefaults };
-

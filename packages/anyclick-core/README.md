@@ -25,10 +25,10 @@ npm install @ewjdev/anyclick-core
 ## Basic Usage
 
 ```typescript
-import { createFeedbackClient } from "@ewjdev/anyclick-core";
+import { createAnyclickClient } from "@ewjdev/anyclick-core";
 
-// Create a feedback client with your adapter
-const client = createFeedbackClient({
+// Create a anyclick client with your adapter
+const client = createAnyclickClient({
   adapter: {
     async submit(payload) {
       // Your submission logic
@@ -127,14 +127,14 @@ interface FeedbackPayload {
 }
 ```
 
-### FeedbackAdapter
+### AnyclickAdapter
 
 ```typescript
-interface FeedbackAdapter {
-  submit(payload: FeedbackPayload): Promise<FeedbackResult>;
+interface AnyclickAdapter {
+  submit(payload: AnyclickPayload): Promise<AnyclickResult>;
 }
 
-interface FeedbackResult {
+interface AnyclickResult {
   success: boolean;
   id?: string;
   url?: string;
@@ -145,7 +145,7 @@ interface FeedbackResult {
 ## Configuration
 
 ```typescript
-const client = createFeedbackClient({
+const client = createAnyclickClient({
   adapter: myAdapter,
   targetFilter: (event, target) => true,
   maxInnerTextLength: 500,

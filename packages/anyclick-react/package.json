@@ -50,7 +50,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.1.1",
+    "@ewjdev/anyclick-core": "^1.2.0",
     "zustand": "^5.0.2"
   },
   "peerDependencies": {

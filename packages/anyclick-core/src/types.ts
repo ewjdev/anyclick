@@ -1,13 +1,13 @@
 /**
  * Built-in feedback types
  */
-export type BuiltInFeedbackType = "issue" | "feature" | "like";
+export type BuiltInAnyclickType = "issue" | "feature" | "like";
 
 /**
  * Type of feedback the user is submitting
  * Supports built-in types and custom string types for extensibility
  */
-export type FeedbackType = BuiltInFeedbackType | (string & {});
+export type AnyclickType = BuiltInAnyclickType | (string & {});
 
 /**
  * Information about a single ancestor element in the DOM hierarchy
@@ -175,9 +175,9 @@ export const DEFAULT_SENSITIVE_SELECTORS: string[] = [
 /**
  * The complete payload sent to the adapter
  */
-export interface FeedbackPayload {
+export interface AnyclickPayload {
   /** Type of feedback */
-  type: FeedbackType;
+  type: AnyclickType;
   /** Optional user comment */
   comment?: string;
   /** Element context */
@@ -193,12 +193,12 @@ export interface FeedbackPayload {
 /**
  * Adapter interface for submitting feedback to any backend
  */
-export interface FeedbackAdapter {
+export interface AnyclickAdapter {
   /**
    * Submit feedback payload to the backend
    * @returns Promise that resolves when feedback is submitted
    */
-  submitFeedback(payload: FeedbackPayload): Promise<void>;
+  submitFeedback(payload: AnyclickPayload): Promise<void>;
 }
 
 /**
@@ -210,7 +210,7 @@ export type FeedbackTriggerEvent = MouseEvent | TouchEvent;
  * Synthetic event with position information for context menu positioning
  * Used to normalize mouse and touch events
  */
-export interface FeedbackMenuEvent {
+export interface AnyclickMenuEvent {
   /** Client X position (viewport coordinates) */
   clientX: number;
   /** Client Y position (viewport coordinates) */
@@ -224,9 +224,9 @@ export interface FeedbackMenuEvent {
 /**
  * Configuration options for the FeedbackClient
  */
-export interface FeedbackClientOptions {
+export interface AnyclickClientOptions {
   /** The adapter to use for submitting feedback */
-  adapter: FeedbackAdapter;
+  adapter: AnyclickAdapter;
   /**
    * Filter function to determine if feedback should be captured for a target element
    * Return true to allow feedback, false to ignore
@@ -257,7 +257,7 @@ export interface FeedbackClientOptions {
 /**
  * Result of a feedback submission attempt
  */
-export interface FeedbackResult {
+export interface AnyclickResult {
   success: boolean;
   error?: Error;
 }
@@ -265,8 +265,8 @@ export interface FeedbackResult {
 /**
  * Event fired when feedback is about to be submitted
  */
-export interface FeedbackEvent {
-  type: FeedbackType;
+export interface AnyclickEvent {
+  type: AnyclickType;
   element: Element;
-  payload: FeedbackPayload;
+  payload: AnyclickPayload;
 }

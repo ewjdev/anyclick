@@ -53,12 +53,12 @@ That's it! Users can now right-click any element to submit feedback.
 
 | Prop              | Type                       | Description                                    |
 | ----------------- | -------------------------- | ---------------------------------------------- |
-| `adapter`         | `FeedbackAdapter`          | Required. The adapter for submitting feedback  |
-| `menuItems`       | `FeedbackMenuItem[]`       | Custom menu items                              |
+| `adapter`         | `AnyclickAdapter`          | Required. The adapter for submitting anyclick  |
+| `menuItems`       | `ContextMenuItem[]`       | Custom menu items                              |
 | `metadata`        | `Record<string, unknown>`  | Additional data included with every submission |
 | `theme`           | `AnyclickTheme \| null`    | Theme configuration (inherits from parent)     |
 | `scoped`          | `boolean`                  | Limit capture to this provider's children only |
-| `disabled`        | `boolean`                  | Disable feedback capture                       |
+| `disabled`        | `boolean`                  | Disable anyclick capture                       |
 | `onSubmitSuccess` | `(payload) => void`        | Success callback                               |
 | `onSubmitError`   | `(error, payload) => void` | Error callback                                 |
 

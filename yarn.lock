@@ -428,6 +428,13 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
+"@ewjdev/anyclick-core@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@ewjdev/anyclick-core/-/anyclick-core-1.2.0.tgz#b98c746fa7f315145bea57c37e458a71fbbe4c86"
+  integrity sha512-wCNxFmVb/G11vi9s7Ail7brmLbPzZUSWjFITewbK9vvO8Y0PpBAQqfYPoJAUKCHp5lq/Tl9HkUTtzo+DMiPe+Q==
+  dependencies:
+    html-to-image "^1.11.13"
+
 "@floating-ui/core@^1.6.0":
   version "1.6.9"
   resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-1.6.9.tgz#64d1da251433019dafa091de9b2886ff35ec14e6"

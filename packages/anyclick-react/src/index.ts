@@ -28,7 +28,7 @@ export type {
   AnyclickProviderProps,
   AnyclickContextValue,
   AnyclickTheme,
-  FeedbackMenuItem,
+  ContextMenuItem,
   ContextMenuProps,
   HighlightColors,
   HighlightConfig,
@@ -57,9 +57,9 @@ export { filterMenuItemsByRole } from "./types";
 
 // Re-export core types for convenience
 export type {
-  FeedbackType,
-  FeedbackPayload,
-  FeedbackAdapter,
+  AnyclickType,
+  AnyclickPayload,
+  AnyclickAdapter,
   ElementContext,
   PageContext,
   ScreenshotData,

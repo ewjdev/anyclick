@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+"use client";
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CodeBlock } from "@/components/CodePreview";
@@ -9,6 +12,13 @@ import {
   Paintbrush,
   Laptop2,
 } from "lucide-react";
+import {
+  AnyclickProvider,
+  createPresetMenu,
+  type AnyclickAdapter,
+  type AnyclickPayload,
+  type PresetRole,
+} from "@ewjdev/anyclick-react";
 
 export const metadata: Metadata = {
   title: "Role-based Presets",
@@ -41,8 +51,31 @@ export function Providers({ children }: { children: React.ReactNode }) {
 }
 `;
 
-const roles = [
+const demoAdapter: FeedbackAdapter = {
+  async submitFeedback(payload: FeedbackPayload) {
+    console.log("[preset demo] submitted", payload.type, {
+      comment: payload.comment,
+      role: payload.metadata,
+    });
+  },
+};
+
+const presets: Record<PresetRole, ReturnType<typeof createPresetMenu>> = {
+  qa: createPresetMenu("qa"),
+  pm: createPresetMenu("pm"),
+  designer: createPresetMenu("designer"),
+  developer: createPresetMenu("developer"),
+};
+
+const roles: Array<{
+  id: PresetRole;
+  title: string;
+  icon: typeof Bug;
+  color: string;
+  items: string[];
+}> = [
   {
+    id: "qa",
     title: "QA",
     icon: Bug,
     color: "violet",
@@ -53,6 +86,7 @@ const roles = [
     ],
   },
   {
+    id: "pm",
     title: "PM",
     icon: Lightbulb,
     color: "amber",
@@ -63,6 +97,7 @@ const roles = [
     ],
   },
   {
+    id: "designer",
     title: "Designer",
     icon: Paintbrush,
     color: "cyan",
@@ -73,6 +108,7 @@ const roles = [
     ],
   },
   {
+    id: "developer",
     title: "Developer",
     icon: Laptop2,
     color: "emerald",
@@ -117,8 +153,10 @@ export default function RolePresetsPage() {
             disabled by default.
           </p>
           <p className="text-gray-400 text-sm">
-            Prefer a leaner menu? Pass <code className="text-cyan-400">includeComingSoon: false</code>{" "}
-            or override any field via <code className="text-cyan-400">overrides</code>.
+            Prefer a leaner menu? Pass{" "}
+            <code className="text-cyan-400">includeComingSoon: false</code> or
+            override any field via{" "}
+            <code className="text-cyan-400">overrides</code>.
           </p>
         </div>
       </div>
@@ -131,38 +169,46 @@ export default function RolePresetsPage() {
       <div className="grid gap-4 mb-12">
         {roles.map((role) => {
           const Icon = role.icon;
+          const preset = presets[role.id];
           return (
-            <div
-              key={role.title}
-              className="p-5 rounded-2xl bg-white/[0.02] border border-white/5"
+            <AnyclickProvider
+              key={role.id}
+              adapter={demoAdapter}
+              menuItems={preset.menuItems}
+              metadata={{ preset: role.id }}
+              screenshotConfig={preset.screenshotConfig}
+              theme={preset.theme}
+              scoped
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center`}
-                  style={{
-                    background: `linear-gradient(135deg, rgb(var(--color-${role.color}-500) / 0.2), rgb(var(--color-${role.color}-500) / 0.05))`,
-                  }}
-                >
-                  <Icon className={`w-5 h-5 text-${role.color}-400`} />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{role.title}</h3>
-                    <span className="text-[10px] px-2 py-1 rounded-full bg-white/5 text-gray-400 border border-white/10">
-                      Preset
-                    </span>
+              <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center`}
+                    style={{
+                      background: `linear-gradient(135deg, rgb(var(--color-${role.color}-500) / 0.2), rgb(var(--color-${role.color}-500) / 0.05))`,
+                    }}
+                  >
+                    <Icon className={`w-5 h-5 text-${role.color}-400`} />
                   </div>
-                  <p className="text-xs text-gray-500">
-                    Curated defaults + coming-soon tags
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">{role.title}</h3>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-white/5 text-gray-400 border border-white/10">
+                        Preset
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Right-click inside this card to see the {role.title} menu.
+                    </p>
+                  </div>
                 </div>
+                <ul className="text-sm text-gray-300 space-y-2 list-disc list-inside">
+                  {role.items.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="text-sm text-gray-300 space-y-2 list-disc list-inside">
-                {role.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </div>
+            </AnyclickProvider>
           );
         })}
       </div>
@@ -184,4 +230,3 @@ export default function RolePresetsPage() {
     </div>
   );
 }
-

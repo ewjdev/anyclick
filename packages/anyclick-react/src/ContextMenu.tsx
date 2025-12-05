@@ -1,12 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import type {
-  ContextMenuProps,
-  FeedbackMenuItem,
-  MenuPositionMode,
-} from "./types";
-import type { FeedbackType, ScreenshotData } from "@ewjdev/anyclick-core";
+import type { ContextMenuItem, ContextMenuProps } from "./types";
+import type { AnyclickType, ScreenshotData } from "@ewjdev/anyclick-core";
 import {
   captureAllScreenshots,
   isScreenshotSupported,
@@ -57,7 +53,7 @@ function MenuItem({
   disabled,
   hasChildren,
 }: {
-  item: FeedbackMenuItem;
+  item: ContextMenuItem;
   onClick: () => void;
   disabled: boolean;
   hasChildren?: boolean;
@@ -133,7 +129,14 @@ function MenuItem({
       <span style={menuStyles.itemIcon}>
         {item.icon ?? defaultIcons[item.type]}
       </span>
-      <span style={{ flex: 1, display: "inline-flex", alignItems: "center", gap: "8px" }}>
+      <span
+        style={{
+          flex: 1,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
         {item.label}
         {badgeLabel && <span style={badgeStyle}>{badgeLabel}</span>}
       </span>
@@ -310,10 +313,10 @@ export function ContextMenu({
   screenshotConfig,
   positionMode = "inView",
 }: ContextMenuProps) {
-  const [selectedType, setSelectedType] = useState<FeedbackType | null>(null);
+  const [selectedType, setSelectedType] = useState<AnyclickType | null>(null);
   const [currentView, setCurrentView] = useState<MenuView>("menu");
   const [pendingComment, setPendingComment] = useState<string | undefined>();
-  const [submenuStack, setSubmenuStack] = useState<FeedbackMenuItem[][]>([]);
+  const [submenuStack, setSubmenuStack] = useState<ContextMenuItem[][]>([]);
   const [screenshots, setScreenshots] = useState<ScreenshotData | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -568,7 +571,7 @@ export function ContextMenu({
     return null;
   }
 
-  const handleItemClick = (item: FeedbackMenuItem) => {
+  const handleItemClick = (item: ContextMenuItem) => {
     if (item.status === "comingSoon") {
       return;
     }

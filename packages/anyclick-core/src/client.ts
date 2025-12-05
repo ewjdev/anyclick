@@ -1,11 +1,7 @@
 import type {
-  FeedbackAdapter,
-  FeedbackClientOptions,
-  FeedbackMenuEvent,
-  FeedbackPayload,
-  FeedbackResult,
-  FeedbackTriggerEvent,
-  FeedbackType,
+  AnyclickClientOptions,
+  AnyclickMenuEvent,
+  AnyclickResult,
   ScreenshotData,
 } from "./types";
 import { buildFeedbackPayload } from "./payload";
@@ -20,7 +16,7 @@ const DEFAULT_TOUCH_MOVE_THRESHOLD = 10;
  * Default target filter - ignores html, body, and elements with data-feedback-ignore
  */
 function defaultTargetFilter(
-  _event: FeedbackTriggerEvent,
+  _event: AnyclickTriggerEvent,
   target: Element,
 ): boolean {
   const tag = target.tagName.toLowerCase();
@@ -32,10 +28,10 @@ function defaultTargetFilter(
 /**
  * FeedbackClient manages DOM event handling and feedback submission
  */
-export class FeedbackClient {
-  private adapter: FeedbackAdapter;
+export class AnyclickClient {
+  private adapter: AnyclickAdapter;
   private targetFilter: (
-    event: FeedbackTriggerEvent,
+    event: AnyclickTriggerEvent,
     target: Element,
   ) => boolean;
   private maxInnerTextLength: number;
@@ -75,17 +71,17 @@ export class FeedbackClient {
    * Return `true` or `void` to prevent the native menu and show the custom menu.
    */
   public onContextMenu?: (
-    event: FeedbackMenuEvent,
+    event: AnyclickMenuEvent,
     element: Element,
   ) => boolean | void;
 
   /** Callback after successful submission */
-  public onSubmitSuccess?: (payload: FeedbackPayload) => void;
+  public onSubmitSuccess?: (payload: AnyclickPayload) => void;
 
   /** Callback after failed submission */
-  public onSubmitError?: (error: Error, payload: FeedbackPayload) => void;
+  public onSubmitError?: (error: Error, payload: AnyclickPayload) => void;
 
-  constructor(options: FeedbackClientOptions) {
+  constructor(options: AnyclickClientOptions) {
     this.adapter = options.adapter;
     this.targetFilter = options.targetFilter ?? defaultTargetFilter;
     this.maxInnerTextLength = options.maxInnerTextLength ?? 500;
@@ -167,7 +163,7 @@ export class FeedbackClient {
     this.pendingElement = this.touchTargetElement;
 
     // Create synthetic event for positioning
-    const menuEvent: FeedbackMenuEvent = {
+    const menuEvent: AnyclickMenuEvent = {
       clientX: this.touchStartPosition.x,
       clientY: this.touchStartPosition.y,
       originalEvent: this.touchStartEvent,
@@ -275,7 +271,7 @@ export class FeedbackClient {
       this.pendingElement = target;
 
       // Create synthetic event for positioning
-      const menuEvent: FeedbackMenuEvent = {
+      const menuEvent: AnyclickMenuEvent = {
         clientX: event.clientX,
         clientY: event.clientY,
         originalEvent: event,
@@ -667,13 +663,13 @@ export class FeedbackClient {
    */
   buildPayload(
     element: Element,
-    type: FeedbackType,
+    type: AnyclickType,
     options: {
       comment?: string;
       metadata?: Record<string, unknown>;
       screenshots?: ScreenshotData;
     } = {},
-  ): FeedbackPayload {
+  ): AnyclickPayload {
     const payload = buildFeedbackPayload(element, type, {
       comment: options.comment,
       metadata: options.metadata,
@@ -696,13 +692,13 @@ export class FeedbackClient {
    */
   async submitFeedback(
     element: Element,
-    type: FeedbackType,
+    type: AnyclickType,
     options: {
       comment?: string;
       metadata?: Record<string, unknown>;
       screenshots?: ScreenshotData;
     } = {},
-  ): Promise<FeedbackResult> {
+  ): Promise<AnyclickResult> {
     // Check rate limiting
     if (this.isRateLimited()) {
       const error = new Error(
@@ -729,13 +725,13 @@ export class FeedbackClient {
    * Submit feedback for the pending element (the one that was right-clicked)
    */
   async submitPendingFeedback(
-    type: FeedbackType,
+    type: AnyclickType,
     options: {
       comment?: string;
       metadata?: Record<string, unknown>;
       screenshots?: ScreenshotData;
     } = {},
-  ): Promise<FeedbackResult> {
+  ): Promise<AnyclickResult> {
     if (!this.pendingElement) {
       return {
         success: false,
@@ -756,8 +752,8 @@ export class FeedbackClient {
 /**
  * Create a new FeedbackClient instance
  */
-export function createFeedbackClient(
-  options: FeedbackClientOptions,
-): FeedbackClient {
-  return new FeedbackClient(options);
+export function createAnyclickClient(
+  options: AnyclickClientOptions,
+): AnyclickClient {
+  return new AnyclickClient(options);
 }
