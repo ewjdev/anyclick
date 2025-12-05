@@ -1,5 +1,11 @@
 # @ewjdev/anyclick-core
 
+## 1.4.0
+
+### Patch Changes
+
+- Update anyclick-core to 1.3.0
+
 ## 1.3.0
 
 ### Minor Changes
