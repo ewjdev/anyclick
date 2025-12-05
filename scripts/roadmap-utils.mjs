@@ -415,7 +415,7 @@ export function deduplicateItems(items) {
       if (item.source === 'github' && existing.source === 'plan') {
         // Merge plan todos into GitHub item
         if (existing.todos?.length) {
-          item.todos = existing.todos;
+          item.todos = [...existing.todos];
         }
         seen.set(normalizedTitle, item);
       }
