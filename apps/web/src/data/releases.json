@@ -1,0 +1,170 @@
+{
+  "releases": [
+    {
+      "id": "anyclick-1.0.0",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "version": "1.0.0",
+      "type": "major",
+      "date": "2024-10-15",
+      "summary": "Initial Release",
+      "details": "The first public release of anyclick libraries. Includes core context menu functionality, React bindings, screenshot capture, and DOM inspection capabilities.",
+      "highlights": [
+        "Core context menu engine",
+        "React provider and hooks",
+        "Screenshot capture",
+        "DOM element inspection"
+      ],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-1.1.0",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "version": "1.1.0",
+      "type": "minor",
+      "date": "2024-11-01",
+      "summary": "Scoped Providers & Menu Theming",
+      "details": "Added scoped provider support for nested context menus, comprehensive CSS variable theming for menus, and cursor theming capabilities.",
+      "highlights": [
+        "Scoped provider support",
+        "CSS variable theming",
+        "Cursor theming",
+        "Disabled scope detection"
+      ],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-react",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-1.1.1",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "version": "1.1.1",
+      "type": "patch",
+      "date": "2024-11-05",
+      "summary": "Mobile touch handling fix",
+      "details": "Fixed issue where global providers were incorrectly handling touch events inside scoped provider containers.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-1.2.0",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react", "@ewjdev/anyclick-pointer"],
+      "version": "1.2.0",
+      "type": "minor",
+      "date": "2024-11-15",
+      "summary": "Adapters & Game Mode",
+      "details": "Introduced the experimental adapters package with game mode adapter, fun-mode toggling via pointer config, and new pointer package for custom cursor support.",
+      "highlights": [
+        "Adapters package",
+        "Game mode adapter",
+        "Fun-mode toggling",
+        "Pointer package"
+      ],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-1.3.0",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "version": "1.3.0",
+      "type": "minor",
+      "date": "2024-11-25",
+      "summary": "Element Inspector Improvements",
+      "details": "Major improvements to element inspector hierarchy navigation and selector generation with utility class filtering.",
+      "highlights": [
+        "Utility class filtering",
+        "Sibling-based hierarchy view",
+        "Improved CSS truncation",
+        "Better selector generation"
+      ],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-1.4.0",
+      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react", "@ewjdev/anyclick-pointer", "@ewjdev/anyclick-github", "@ewjdev/anyclick-devtools", "@ewjdev/anyclick-adapters"],
+      "version": "1.4.0",
+      "type": "minor",
+      "date": "2024-12-01",
+      "summary": "GitHub Integration & DevTools",
+      "details": "Added GitHub integration for feedback submission, devtools package with inspection dialog, and comprehensive documentation updates.",
+      "highlights": [
+        "GitHub adapter",
+        "DevTools package",
+        "Inspection dialog",
+        "Documentation updates"
+      ],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-github",
+      "era": "today"
+    },
+    {
+      "id": "anyclick-1.4.1",
+      "packages": ["@ewjdev/anyclick-react"],
+      "version": "1.4.1",
+      "type": "patch",
+      "date": "2024-12-05",
+      "summary": "Documentation cleanup",
+      "details": "Added documentation improvements and code cleanup.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-react",
+      "era": "today"
+    }
+  ],
+  "upcoming": [
+    {
+      "id": "notifications-suite",
+      "title": "Notification Suite",
+      "era": "near-future",
+      "summary": "Toast, Banner, Inline, and Indicator notifications with shared NotificationContainer",
+      "details": "A comprehensive notification system for error handling with configurable timeouts, placement, and noise controls.",
+      "highlights": [
+        "Toast notifications",
+        "Banner alerts",
+        "Inline indicators",
+        "Noise coalescing"
+      ]
+    },
+    {
+      "id": "a11y-improvements",
+      "title": "Accessibility First UX",
+      "era": "near-future",
+      "summary": "Focus management, ARIA labels, reduced-motion support, and theme hooks",
+      "details": "Comprehensive accessibility improvements across all components.",
+      "highlights": [
+        "Focus management",
+        "ARIA labels",
+        "Reduced motion",
+        "Theme hooks"
+      ]
+    },
+    {
+      "id": "error-dashboard",
+      "title": "Self-Hostable Dashboard",
+      "era": "next-major",
+      "summary": "Error dashboard with grouping, filters, and screenshot/DOM context",
+      "details": "A self-hostable dashboard for error triage with project-scoped auth and alerting capabilities.",
+      "highlights": [
+        "Error grouping",
+        "Filters & search",
+        "Screenshot context",
+        "Webhook alerting"
+      ]
+    },
+    {
+      "id": "integrations",
+      "title": "Third-Party Integrations",
+      "era": "next-major",
+      "summary": "Slack, Jira, Linear connectors with SSO and release mapping",
+      "details": "Connect anyclick to your existing tools and workflows.",
+      "highlights": [
+        "Slack integration",
+        "Jira integration",
+        "Linear integration",
+        "SSO options"
+      ]
+    }
+  ],
+  "currentVersion": "1.4.1",
+  "lastUpdated": "2024-12-05"
+}
+

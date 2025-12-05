@@ -1,0 +1,41 @@
+{
+  "github": {
+    "owner": "ewjdev",
+    "repo": "anyclick",
+    "label": "roadmap",
+    "titlePrefix": "[Roadmap]",
+    "eraLabels": {
+      "short-term": ["short-term", "next-up"],
+      "mid-term": ["mid-term"],
+      "later": ["later", "future"]
+    }
+  },
+  "plans": {
+    "directory": ".cursor/plans",
+    "metadataKey": "roadmap",
+    "metadataValue": true,
+    "includeTodos": true
+  },
+  "eras": {
+    "autoAssign": true,
+    "defaultEra": "mid-term",
+    "rules": [
+      {
+        "condition": "label:priority:high",
+        "era": "short-term"
+      },
+      {
+        "condition": "label:priority:low",
+        "era": "later"
+      },
+      {
+        "condition": "age:>90days",
+        "era": "later"
+      }
+    ]
+  },
+  "output": {
+    "markdownPath": "docs/roadmap.md",
+    "jsonPath": "apps/web/src/data/roadmap-items.json"
+  }
+}

@@ -2,9 +2,97 @@
 
 ## Description
 
-Pre-release roadmap audit and update command. This command ensures that completed roadmap items are properly documented with links to implementation details, and that all roadmap references across the repository are kept in sync.
+Roadmap sync and audit command. This command syncs roadmap items from multiple sources (GitHub issues/PRs, plan files) and ensures consistency across the repository.
 
-## When to Use
+## Automated Sync
+
+The roadmap is now automatically synced using the `sync-roadmap.mjs` script. This script:
+
+1. Fetches GitHub issues/PRs with the `roadmap` label and `[Roadmap]` title prefix
+2. Parses plan files (`.cursor/plans/*.plan.md`) with `roadmap: true` metadata
+3. Merges and deduplicates items
+4. Auto-assigns eras based on labels and heuristics
+5. Updates `docs/roadmap.md` and `apps/web/src/data/roadmap-items.json`
+
+### Running the Sync Script
+
+```bash
+# Full sync
+node scripts/sync-roadmap.mjs
+
+# Preview changes without writing files
+node scripts/sync-roadmap.mjs --dry-run
+
+# Show detailed output
+node scripts/sync-roadmap.mjs --verbose
+
+# Update only JSON file
+node scripts/sync-roadmap.mjs --json-only
+
+# Update only markdown file
+node scripts/sync-roadmap.mjs --md-only
+```
+
+### Environment Variables
+
+- `GITHUB_TOKEN` - GitHub personal access token for API access (required for GitHub sync)
+
+### Configuration
+
+Configuration is stored in `.cursor/config/roadmap.json`:
+
+```json
+{
+  "github": {
+    "owner": "ewjdev",
+    "repo": "anyclick",
+    "label": "roadmap",
+    "titlePrefix": "[Roadmap]",
+    "eraLabels": {
+      "short-term": ["short-term", "next-up"],
+      "mid-term": ["mid-term"],
+      "later": ["later", "future"]
+    }
+  },
+  "plans": {
+    "directory": ".cursor/plans",
+    "metadataKey": "roadmap",
+    "metadataValue": true,
+    "includeTodos": true
+  },
+  "eras": {
+    "autoAssign": true,
+    "defaultEra": "mid-term"
+  },
+  "output": {
+    "markdownPath": "docs/roadmap.md",
+    "jsonPath": "apps/web/src/data/roadmap-items.json"
+  }
+}
+```
+
+## Adding Roadmap Items
+
+### Via GitHub Issues/PRs
+
+1. Create an issue or PR
+2. Add the `roadmap` label
+3. Prefix the title with `[Roadmap]` (e.g., `[Roadmap] Add notifications package`)
+4. Add an era label: `short-term`, `mid-term`, or `later`
+5. Run the sync script or wait for CI to sync
+
+### Via Plan Files
+
+1. Create or update a plan file in `.cursor/plans/`
+2. Add metadata section at the end:
+   ```markdown
+   Metadata
+   - roadmap
+   - short-term  (or mid-term, later)
+   ```
+3. Run the sync script
+
+## When to Use Manual Audit
 
 Run this command before each release to:
 
@@ -12,17 +100,24 @@ Run this command before each release to:
 - Ensure consistency between `docs/roadmap.md`, the roadmap page, home page, docs, and examples
 - Identify any discrepancies or outdated roadmap references
 
-## Process
+## Manual Audit Process
 
-### 1. Review Recent Work
+### 1. Run Sync Script
+
+```bash
+node scripts/sync-roadmap.mjs --verbose
+```
+
+Review the sync report for any issues.
+
+### 2. Review Recent Work
 
 - Review Changelogs in each package
 - Check recent git commits (last 30 days or since last release tag) to identify completed features
 - Review merged PRs for roadmap-related work
-- Look for commit messages, PR titles, and PR descriptions that reference roadmap items
 - Identify any features that match roadmap items but weren't explicitly tracked
 
-### 2. Match Completed Work to Roadmap Items
+### 3. Match Completed Work to Roadmap Items
 
 - Compare completed work against items in `docs/roadmap.md`:
   - Short-term items
@@ -31,81 +126,58 @@ Run this command before each release to:
 - For each match, identify:
   - The specific roadmap item(s) completed
   - Relevant PR links, commit SHAs, or documentation URLs
-  - Any related documentation or examples created
 
-### 3. Update `docs/roadmap.md`
+### 4. Update Roadmap Items
 
-- For completed items, mark them with:
-  - ✅ Checkmark prefix
-  - Link to PR, commit, or relevant documentation in format: `[PR #123](https://github.com/ewjdev/anyclick/pull/123)` or `[commit abc123](https://github.com/ewjdev/anyclick/commit/abc123)`
-- Move completed items to a new "Completed" section at the top (if significant) or mark inline
-- Example format:
-  ```markdown
-  - ✅ Notifications package: Toast → Banner → Inline → Indicator, with NotificationContainer mount point. [PR #45](https://github.com/ewjdev/anyclick/pull/45)
-  ```
+For completed items on GitHub:
+- Close the issue/PR
+- The sync script will mark them as completed
 
-### 4. Update Roadmap Page (`apps/web/src/app/roadmap/page.tsx`)
-
-- Review the `sections` array and ensure it matches `docs/roadmap.md`
-- For completed items:
-  - Option A: Remove from the roadmap page if they're fully shipped
-  - Option B: Add a "Recently Completed" section at the top showing recently completed items with links
-  - Option C: Keep in place but add visual indicators (checkmarks, "Completed" badges)
-- Ensure all roadmap items from `docs/roadmap.md` are represented (or intentionally excluded)
+For manual items:
+- Update `apps/web/src/data/roadmap-items.json` directly
+- Set `status` to `"completed"` or `"closed"`
 
 ### 5. Update Home Page (`apps/web/src/app/page.tsx`)
 
 - Check for any roadmap references (e.g., "Coming Soon" badges, feature lists)
 - Update "Soon" badges to "Available" or remove them if features are now live
 - Ensure feature lists match current capabilities
-- Look for mentions of roadmap items in:
-  - Use cases section
-  - Feature highlights
-  - Any "Coming Soon" or roadmap teasers
 
-### 6. Review Documentation Pages (`apps/web/src/app/docs/**/*.tsx`)
+### 6. Consistency Check
 
-- Check all docs pages for roadmap references
-- Update any outdated roadmap mentions
-- Ensure examples reflect completed features
-- Verify that "coming soon" or "planned" features are accurately represented
+Verify all roadmap references are consistent across:
+- `docs/roadmap.md` (auto-generated)
+- `apps/web/src/data/roadmap-items.json` (auto-generated)
+- `apps/web/src/app/roadmap/page.tsx` (reads from JSON)
+- `apps/web/src/app/page.tsx` (home page)
+- Documentation pages
+- Example pages
 
-### 7. Review Examples (`apps/web/src/app/examples/**/*.tsx`)
+## Files
 
-- Ensure examples showcase completed roadmap features
-- Update example descriptions if they reference roadmap items
-- Add examples for newly completed features if appropriate
+### Auto-Generated (don't edit manually)
 
-### 8. Consistency Check
+- `docs/roadmap.md` - Auto-updated markdown (edit sections outside markers)
+- `apps/web/src/data/roadmap-items.json` - Synced roadmap data
 
-- Verify all roadmap references are consistent across:
-  - `docs/roadmap.md` (source of truth)
-  - `apps/web/src/app/roadmap/page.tsx` (public roadmap page)
-  - `apps/web/src/app/page.tsx` (home page)
-  - Documentation pages
-  - Example pages
-- Flag any discrepancies for manual review
+### Configuration
 
-### 9. Create Summary
+- `.cursor/config/roadmap.json` - Sync configuration
 
-- List all completed items with their links
-- List any items that need manual review or clarification
-- Note any inconsistencies found and how they were resolved
-- Suggest any roadmap items that may need reprioritization based on completed work
+### Scripts
 
-## Files to Review/Update
+- `scripts/sync-roadmap.mjs` - Main sync script
+- `scripts/roadmap-utils.mjs` - Helper functions
 
-- `docs/roadmap.md` - Primary roadmap definition
-- `apps/web/src/app/roadmap/page.tsx` - Public roadmap page component
-- `apps/web/src/app/page.tsx` - Home page with feature lists
-- `apps/web/src/app/docs/**/*.tsx` - All documentation pages
-- `apps/web/src/app/examples/**/*.tsx` - All example pages
+### CI
+
+- `.github/workflows/roadmap-sync.yml` - Automated sync on push to main
 
 ## Output Format
 
 After completing the audit, provide:
 
-1. **Completed Items**: List of roadmap items marked as complete with links
-2. **Updated Files**: List of files modified with brief description of changes
-3. **Consistency Report**: Any discrepancies found and how they were resolved
+1. **Sync Report**: Output from sync script
+2. **Completed Items**: List of roadmap items marked as complete
+3. **Updated Files**: List of files modified with brief description of changes
 4. **Recommendations**: Suggestions for roadmap reprioritization or cleanup

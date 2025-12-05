@@ -20,7 +20,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "release": "turbo run build && changeset publish",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "test:roadmap": "node scripts/test-roadmap-sync.mjs",
+    "roadmap:sync": "node scripts/sync-roadmap.mjs",
+    "roadmap:sync:dry": "node scripts/sync-roadmap.mjs --dry-run --verbose"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
