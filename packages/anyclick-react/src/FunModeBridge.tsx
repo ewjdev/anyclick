@@ -22,16 +22,28 @@ function buildFunConfig(
 ): FunModeConfig {
   const funTheme =
     typeof theme?.funMode === "object" ? (theme.funMode as FunModeThemeConfig) : {};
-  const trackElement =
-    (container as HTMLElement) ||
-    (container.parentElement as HTMLElement | null) ||
-    document.body;
+  const resolveTrackElement = (): HTMLElement => {
+    // Some scoped containers use display: contents and report zero bounds.
+    // Walk up to the first ancestor with a real box; fall back to body.
+    let el: HTMLElement | null = container as HTMLElement | null;
+    while (el) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return document.body;
+  };
+
+  const getTrackElement = () => resolveTrackElement();
   return {
     maxSpeed: funTheme.maxSpeed,
     acceleration: funTheme.acceleration,
-    getTrackElement: () => trackElement,
+    getTrackElement,
     getObstacles: () => {
       // Obstacles = siblings + children (lightweight bounding boxes)
+      const trackElement = getTrackElement();
       const obstacles: DOMRect[] = [];
       const parent = trackElement.parentElement;
       if (parent) {

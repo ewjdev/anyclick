@@ -90,9 +90,14 @@ export default function PointerModesPage() {
           <span>/</span>
           <span className="text-white">Pointer Modes</span>
         </div>
-        <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-          Pointer Modes (Normal ↔ Fun)
-        </h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            Pointer Modes (Normal ↔ Fun)
+          </h1>
+          <span className="text-xs uppercase tracking-[0.15em] px-2 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/40">
+            Experimental
+          </span>
+        </div>
         <p className="text-lg text-gray-400 leading-relaxed">
           Drive the cursor like a go-kart inside a scoped provider. Fun mode is
           opt-in and activates only while your pointer is inside the section
