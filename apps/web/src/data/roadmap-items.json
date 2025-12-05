@@ -113,7 +113,7 @@
       "description": "What would the version of the home page look like with no buttons and create elements with context that would provide anyclick menu with actions akin to the buttons that exist today.",
       "era": "mid-term",
       "status": "active",
-      "url": ".cursor/plans/no-buttons.plan.md",
+      "url": "@.cursor/plans/no-buttons.plan.md",
       "labels": [],
       "tags": [],
       "assignees": [],
