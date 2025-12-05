@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useInspectStore, useHasHydrated } from "./inspectStore";
-import { AnyclickLogo } from "../AnyclickLogo";
+import React, { useCallback, useEffect, useState } from "react";
+import { AnyclickLogo } from "@ewjdev/anyclick-react";
+import { RotateCcw, X } from "lucide-react";
 import { openInspectDialog } from "./InspectDialogManager";
-import { X, RotateCcw } from "lucide-react";
+import { useHasHydrated, useInspectStore } from "./inspectStore";
 
 export interface ModificationIndicatorProps {
   /** Position of the indicator. Defaults to "bottom-right" */

@@ -3,6 +3,7 @@ module.exports = {
     remotePatterns: [new URL("https://s.yimg.com/**")],
   },
   transpilePackages: [
+    "@ewjdev/anyclick-devtools",
     "@ewjdev/anyclick-core",
     "@ewjdev/anyclick-adapters",
     "@ewjdev/anyclick-react",

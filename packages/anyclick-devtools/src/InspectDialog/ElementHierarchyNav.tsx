@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { HighlightColors } from "../types";
-import { clearHighlights, highlightTarget } from "../highlight";
 import CopyButton from "../CopyButton";
+import { clearHighlights, highlightTarget } from "../highlight";
+import { HighlightColors } from "../types";
 
 /**
  * Styles for ElementHierarchyNav

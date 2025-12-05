@@ -1,37 +1,88 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { ScreenshotData, ScreenshotError } from "@ewjdev/anyclick-core";
-import { formatBytes, estimateTotalSize } from "@ewjdev/anyclick-core";
-import type { ScreenshotPreviewProps } from "./types";
-import { menuStyles } from "./styles";
-import { screenshotPreviewStyles as styles } from "./styles";
+import { estimateTotalSize, formatBytes } from "@ewjdev/anyclick-core";
 import {
-  ImageIcon,
-  RefreshCwIcon,
-  CheckIcon,
-  XIcon,
-  Loader2Icon,
-  ExpandIcon,
-  ShrinkIcon,
   AlertCircleIcon,
+  CheckIcon,
+  ExpandIcon,
+  ImageIcon,
+  Loader2Icon,
+  RefreshCwIcon,
+  ShrinkIcon,
+  XIcon,
 } from "lucide-react";
+import { menuStyles, screenshotPreviewStyles as styles } from "./styles";
+import type { ScreenshotPreviewProps } from "./types";
 
-type TabType = "element" | "container" | "viewport";
+/** Screenshot preview tab types */
+type TabType = "container" | "element" | "viewport";
 
 /**
- * Screenshot preview component - shows captured screenshots before sending
+ * Screenshot preview component - shows captured screenshots before sending.
+ *
+ * Displays a preview of captured screenshots with tabs for element, container,
+ * and viewport captures. Allows users to review, retake, or proceed without
+ * screenshots.
+ *
+ * @since 1.0.0
  */
-export function ScreenshotPreview({
-  screenshots,
+export const ScreenshotPreview = React.memo(function ScreenshotPreview({
   isLoading,
-  onConfirm,
-  onCancel,
-  onRetake,
   isSubmitting,
+  onCancel,
+  onConfirm,
+  onRetake,
+  screenshots,
 }: ScreenshotPreviewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("element");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get error for a specific tab
+  const getError = (key: TabType): ScreenshotError | undefined => {
+    return screenshots?.errors?.[key];
+  };
+
+  // Memoize tabs computation
+  const tabs = useMemo(() => {
+    if (!screenshots) return [];
+
+    const allTabs: {
+      data: typeof screenshots.element;
+      error?: ScreenshotError;
+      key: TabType;
+      label: string;
+    }[] = [
+      {
+        data: screenshots.element,
+        error: getError("element"),
+        key: "element" as const,
+        label: "Element",
+      },
+      {
+        data: screenshots.container,
+        error: getError("container"),
+        key: "container" as const,
+        label: "Container",
+      },
+      {
+        data: screenshots.viewport,
+        error: getError("viewport"),
+        key: "viewport" as const,
+        label: "Viewport",
+      },
+    ];
+
+    // Show tabs that have either data or errors
+    return allTabs.filter((tab) => tab.data || tab.error);
+  }, [screenshots]);
+
+  // Memoize total size calculation
+  const totalSize = useMemo(
+    () => (screenshots ? estimateTotalSize(screenshots) : 0),
+    [screenshots],
+  );
 
   if (isLoading) {
     return (
@@ -59,20 +110,20 @@ export function ScreenshotPreview({
           <div style={styles.emptyActions}>
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onRetake}
               style={styles.retakeButtonOutline}
-              disabled={isSubmitting}
             >
               <RefreshCwIcon className="w-4 h-4" />
               Try Again
             </button>
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={() =>
                 onConfirm({ capturedAt: new Date().toISOString() })
               }
               style={styles.continueButton}
-              disabled={isSubmitting}
             >
               <CheckIcon className="w-4 h-4" />
               Continue Without
@@ -83,39 +134,6 @@ export function ScreenshotPreview({
     );
   }
 
-  // Get error for a specific tab
-  const getError = (key: TabType): ScreenshotError | undefined => {
-    return screenshots.errors?.[key];
-  };
-
-  const allTabs: {
-    key: TabType;
-    label: string;
-    data: typeof screenshots.element;
-    error?: ScreenshotError;
-  }[] = [
-    {
-      key: "element" as const,
-      label: "Element",
-      data: screenshots.element,
-      error: getError("element"),
-    },
-    {
-      key: "container" as const,
-      label: "Container",
-      data: screenshots.container,
-      error: getError("container"),
-    },
-    {
-      key: "viewport" as const,
-      label: "Viewport",
-      data: screenshots.viewport,
-      error: getError("viewport"),
-    },
-  ];
-  // Show tabs that have either data or errors
-  const tabs = allTabs.filter((tab) => tab.data || tab.error);
-
   const activeScreenshot =
     activeTab === "element"
       ? screenshots.element
@@ -124,10 +142,6 @@ export function ScreenshotPreview({
         : screenshots.viewport;
 
   const activeError = getError(activeTab);
-
-  const totalSize = estimateTotalSize(screenshots);
-
-  console.log({ styles });
 
   return (
     <div
@@ -194,8 +208,8 @@ export function ScreenshotPreview({
       >
         {activeScreenshot ? (
           <img
-            src={activeScreenshot.dataUrl}
             alt={`${activeTab} screenshot`}
+            src={activeScreenshot.dataUrl}
             style={styles.previewImage}
           />
         ) : activeError ? (
@@ -223,8 +237,8 @@ export function ScreenshotPreview({
       <div style={styles.actions}>
         <button
           type="button"
-          onClick={onRetake}
           disabled={isSubmitting}
+          onClick={onRetake}
           style={styles.retakeButtonSmall}
         >
           <RefreshCwIcon className="w-3 h-3" />
@@ -233,9 +247,9 @@ export function ScreenshotPreview({
         <div style={styles.actionsRight}>
           <button
             type="button"
-            onClick={onCancel}
-            disabled={isSubmitting}
             className="flex items-center gap-1"
+            disabled={isSubmitting}
+            onClick={onCancel}
             style={{ ...menuStyles.button, ...menuStyles.cancelButton }}
           >
             <XIcon className="w-3 h-3" />
@@ -243,8 +257,8 @@ export function ScreenshotPreview({
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(screenshots)}
             disabled={isSubmitting}
+            onClick={() => onConfirm(screenshots)}
             style={{
               ...menuStyles.button,
               ...menuStyles.submitButton,
@@ -267,4 +281,4 @@ export function ScreenshotPreview({
       </div>
     </div>
   );
-}
+});

@@ -1,16 +1,18 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { useMemo } from "react";
+import {
+  InspectDialogManager,
+  ModificationIndicator,
+} from "@ewjdev/anyclick-devtools";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import {
   AnyclickProvider,
   FunModeBridge,
-  InspectDialogManager,
-  ModificationIndicator,
   createPresetMenu,
 } from "@ewjdev/anyclick-react";
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import type { ReactNode } from "react";
-import { useMemo } from "react";
 import { MousePointer2 } from "lucide-react";
 
 const adapter = createHttpAdapter({

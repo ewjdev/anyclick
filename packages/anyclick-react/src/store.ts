@@ -1,63 +1,68 @@
+/**
+ * Provider registry store for managing anyclick provider instances.
+ *
+ * Uses Zustand to maintain a global registry of all AnyclickProvider instances,
+ * enabling features like nested providers, theme inheritance, and scoped contexts.
+ *
+ * @module store
+ * @since 1.0.0
+ */
 "use client";
 
-import { create } from "zustand";
 import type { AnyclickMenuEvent } from "@ewjdev/anyclick-core";
+import { create } from "zustand";
 import type { AnyclickTheme } from "./types";
 
 /**
- * Registered provider instance
+ * Registered provider instance in the provider registry.
+ *
+ * Each AnyclickProvider creates an instance of this type when mounted,
+ * enabling the store to track and manage provider hierarchies.
+ *
+ * @since 1.0.0
  */
 export interface ProviderInstance {
-  /** Unique identifier for this provider instance */
-  id: string;
   /** Reference to the provider's container element (null if not scoped) */
   containerRef: React.RefObject<Element | null>;
-  /** Whether this provider is scoped to its container */
-  scoped: boolean;
-  /** The provider's theme configuration */
-  theme: AnyclickTheme | null;
-  /** Whether this provider is disabled */
-  disabled: boolean;
-  /** Parent provider ID (if nested) */
-  parentId: string | null;
   /** Depth in the provider hierarchy (0 = root) */
   depth: number;
+  /** Whether this provider is disabled */
+  disabled: boolean;
+  /** Unique identifier for this provider instance */
+  id: string;
   /** Handler to call when an event occurs in this provider's scope */
   onContextMenu?: (
     event: AnyclickMenuEvent,
     element: Element,
   ) => boolean | void;
+  /** Parent provider ID (if nested) */
+  parentId: string | null;
+  /** Whether this provider is scoped to its container */
+  scoped: boolean;
+  /** The provider's theme configuration */
+  theme: AnyclickTheme | null;
 }
 
 /**
- * Provider registry store state
+ * Provider registry store state and actions.
+ * @internal
  */
 interface ProviderStore {
   /** Map of provider ID to provider instance */
   providers: Map<string, ProviderInstance>;
 
   /**
-   * Register a new provider
-   */
-  registerProvider: (provider: ProviderInstance) => void;
-
-  /**
-   * Unregister a provider
-   */
-  unregisterProvider: (id: string) => void;
-
-  /**
-   * Update a provider's configuration
-   */
-  updateProvider: (id: string, updates: Partial<ProviderInstance>) => void;
-
-  /**
-   * Find all providers that contain a given element, sorted by depth (nearest first)
+   * Finds all providers that contain a given element, sorted by depth (nearest first).
+   * @param element - The DOM element to find providers for
+   * @returns Array of matching providers, sorted by depth (deepest first)
    */
   findProvidersForElement: (element: Element) => ProviderInstance[];
 
   /**
-   * Find the nearest parent provider for a given container
+   * Finds the nearest parent provider for a given container.
+   * @param container - The container element to find a parent for
+   * @param excludeId - Optional provider ID to exclude from search
+   * @returns The nearest parent provider, or null if none found
    */
   findParentProvider: (
     container: Element | null,
@@ -65,70 +70,98 @@ interface ProviderStore {
   ) => ProviderInstance | null;
 
   /**
-   * Get merged theme for a provider (includes inherited parent themes)
+   * Gets the merged theme for a provider (includes inherited parent themes).
+   * @param providerId - The ID of the provider to get the merged theme for
+   * @returns The merged theme configuration
    */
   getMergedTheme: (providerId: string) => AnyclickTheme;
 
   /**
-   * Check if any ancestor provider has disabled anyclick
+   * Checks if any ancestor provider has disabled anyclick.
+   * @param providerId - The ID of the provider to check
+   * @returns True if any ancestor is disabled
    */
   isDisabledByAncestor: (providerId: string) => boolean;
 
   /**
-   * Check if an element is inside a disabled scoped provider's container
-   * This is used to prevent the global provider from handling events
-   * in areas where a disabled scoped provider should block them
+   * Checks if an element is inside any scoped provider's container.
+   * Used to prevent the global provider from handling touch events.
+   * @param element - The element to check
+   * @returns True if element is inside any scoped provider
+   */
+  isElementInAnyScopedProvider: (element: Element) => boolean;
+
+  /**
+   * Checks if an element is inside a disabled scoped provider's container.
+   * @param element - The element to check
+   * @returns True if element is inside a disabled scope
    */
   isElementInDisabledScope: (element: Element) => boolean;
 
   /**
-   * Check if an element is inside any scoped provider's container (enabled or not)
-   * This is used to prevent the global provider from handling touch events
-   * that should be handled by a scoped provider instead
+   * Registers a new provider in the store.
+   * @param provider - The provider instance to register
    */
-  isElementInAnyScopedProvider: (element: Element) => boolean;
+  registerProvider: (provider: ProviderInstance) => void;
+
+  /**
+   * Unregisters a provider from the store.
+   * @param id - The ID of the provider to unregister
+   */
+  unregisterProvider: (id: string) => void;
+
+  /**
+   * Updates a provider's configuration.
+   * @param id - The ID of the provider to update
+   * @param updates - Partial updates to apply
+   */
+  updateProvider: (id: string, updates: Partial<ProviderInstance>) => void;
 }
 
-/**
- * Generate a unique ID for a provider instance
- */
+/** Counter for generating unique provider IDs */
 let providerIdCounter = 0;
+
+/**
+ * Generates a unique ID for a provider instance.
+ *
+ * @returns A unique provider ID string
+ *
+ * @example
+ * ```ts
+ * const id = generateProviderId();
+ * // => "anyclick-provider-1"
+ * ```
+ *
+ * @since 1.0.0
+ */
 export function generateProviderId(): string {
   return `anyclick-provider-${++providerIdCounter}`;
 }
 
 /**
- * Zustand store for managing provider instances
+ * Zustand store hook for managing provider instances.
+ *
+ * This store maintains a global registry of all AnyclickProvider instances,
+ * enabling features like:
+ * - Nested provider hierarchies
+ * - Theme inheritance
+ * - Scoped contexts
+ * - Event routing
+ *
+ * @example
+ * ```ts
+ * // Get providers for an element
+ * const providers = useProviderStore.getState().findProvidersForElement(element);
+ *
+ * // Get merged theme for a provider
+ * const { getMergedTheme } = useProviderStore();
+ * const theme = getMergedTheme(providerId);
+ * ```
+ *
+ * @since 1.0.0
  */
 export const useProviderStore = create<ProviderStore>((set, get) => ({
   providers: new Map(),
-
-  registerProvider: (provider) => {
-    set((state) => {
-      const newProviders = new Map(state.providers);
-      newProviders.set(provider.id, provider);
-      return { providers: newProviders };
-    });
-  },
-
-  unregisterProvider: (id) => {
-    set((state) => {
-      const newProviders = new Map(state.providers);
-      newProviders.delete(id);
-      return { providers: newProviders };
-    });
-  },
-
-  updateProvider: (id, updates) => {
-    set((state) => {
-      const newProviders = new Map(state.providers);
-      const existing = newProviders.get(id);
-      if (existing) {
-        newProviders.set(id, { ...existing, ...updates });
-      }
-      return { providers: newProviders };
-    });
-  },
 
   findProvidersForElement: (element) => {
     const { providers } = get();
@@ -187,9 +220,6 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     const provider = providers.get(providerId);
 
     if (!provider) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[Store:getMergedTheme] Provider not found: ${providerId}`);
-      }
       return {};
     }
 
@@ -200,17 +230,6 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     while (current) {
       ancestors.unshift(current);
       current = current.parentId ? providers.get(current.parentId) : undefined;
-    }
-
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[Store:getMergedTheme] Provider: ${providerId}`, {
-        ancestorCount: ancestors.length,
-        ancestorIds: ancestors.map((a) => a.id),
-        providerHasTheme: !!provider.theme,
-        providerThemeMenuStyle: provider.theme?.menuStyle
-          ? Object.keys(provider.theme.menuStyle)
-          : [],
-      });
     }
 
     // Merge themes from root to current (later themes override earlier)
@@ -242,15 +261,6 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
       }
     }
 
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[Store:getMergedTheme] Result for ${providerId}`, {
-        hasMenuStyle: !!mergedTheme.menuStyle,
-        menuStyleKeys: mergedTheme.menuStyle
-          ? Object.keys(mergedTheme.menuStyle)
-          : [],
-      });
-    }
-
     return mergedTheme;
   },
 
@@ -268,6 +278,26 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
         return true;
       }
       current = current.parentId ? providers.get(current.parentId) : undefined;
+    }
+
+    return false;
+  },
+
+  isElementInAnyScopedProvider: (element) => {
+    const { providers } = get();
+
+    // Check all scoped providers (enabled or disabled)
+    for (const provider of providers.values()) {
+      // Only check scoped providers
+      if (!provider.scoped) continue;
+
+      const container = provider.containerRef.current;
+      if (!container) continue;
+
+      // If element is inside this scoped provider's container
+      if (container.contains(element)) {
+        return true;
+      }
     }
 
     return false;
@@ -294,39 +324,51 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     return false;
   },
 
-  isElementInAnyScopedProvider: (element) => {
-    const { providers } = get();
+  registerProvider: (provider) => {
+    set((state) => {
+      const newProviders = new Map(state.providers);
+      newProviders.set(provider.id, provider);
+      return { providers: newProviders };
+    });
+  },
 
-    // Check all scoped providers (enabled or disabled)
-    for (const provider of providers.values()) {
-      // Only check scoped providers
-      if (!provider.scoped) continue;
+  unregisterProvider: (id) => {
+    set((state) => {
+      const newProviders = new Map(state.providers);
+      newProviders.delete(id);
+      return { providers: newProviders };
+    });
+  },
 
-      const container = provider.containerRef.current;
-      if (!container) continue;
-
-      // If element is inside this scoped provider's container
-      if (container.contains(element)) {
-        if (process.env.NODE_ENV === "development") {
-          console.log(
-            `[Store:isElementInAnyScopedProvider] Element is in scoped provider: ${provider.id}`,
-            {
-              elementTag: element.tagName,
-              providerId: provider.id,
-              providerDisabled: provider.disabled,
-            },
-          );
-        }
-        return true;
+  updateProvider: (id, updates) => {
+    set((state) => {
+      const newProviders = new Map(state.providers);
+      const existing = newProviders.get(id);
+      if (existing) {
+        newProviders.set(id, { ...existing, ...updates });
       }
-    }
-
-    return false;
+      return { providers: newProviders };
+    });
   },
 }));
 
 /**
- * Dispatch a context menu event to all matching providers (bubble up)
+ * Dispatches a context menu event to all matching providers.
+ *
+ * Routes the event through the provider hierarchy, calling handlers
+ * from the nearest (deepest) provider first.
+ *
+ * @param event - The original mouse event
+ * @param element - The target element
+ *
+ * @example
+ * ```ts
+ * document.addEventListener("contextmenu", (event) => {
+ *   dispatchContextMenuEvent(event, event.target as Element);
+ * });
+ * ```
+ *
+ * @since 1.0.0
  */
 export function dispatchContextMenuEvent(
   event: MouseEvent,
@@ -339,8 +381,8 @@ export function dispatchContextMenuEvent(
   const menuEvent: AnyclickMenuEvent = {
     clientX: event.clientX,
     clientY: event.clientY,
-    originalEvent: event,
     isTouch: false,
+    originalEvent: event,
   };
 
   // Call handlers from nearest to outermost
@@ -353,7 +395,6 @@ export function dispatchContextMenuEvent(
     if (provider.onContextMenu) {
       provider.onContextMenu(menuEvent, element);
       // After the first handler processes, we don't need to call others
-      // unless we want to implement explicit bubbling control
       break;
     }
   }

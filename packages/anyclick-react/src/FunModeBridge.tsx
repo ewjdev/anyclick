@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import {
-  type PointerConfig,
   type FunModeConfig,
+  type PointerConfig,
   usePointer,
 } from "@ewjdev/anyclick-pointer";
 import { useProviderStore } from "./store";

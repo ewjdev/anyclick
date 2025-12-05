@@ -2,9 +2,9 @@
 
 import { create } from "zustand";
 import {
-  persist,
-  createJSONStorage,
   type StorageValue,
+  createJSONStorage,
+  persist,
 } from "zustand/middleware";
 import type { PinnedPosition } from "./InspectDialog";
 
@@ -581,13 +581,9 @@ export const useInspectStore = create<InspectStore>()(
 
       // Handle hydration lifecycle
       onRehydrateStorage: () => {
-        console.log("[Anyclick] Hydration starting...");
-
         return (state, error) => {
-          if (error) {
+          if (error && process.env.NODE_ENV === "development") {
             console.error("[Anyclick] Hydration failed:", error);
-          } else {
-            console.log("[Anyclick] Hydration finished");
           }
           // Mark as hydrated regardless of success/failure
           state?.setHasHydrated(true);

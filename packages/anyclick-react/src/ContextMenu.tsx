@@ -1,56 +1,51 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import type { ContextMenuItem, ContextMenuProps } from "./types";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { AnyclickType, ScreenshotData } from "@ewjdev/anyclick-core";
 import {
+  DEFAULT_SCREENSHOT_CONFIG,
   captureAllScreenshots,
   isScreenshotSupported,
-  DEFAULT_SCREENSHOT_CONFIG,
 } from "@ewjdev/anyclick-core";
-import { menuStyles } from "./styles";
-import { applyHighlights, clearHighlights } from "./highlight";
-import { ScreenshotPreview } from "./ScreenshotPreview";
 import {
+  CameraIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   FlagIcon,
+  GripVertical,
   PlusIcon,
   ThumbsUpIcon,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  CameraIcon,
-  GripVertical,
 } from "lucide-react";
+import { ScreenshotPreview } from "./ScreenshotPreview";
+import { applyHighlights, clearHighlights } from "./highlight";
+import { getBadgeStyle, menuStyles } from "./styles";
+import type { ContextMenuItem, ContextMenuProps } from "./types";
 
 /** Padding from viewport edges in pixels */
 const VIEWPORT_PADDING = 10;
-
-const screenshotIndicatorStyle: React.CSSProperties = {
-  display: "flex",
-  marginLeft: "4px",
-  opacity: 0.7,
-  justifyContent: "flex-end",
-  flex: 1,
-};
 
 /**
  * Default icons for feedback types
  */
 const defaultIcons: Record<string, React.ReactNode> = {
-  issue: <FlagIcon className="w-4 h-4" />,
   feature: <PlusIcon className="w-4 h-4" />,
+  issue: <FlagIcon className="w-4 h-4" />,
   like: <ThumbsUpIcon className="w-4 h-4" />,
 };
 
+/**
+ * Default header component for the context menu.
+ */
 const DefaultHeader = ({
-  styles,
-  className,
-  title = "Send Feedback",
   children,
+  className,
+  styles,
+  title = "Send Feedback",
 }: {
-  styles?: React.CSSProperties;
-  className?: string;
-  title?: string;
   children?: React.ReactNode;
+  className?: string;
+  styles?: React.CSSProperties;
+  title?: string;
 }) => {
   return (
     <div style={styles} className={className}>
@@ -61,18 +56,18 @@ const DefaultHeader = ({
 };
 
 /**
- * Menu item component with touch-friendly sizing
+ * Menu item component with touch-friendly sizing.
  */
-function MenuItem({
-  item,
-  onClick,
+const MenuItem = React.memo(function MenuItem({
   disabled,
   hasChildren,
+  item,
+  onClick,
 }: {
-  item: ContextMenuItem;
-  onClick: () => any;
   disabled: boolean;
   hasChildren?: boolean;
+  item: ContextMenuItem;
+  onClick: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
@@ -80,96 +75,49 @@ function MenuItem({
   const badgeLabel = item.badge?.label ?? (isComingSoon ? "Coming soon" : null);
   const badgeTone = item.badge?.tone ?? (isComingSoon ? "neutral" : "neutral");
 
-  const badgeStyle: React.CSSProperties | undefined = badgeLabel
-    ? {
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "2px 6px",
-        borderRadius: "9999px",
-        fontSize: "10px",
-        lineHeight: 1.2,
-        backgroundColor:
-          badgeTone === "warning"
-            ? "rgba(251, 191, 36, 0.15)"
-            : badgeTone === "info"
-              ? "rgba(59, 130, 246, 0.15)"
-              : badgeTone === "success"
-                ? "rgba(34, 197, 94, 0.15)"
-                : "rgba(148, 163, 184, 0.15)",
-        color:
-          badgeTone === "warning"
-            ? "#fbbf24"
-            : badgeTone === "info"
-              ? "#60a5fa"
-              : badgeTone === "success"
-                ? "#4ade80"
-                : "#cbd5e1",
-        border:
-          badgeTone === "warning"
-            ? "1px solid rgba(251, 191, 36, 0.3)"
-            : badgeTone === "info"
-              ? "1px solid rgba(59, 130, 246, 0.3)"
-              : badgeTone === "success"
-                ? "1px solid rgba(34, 197, 94, 0.3)"
-                : "1px solid rgba(148, 163, 184, 0.3)",
-      }
-    : undefined;
-
+  const badgeStyle = badgeLabel ? getBadgeStyle(badgeTone) : undefined;
   const iconNode = item.icon ?? defaultIcons[item.type];
 
   return (
     <button
       type="button"
-      onClick={onClick}
       disabled={disabled || isComingSoon}
+      onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
         setIsPressed(false);
       }}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
       style={{
-        // Slightly leaner height to match Chrome menu sizing
-        minHeight: "38px",
+        ...menuStyles.touchFriendly,
         ...menuStyles.item,
-        // Apply hover/pressed state for both mouse and touch
         ...(isHovered || isPressed ? menuStyles.itemHover : {}),
-        ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
-        // Prevent text selection on touch
-        WebkitUserSelect: "none",
-        userSelect: "none",
-        // Prevent touch callout on iOS
-        WebkitTouchCallout: "none",
+        ...(disabled ? menuStyles.itemDisabled : {}),
       }}
     >
       {iconNode ? <span style={menuStyles.itemIcon}>{iconNode}</span> : null}
-      <span
-        style={{
-          flex: 1,
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "8px",
-        }}
-      >
+      <span style={menuStyles.itemLabel}>
         {item.label}
         {badgeLabel && <span style={badgeStyle}>{badgeLabel}</span>}
       </span>
       {hasChildren && (
-        <ChevronRightIcon
-          className="w-4 h-4"
-          style={{ marginLeft: "auto", opacity: 0.5 }}
-        />
+        <ChevronRightIcon className="w-4 h-4" style={menuStyles.submenuIcon} />
       )}
     </button>
   );
-}
+});
 
 /**
- * Back button for submenu navigation with touch-friendly sizing
+ * Back button for submenu navigation with touch-friendly sizing.
  */
-function BackButton({ onClick }: { onClick: () => void }) {
+const BackButton = React.memo(function BackButton({
+  onClick,
+}: {
+  onClick: () => void;
+}) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
@@ -182,39 +130,33 @@ function BackButton({ onClick }: { onClick: () => void }) {
         setIsHovered(false);
         setIsPressed(false);
       }}
-      onTouchStart={() => setIsPressed(true)}
-      onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchStart={() => setIsPressed(true)}
       style={{
         ...menuStyles.item,
+        ...menuStyles.backButton,
+        ...menuStyles.touchFriendly,
         ...(isHovered || isPressed ? menuStyles.itemHover : {}),
-        borderBottom: "1px solid #e5e5e5",
-        marginBottom: "4px",
-        // Ensure minimum touch target size
-        minHeight: "44px",
-        // Prevent text selection on touch
-        WebkitUserSelect: "none",
-        userSelect: "none",
-        WebkitTouchCallout: "none",
       }}
     >
       <ChevronLeftIcon className="w-4 h-4" style={{ opacity: 0.5 }} />
       <span style={{ opacity: 0.7 }}>Back</span>
     </button>
   );
-}
+});
 
 /**
- * Comment form component
+ * Comment form component.
  */
-function CommentForm({
-  onSubmit,
-  onCancel,
+const CommentForm = React.memo(function CommentForm({
   isSubmitting,
+  onCancel,
+  onSubmit,
 }: {
-  onSubmit: (comment: string) => void;
-  onCancel: () => void;
   isSubmitting: boolean;
+  onCancel: () => void;
+  onSubmit: (comment: string) => void;
 }) {
   const [comment, setComment] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -223,42 +165,45 @@ function CommentForm({
     inputRef.current?.focus();
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     onSubmit(comment);
-  };
+  }, [comment, onSubmit]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-      handleSubmit();
-    } else if (e.key === "Escape") {
-      onCancel();
-    }
-  };
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        handleSubmit();
+      } else if (e.key === "Escape") {
+        onCancel();
+      }
+    },
+    [handleSubmit, onCancel],
+  );
 
   return (
     <div style={menuStyles.commentSection}>
       <textarea
         ref={inputRef}
-        value={comment}
+        disabled={isSubmitting}
         onChange={(e) => setComment(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Add a comment (optional)..."
         style={menuStyles.commentInput}
-        disabled={isSubmitting}
+        value={comment}
       />
       <div style={menuStyles.buttonRow}>
         <button
           type="button"
-          onClick={onCancel}
           disabled={isSubmitting}
+          onClick={onCancel}
           style={{ ...menuStyles.button, ...menuStyles.cancelButton }}
         >
           Cancel
         </button>
         <button
           type="button"
-          onClick={handleSubmit}
           disabled={isSubmitting}
+          onClick={handleSubmit}
           style={{
             ...menuStyles.button,
             ...menuStyles.submitButton,
@@ -270,13 +215,13 @@ function CommentForm({
       </div>
     </div>
   );
-}
+});
 
 /** View states for the context menu */
-type MenuView = "menu" | "comment" | "screenshot-preview";
+type MenuView = "comment" | "menu" | "screenshot-preview";
 
 /**
- * Calculate adjusted position to keep menu in viewport
+ * Calculate adjusted position to keep menu in viewport.
  */
 function calculateInViewPosition(
   requestedX: number,
@@ -284,8 +229,8 @@ function calculateInViewPosition(
   menuWidth: number,
   menuHeight: number,
 ): { x: number; y: number } {
-  const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
+  const viewportWidth = window.innerWidth;
 
   let x = requestedX;
   let y = requestedY;
@@ -312,24 +257,34 @@ function calculateInViewPosition(
 }
 
 /**
- * Context menu component for selecting feedback type
+ * Context menu component for selecting feedback type.
+ *
+ * Displays a customizable context menu with support for:
+ * - Custom menu items with icons and badges
+ * - Submenus for organizing options
+ * - Comment input for detailed feedback
+ * - Screenshot preview before sending
+ * - Touch-friendly interactions
+ * - Dynamic positioning modes
+ *
+ * @since 1.0.0
  */
 export function ContextMenu({
-  visible,
-  position,
-  targetElement,
-  containerElement,
-  items,
-  onSelect,
-  onClose,
-  isSubmitting,
-  style,
   className,
-  highlightConfig,
-  screenshotConfig,
-  positionMode = "inView",
-  header,
+  containerElement,
   footer,
+  header,
+  highlightConfig,
+  isSubmitting,
+  items,
+  onClose,
+  onSelect,
+  position,
+  positionMode = "inView",
+  screenshotConfig,
+  style,
+  targetElement,
+  visible,
 }: ContextMenuProps) {
   const [selectedType, setSelectedType] = useState<AnyclickType | null>(null);
   const [currentView, setCurrentView] = useState<MenuView>("menu");
@@ -352,10 +307,13 @@ export function ContextMenu({
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Merge screenshot config with defaults
-  const mergedScreenshotConfig = {
-    ...DEFAULT_SCREENSHOT_CONFIG,
-    ...screenshotConfig,
-  };
+  const mergedScreenshotConfig = React.useMemo(
+    () => ({
+      ...DEFAULT_SCREENSHOT_CONFIG,
+      ...screenshotConfig,
+    }),
+    [screenshotConfig],
+  );
 
   const showPreview =
     mergedScreenshotConfig.showPreview && isScreenshotSupported();
@@ -382,7 +340,7 @@ export function ContextMenu({
     } finally {
       setIsCapturing(false);
     }
-  }, [targetElement, containerElement, mergedScreenshotConfig, showPreview]);
+  }, [containerElement, mergedScreenshotConfig, showPreview, targetElement]);
 
   // Reset state when menu closes
   useEffect(() => {
@@ -402,19 +360,16 @@ export function ContextMenu({
   // Apply highlights to target element and container when menu opens
   useEffect(() => {
     if (visible && targetElement) {
-      // Clear any existing highlights first to ensure clean state
       clearHighlights();
-      // Apply highlights to the new target element
       applyHighlights(targetElement, highlightConfig);
     } else {
-      // Clear highlights when menu is not visible
       clearHighlights();
     }
 
     return () => {
       clearHighlights();
     };
-  }, [visible, targetElement, highlightConfig]);
+  }, [highlightConfig, targetElement, visible]);
 
   // Close menu when clicking outside of it
   useEffect(() => {
@@ -426,7 +381,6 @@ export function ContextMenu({
       if (!menuRef.current) return;
 
       const target = event.target as Node;
-      // Don't close if clicking on the drag handle
       if ((target as HTMLElement).closest?.("[data-drag-handle]")) {
         return;
       }
@@ -439,7 +393,7 @@ export function ContextMenu({
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
     };
-  }, [visible, onClose]);
+  }, [onClose, visible]);
 
   // Reset adjusted position when menu opens at new position
   useEffect(() => {
@@ -447,7 +401,7 @@ export function ContextMenu({
       setAdjustedPosition(position);
       setDragOffset({ x: 0, y: 0 });
     }
-  }, [visible, position.x, position.y]);
+  }, [position.x, position.y, visible]);
 
   // Calculate and apply position based on mode
   useEffect(() => {
@@ -462,10 +416,8 @@ export function ContextMenu({
       const baseY = position.y + dragOffset.y;
 
       if (positionMode === "static") {
-        // Static mode: use position directly (may go off-screen)
         setAdjustedPosition({ x: baseX, y: baseY });
       } else if (positionMode === "inView" || positionMode === "dynamic") {
-        // inView and dynamic: keep menu in viewport
         const adjusted = calculateInViewPosition(
           baseX,
           baseY,
@@ -476,13 +428,11 @@ export function ContextMenu({
       }
     };
 
-    // Initial calculation after render
     requestAnimationFrame(updatePosition);
 
-    // Recalculate on resize
     window.addEventListener("resize", updatePosition);
     return () => window.removeEventListener("resize", updatePosition);
-  }, [visible, position, positionMode, dragOffset, currentView]);
+  }, [currentView, dragOffset, position, positionMode, visible]);
 
   // Dragging logic for dynamic mode
   useEffect(() => {
@@ -518,7 +468,7 @@ export function ContextMenu({
         document.removeEventListener("pointercancel", handlePointerUp);
       };
     }
-  }, [visible, positionMode, isDragging]);
+  }, [isDragging, positionMode, visible]);
 
   // Handle drag start
   const handleDragStart = useCallback(
@@ -542,7 +492,6 @@ export function ContextMenu({
           setSelectedType(null);
           setPendingComment(undefined);
         } else if (submenuStack.length > 0) {
-          // Go back one level in submenu
           setSubmenuStack((prev) => prev.slice(0, -1));
         } else {
           onClose();
@@ -554,16 +503,14 @@ export function ContextMenu({
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }
-  }, [visible, currentView, submenuStack.length, onClose]);
+  }, [currentView, onClose, submenuStack.length, visible]);
 
   // Prevent touch default behaviors on menu container
   useEffect(() => {
     const menuElement = menuRef.current;
     if (!visible || !menuElement) return;
 
-    // Prevent touch scrolling and other default behaviors within the menu
     const preventTouchDefault = (e: TouchEvent) => {
-      // Allow touches within interactive elements (inputs, textareas)
       const target = e.target as HTMLElement;
       if (
         target.tagName === "TEXTAREA" ||
@@ -572,7 +519,6 @@ export function ContextMenu({
       ) {
         return;
       }
-      // Prevent default to stop scroll/zoom behaviors
       e.preventDefault();
     };
 
@@ -594,19 +540,17 @@ export function ContextMenu({
       return;
     }
 
-    // If item has children, navigate to submenu
     if (item.children && item.children.length > 0) {
       setSubmenuStack((prev) => [...prev, item.children!]);
       return;
     }
 
-    // Allow custom click handler; if it returns false, skip default flow
     if (item.onClick) {
       try {
         return item.onClick({
-          targetElement,
-          containerElement,
           closeMenu: onClose,
+          containerElement,
+          targetElement,
         });
       } catch (error) {
         console.error("Anyclick menu onClick error:", error);
@@ -614,12 +558,10 @@ export function ContextMenu({
       }
     }
 
-    // Otherwise, handle selection
     if (item.showComment) {
       setSelectedType(item.type);
       setCurrentView("comment");
     } else {
-      // If preview is enabled, capture and show preview
       if (showPreview) {
         setSelectedType(item.type);
         setCurrentView("screenshot-preview");
@@ -637,7 +579,6 @@ export function ContextMenu({
   const handleCommentSubmit = (comment: string) => {
     if (!selectedType) return;
 
-    // If preview is enabled, capture and show preview
     if (showPreview) {
       setPendingComment(comment || undefined);
       setCurrentView("screenshot-preview");
@@ -660,7 +601,6 @@ export function ContextMenu({
   };
 
   const handleScreenshotCancel = () => {
-    // Go back to comment or menu
     if (pendingComment !== undefined) {
       setCurrentView("comment");
     } else {
@@ -674,68 +614,49 @@ export function ContextMenu({
     captureScreenshots();
   };
 
-  // Determine container width based on view
   const containerWidth = currentView === "screenshot-preview" ? 360 : undefined;
-
-  // Debug: Log received style
-  if (process.env.NODE_ENV === "development" && visible) {
-    console.log("[ContextMenu] Style Debug", {
-      styleExists: !!style,
-      styleKeys: style ? Object.keys(style) : [],
-      styleValues: style,
-      className,
-    });
-  }
 
   return (
     <div
       ref={menuRef}
+      aria-label="Feedback options"
       className={className}
+      role="menu"
       style={{
         ...menuStyles.container,
         left: adjustedPosition.x,
         top: adjustedPosition.y,
         ...(containerWidth
-          ? { width: containerWidth, minWidth: containerWidth }
+          ? { minWidth: containerWidth, width: containerWidth }
           : {}),
-        // Touch-specific styles
-        WebkitUserSelect: "none",
+        touchAction: "none",
         userSelect: "none",
         WebkitTouchCallout: "none",
-        touchAction: "none", // Prevent default touch behaviors
-        // Cursor style for dragging
+        WebkitUserSelect: "none",
         ...(isDragging ? { cursor: "grabbing" } : {}),
         ...style,
       }}
-      role="menu"
-      aria-label="Feedback options"
     >
       {!header && currentView !== "screenshot-preview" && (
         <DefaultHeader styles={menuStyles.header} title="Send Feedback">
           {showPreview && (
-            <div style={screenshotIndicatorStyle}>
+            <div style={menuStyles.screenshotIndicator}>
               <CameraIcon className="w-3 h-3" />
             </div>
           )}
           {positionMode === "dynamic" && (
             <div
               data-drag-handle
-              onPointerDown={handleDragStart}
-              style={{
-                cursor: isDragging ? "grabbing" : "grab",
-                padding: "4px",
-                marginRight: "-4px",
-                borderRadius: "4px",
-                display: "flex",
-                alignItems: "center",
-                opacity: 0.5,
-                transition: "opacity 0.15s",
-              }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.opacity = "1";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.opacity = "0.5";
+              }}
+              onPointerDown={handleDragStart}
+              style={{
+                ...menuStyles.dragHandle,
+                cursor: isDragging ? "grabbing" : "grab",
               }}
               title="Drag to move"
             >
@@ -752,10 +673,10 @@ export function ContextMenu({
           {currentItems.map((item) => (
             <MenuItem
               key={item.type}
-              item={item}
-              onClick={() => handleItemClick(item)}
               disabled={isSubmitting}
               hasChildren={item.children && item.children.length > 0}
+              item={item}
+              onClick={() => handleItemClick(item)}
             />
           ))}
         </div>
@@ -763,20 +684,20 @@ export function ContextMenu({
 
       {currentView === "comment" && (
         <CommentForm
-          onSubmit={handleCommentSubmit}
-          onCancel={handleCommentCancel}
           isSubmitting={isSubmitting}
+          onCancel={handleCommentCancel}
+          onSubmit={handleCommentSubmit}
         />
       )}
 
       {currentView === "screenshot-preview" && (
         <ScreenshotPreview
-          screenshots={screenshots}
           isLoading={isCapturing}
-          onConfirm={handleScreenshotConfirm}
-          onCancel={handleScreenshotCancel}
-          onRetake={handleRetakeScreenshots}
           isSubmitting={isSubmitting}
+          onCancel={handleScreenshotCancel}
+          onConfirm={handleScreenshotConfirm}
+          onRetake={handleRetakeScreenshots}
+          screenshots={screenshots}
         />
       )}
     </div>
