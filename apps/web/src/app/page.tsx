@@ -1,30 +1,30 @@
-import Link from "next/link";
 import {
-  MousePointerClick,
-  Code2,
-  Camera,
-  GitBranch,
-  Zap,
-  Layers,
-  ArrowRight,
-  Terminal,
-  Box,
-  Sparkles,
-  TestTube,
-  Target,
-  Users,
-  Palette,
-  Eye,
-  Check,
-  Clock,
-  LucideIcon,
-} from "lucide-react";
-import {
-  HeroCodeBlock,
   CodeBlock,
+  HeroCodeBlock,
   TerminalBlock,
 } from "@/components/CodePreview";
 import roadmapData from "@/data/roadmap-items.json";
+import {
+  ArrowRight,
+  Box,
+  Camera,
+  Check,
+  Clock,
+  Code2,
+  Eye,
+  GitBranch,
+  Layers,
+  LucideIcon,
+  MousePointerClick,
+  Palette,
+  Sparkles,
+  Target,
+  Terminal,
+  TestTube,
+  Users,
+  Zap,
+} from "lucide-react";
+import Link from "next/link";
 
 // Icon mapping for dynamic rendering
 const iconMap: Record<string, LucideIcon> = {
@@ -37,7 +37,10 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 // Color mapping for Tailwind classes
-const colorMap: Record<string, { gradient: string; border: string; text: string; bg: string }> = {
+const colorMap: Record<
+  string,
+  { gradient: string; border: string; text: string; bg: string }
+> = {
   emerald: {
     gradient: "from-emerald-500/20 to-emerald-500/5",
     border: "hover:border-emerald-500/30",
@@ -80,7 +83,10 @@ const colorMap: Record<string, { gradient: string; border: string; text: string;
 function getUpcomingFeaturesForRole(roleKey: string) {
   const tag = `homepage:${roleKey}`;
   return roadmapData.items.filter(
-    (item) => (item.tags as string[])?.includes(tag) && item.status !== "completed" && item.status !== "closed"
+    (item) =>
+      (item.tags as string[])?.includes(tag) &&
+      item.status !== "completed" &&
+      item.status !== "closed",
   );
 }
 
@@ -93,8 +99,14 @@ interface RoleConfig {
   features: Array<{ text: string; available: boolean }>;
 }
 
-// Get roles from roadmap data
-const roles = roadmapData.roles as Record<string, RoleConfig>;
+// Validate and get roles from roadmap data
+function getRoles(): Record<string, RoleConfig> {
+  const raw = roadmapData.roles;
+  if (!raw || typeof raw !== "object") return {};
+  return raw as Record<string, RoleConfig>;
+}
+
+const roles = getRoles();
 
 export default function Home() {
   return (
@@ -304,7 +316,7 @@ export default function RootLayout({ children }) {
               (item) =>
                 item.status !== "completed" &&
                 item.status !== "closed" &&
-                (item.tags as string[])?.some((t) => t.startsWith("homepage:"))
+                (item.tags as string[])?.some((t) => t.startsWith("homepage:")),
             );
             const upcomingTitles = upcomingItems
               .slice(0, 5)
@@ -323,7 +335,10 @@ export default function RootLayout({ children }) {
                       {upcomingTitles}
                       {upcomingItems.length > 5 ? ", and more" : ""}. See
                       what&apos;s next on our{" "}
-                      <Link href="/roadmap" className="text-amber-300 underline">
+                      <Link
+                        href="/roadmap"
+                        className="text-amber-300 underline"
+                      >
                         roadmap
                       </Link>
                       .
