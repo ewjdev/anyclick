@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 /**
  * Cursor Cloud Agent status
@@ -97,9 +97,9 @@ export interface CursorAgentAdapterOptions {
   /** Request timeout in milliseconds (default: 30000) */
   timeout?: number;
   /** Custom prompt formatter */
-  formatPrompt?: (payload: FeedbackPayload) => AgentPrompt;
+  formatPrompt?: (payload: AnyclickPayload) => AgentPrompt;
   /** Custom agent name formatter */
-  formatAgentName?: (payload: FeedbackPayload) => string;
+  formatAgentName?: (payload: AnyclickPayload) => string;
 }
 
 /**

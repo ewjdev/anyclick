@@ -94,6 +94,15 @@ export interface AnyclickMenuItem {
   requiredRoles?: string[];
   /** Child menu items (creates a submenu) */
   children?: AnyclickMenuItem[];
+  /**
+   * Optional click handler for custom behavior.
+   * Return `false` (or a Promise resolving to false) to skip the default submission flow.
+   */
+  onClick?: (context: {
+    targetElement: Element | null;
+    containerElement: Element | null;
+    closeMenu: () => void;
+  }) => void | boolean | Promise<void | boolean>;
 }
 
 /**
@@ -138,13 +147,13 @@ export function filterMenuItemsByRole(
  * Props for the AnyclickProvider component
  */
 export interface AnyclickProviderProps {
-  /** The adapter to use for submitting feedback */
+  /** The adapter to use for submitting anyclick */
   adapter: AnyclickAdapter;
   /** Child components */
   children: ReactNode;
   /**
-   * Filter function to determine if feedback should be captured for a target element
-   * Return true to allow feedback, false to ignore
+   * Filter function to determine if anyclick should be captured for a target element
+   * Return true to allow anyclick, false to ignore
    * Accepts both MouseEvent (right-click) and TouchEvent (press-and-hold)
    */
   targetFilter?: (event: AnyclickTriggerEvent, target: Element) => boolean;
@@ -197,27 +206,22 @@ export interface AnyclickProviderProps {
 }
 
 /**
- * @deprecated Use AnyclickProviderProps instead
- */
-export type FeedbackProviderProps = AnyclickProviderProps;
-
-/**
  * Context value exposed by AnyclickProvider
  */
 export interface AnyclickContextValue {
-  /** Whether feedback is currently enabled */
+  /** Whether anyclick is currently enabled */
   isEnabled: boolean;
   /** Whether a submission is in progress */
   isSubmitting: boolean;
-  /** Submit feedback for a specific element */
-  submitFeedback: (
+  /** Submit anyclick for a specific element */
+  submitAnyclick: (
     element: Element,
     type: AnyclickType,
     comment?: string,
   ) => Promise<void>;
-  /** Open the feedback menu programmatically */
+  /** Open the anyclick menu programmatically */
   openMenu: (element: Element, position: { x: number; y: number }) => void;
-  /** Close the feedback menu */
+  /** Close the anyclick menu */
   closeMenu: () => void;
   /** The current merged theme (inherited from ancestors) */
   theme: AnyclickTheme;

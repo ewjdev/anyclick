@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { FeedbackMenuEvent } from "@ewjdev/anyclick-core";
+import type { AnyclickMenuEvent } from "@ewjdev/anyclick-core";
 import type { AnyclickTheme } from "./types";
 
 /**
@@ -24,7 +24,7 @@ export interface ProviderInstance {
   depth: number;
   /** Handler to call when an event occurs in this provider's scope */
   onContextMenu?: (
-    event: FeedbackMenuEvent,
+    event: AnyclickMenuEvent,
     element: Element,
   ) => boolean | void;
 }
@@ -335,8 +335,8 @@ export function dispatchContextMenuEvent(
   const store = useProviderStore.getState();
   const providers = store.findProvidersForElement(element);
 
-  // Convert MouseEvent to FeedbackMenuEvent
-  const menuEvent: FeedbackMenuEvent = {
+  // Convert MouseEvent to AnyclickMenuEvent
+  const menuEvent: AnyclickMenuEvent = {
     clientX: event.clientX,
     clientY: event.clientY,
     originalEvent: event,

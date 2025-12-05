@@ -1,4 +1,4 @@
-import type { FeedbackPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
 import type { AgentPrompt, AgentPromptImage } from "./types";
 
 /**
@@ -33,7 +33,7 @@ function formatScreenshotMarkdown(
  * Default prompt formatter - converts feedback payload to agent prompt
  * Includes all available screenshots (element, container, viewport)
  */
-export function defaultFormatPrompt(payload: FeedbackPayload): AgentPrompt {
+export function defaultFormatPrompt(payload: AnyclickPayload): AgentPrompt {
   const { type, comment, element, page, screenshots } = payload;
 
   const lines: string[] = [];
@@ -186,7 +186,7 @@ export function defaultFormatPrompt(payload: FeedbackPayload): AgentPrompt {
 /**
  * Default agent name formatter
  */
-export function defaultFormatAgentName(payload: FeedbackPayload): string {
+export function defaultFormatAgentName(payload: AnyclickPayload): string {
   const typeLabels: Record<string, string> = {
     issue: "Fix",
     feature: "Implement",

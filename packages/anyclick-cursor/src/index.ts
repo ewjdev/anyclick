@@ -17,4 +17,4 @@ export type {
 } from "./types";
 
 // Re-export core types for convenience
-export type { FeedbackPayload, FeedbackType } from "@ewjdev/anyclick-core";
+export type { AnyclickPayload, AnyclickType } from "@ewjdev/anyclick-core";

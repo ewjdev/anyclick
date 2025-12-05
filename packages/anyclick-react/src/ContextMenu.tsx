@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import type { ContextMenuProps } from "./types";
 import type { AnyclickType, ScreenshotData } from "@ewjdev/anyclick-core";
-import type { AnyclickMenuItem, MenuPositionMode } from "./types";
+import type { AnyclickMenuItem } from "./types";
 import {
   captureAllScreenshots,
   isScreenshotSupported,
@@ -74,7 +74,7 @@ function MenuItem({
   hasChildren,
 }: {
   item: AnyclickMenuItem;
-  onClick: () => void;
+  onClick: () => void | Promise<any>;
   disabled: boolean;
   hasChildren?: boolean;
 }) {
@@ -545,11 +545,26 @@ export function ContextMenu({
     return null;
   }
 
-  const handleItemClick = (item: AnyclickMenuItem) => {
+  const handleItemClick = async (item: AnyclickMenuItem) => {
     // If item has children, navigate to submenu
     if (item.children && item.children.length > 0) {
       setSubmenuStack((prev) => [...prev, item.children!]);
       return;
+    }
+
+    // Allow custom click handler; if it returns false, skip default flow
+    if (item.onClick) {
+      try {
+        const result = await item.onClick({
+          targetElement,
+          containerElement,
+          closeMenu: onClose,
+        });
+        return result;
+      } catch (error) {
+        console.error("Anyclick menu onClick error:", error);
+        return;
+      }
     }
 
     // Otherwise, handle selection

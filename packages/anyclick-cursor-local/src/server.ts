@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 import { LocalCursorAdapter } from "./localAdapter";
 import type { LocalServerConfig } from "./types";
 
@@ -176,7 +176,7 @@ export function createLocalServer(config: LocalServerConfig = {}): void {
     // Main feedback endpoint
     if (req.url === "/feedback" && req.method === "POST") {
       try {
-        const payload = await readBody<FeedbackPayload>(req);
+        const payload = await readBody<AnyclickPayload>(req);
 
         // Validate payload has required fields
         if (!payload.type || !payload.element || !payload.page) {
