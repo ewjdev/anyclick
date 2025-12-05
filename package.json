@@ -16,7 +16,7 @@
     "build": "turbo run build",
     "changeset": "changeset",
     "clean": "turbo run clean && rm -rf node_modules",
-    "dev": "turbo run dev",
+    "dev": "turbo run dev --concurrency=15",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "release": "turbo run build && changeset publish",
@@ -29,7 +29,7 @@
     "turbo": "^2.5.6"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   },
   "workspaces": [
     "apps/*",
