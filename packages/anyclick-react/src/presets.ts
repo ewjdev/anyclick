@@ -1,5 +1,5 @@
 import type { ScreenshotConfig } from "@ewjdev/anyclick-core";
-import type { AnyclickTheme, ContextMenuItem } from "./types";
+import type { AnyclickTheme, ContextMenuItem, HighlightConfig } from "./types";
 import { CSSProperties } from "react";
 
 export type PresetRole = "qa" | "pm" | "designer" | "developer" | "chrome";
@@ -12,6 +12,7 @@ export interface PresetConfig {
   screenshotConfig?: Partial<ScreenshotConfig>;
   metadata?: Record<string, unknown>;
   theme?: AnyclickTheme;
+  highlightConfig?: HighlightConfig;
 }
 
 export interface CreatePresetMenuOptions {
@@ -272,6 +273,9 @@ const presetDefaults: Record<PresetRole, PresetConfig> = {
       enabled: false,
     },
     theme: {
+      highlightConfig: {
+        enabled: false,
+      },
       menuStyle: {
         // Chrome-like palette, hover, and muted text to match the native menu
         "--anyclick-menu-bg": "#202124",

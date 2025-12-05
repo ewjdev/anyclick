@@ -184,6 +184,7 @@ export default function RolePresetsClient() {
               menuItems={preset.menuItems}
               metadata={{ preset: role.id }}
               screenshotConfig={preset.screenshotConfig}
+              highlightConfig={preset.highlightConfig}
               theme={preset.theme}
               header={<></>}
               scoped
