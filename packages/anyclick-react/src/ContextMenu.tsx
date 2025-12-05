@@ -27,13 +27,10 @@ const VIEWPORT_PADDING = 10;
 
 const screenshotIndicatorStyle: React.CSSProperties = {
   display: "flex",
-  alignItems: "center",
-  gap: "6px",
-  padding: "8px 12px",
-  fontSize: "11px",
-  color: "var(--anyclick-menu-text-muted, #9ca3af)",
-  borderTop: "1px solid var(--anyclick-menu-border, #f3f4f6)",
-  marginTop: "4px",
+  marginLeft: "4px",
+  opacity: 0.7,
+  justifyContent: "flex-end",
+  flex: 1,
 };
 
 /**
@@ -665,6 +662,11 @@ export function ContextMenu({
     >
       {!header && currentView !== "screenshot-preview" && (
         <DefaultHeader styles={menuStyles.header} title="Send Feedback">
+          {showPreview && (
+            <div style={screenshotIndicatorStyle}>
+              <CameraIcon className="w-3 h-3" />
+            </div>
+          )}
           {positionMode === "dynamic" && (
             <div
               data-drag-handle
@@ -706,12 +708,6 @@ export function ContextMenu({
               hasChildren={item.children && item.children.length > 0}
             />
           ))}
-          {showPreview && (
-            <div style={screenshotIndicatorStyle}>
-              <CameraIcon className="w-3 h-3" />
-              <span>Screenshots will be captured</span>
-            </div>
-          )}
         </div>
       )}
 

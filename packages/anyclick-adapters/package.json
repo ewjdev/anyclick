@@ -1,0 +1,60 @@
+{
+  "name": "@ewjdev/anyclick-adapters",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Adapters for Anyclick that are experimental or niche, including custom cursor/game mode helpers.",
+  "keywords": [
+    "anyclick",
+    "adapter",
+    "experimental",
+    "cursor",
+    "pointer"
+  ],
+  "license": "MIT",
+  "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-adapters"
+  },
+  "homepage": "https://anyclick.ewj.dev/docs/adapters",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
+  },
+  "dependencies": {
+    "@ewjdev/anyclick-pointer": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.2.0",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

@@ -3,14 +3,10 @@
 import Link from "next/link";
 import { AnyclickProvider, AnyclickMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createGameModeAdapter } from "@ewjdev/anyclick-adapters";
+import { usePointer } from "@ewjdev/anyclick-pointer";
 import { CodeBlock } from "@/components/CodePreview";
-import {
-  ArrowRight,
-  Car,
-  Keyboard,
-  MousePointer2,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Car, Keyboard, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const demoAdapter = createHttpAdapter({
@@ -18,6 +14,7 @@ const demoAdapter = createHttpAdapter({
 });
 
 export default function PointerModesPage() {
+  const { setConfig } = usePointer();
   const [funEnabled, setFunEnabled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({
@@ -25,6 +22,38 @@ export default function PointerModesPage() {
     y: 0,
   });
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const gameModeAdapter = useMemo(
+    () =>
+      createGameModeAdapter({
+        warnMessage:
+          "[Anyclick] Pointer Modes (Fun) are experimental. Expect changes and report issues.",
+        trackElement: () => trackRef.current,
+        obstacles: () => {
+          const trackEl = trackRef.current;
+          if (!trackEl) return [];
+          const rects: DOMRect[] = [];
+          trackEl
+            .querySelectorAll<HTMLElement>("[data-obstacle]")
+            .forEach((el) => {
+              rects.push(el.getBoundingClientRect());
+            });
+          return rects;
+        },
+      }),
+    [],
+  );
+
+  // Toggle adapter on/off based on selection
+  useEffect(() => {
+    if (funEnabled) {
+      gameModeAdapter.activate({ setConfig });
+    } else {
+      gameModeAdapter.deactivate?.({ setConfig });
+    }
+    return () => {
+      gameModeAdapter.deactivate?.({ setConfig });
+    };
+  }, [funEnabled, gameModeAdapter, setConfig]);
 
   // Close menu on outside click
   useEffect(() => {
@@ -121,7 +150,6 @@ export default function PointerModesPage() {
         <AnyclickProvider
           adapter={demoAdapter}
           scoped
-          theme={{ funMode: funEnabled }}
           menuItems={menuItems}
           menuPositionMode="inView"
         >
@@ -152,6 +180,7 @@ export default function PointerModesPage() {
               ].map((label) => (
                 <div
                   key={label}
+                  data-obstacle
                   className="rounded-xl border border-white/10 bg-white/5 px-3 py-4 backdrop-blur-sm shadow-sm"
                 >
                   {label}
@@ -179,17 +208,16 @@ export default function PointerModesPage() {
               done in this docs site).
             </li>
             <li>
-              <span className="text-pink-300">2.</span> Mark a scoped{" "}
-              <code className="text-cyan-400">AnyclickProvider</code> with{" "}
-              <code className="text-cyan-400">
-                theme={`{ funMode: userSelected }`}
-              </code>
+              <span className="text-pink-300">2.</span> Use the{" "}
+              <code className="text-cyan-400">createGameModeAdapter</code> from{" "}
+              <code className="text-cyan-400">@ewjdev/anyclick-adapters</code>{" "}
+              to toggle fun mode via{" "}
+              <code className="text-cyan-400">setConfig</code> and provide
+              track/obstacle resolvers.
             </li>
             <li>
-              <span className="text-pink-300">3.</span> The bridge switches the
-              pointer to{" "}
-              <code className="text-cyan-400">mode=&quot;fun&quot;</code> only
-              while the cursor is inside that scoped area.
+              <span className="text-pink-300">3.</span> Toggle it from UI (menu
+              or hover) to turn the go-kart cursor on/off in the scoped area.
             </li>
           </ul>
         </div>
@@ -208,17 +236,50 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 }`}</CodeBlock>
 
-        <CodeBlock filename="app/examples/modes/page.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/examples/modes/page.tsx">{`import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createGameModeAdapter } from '@ewjdev/anyclick-adapters';
+import { usePointer } from '@ewjdev/anyclick-pointer';
 
 const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 
 export default function ModesExample() {
+  const { setConfig } = usePointer();
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [funEnabled, setFunEnabled] = useState(false);
+
+  const gameModeAdapter = useMemo(
+    () =>
+      createGameModeAdapter({
+        trackElement: () => trackRef.current,
+        obstacles: () =>
+          Array.from(trackRef.current?.querySelectorAll('[data-obstacle]') ?? []).map(
+            (el) => el.getBoundingClientRect(),
+          ),
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    if (funEnabled) {
+      gameModeAdapter.activate({ setConfig });
+    } else {
+      gameModeAdapter.deactivate?.({ setConfig });
+    }
+  }, [funEnabled, gameModeAdapter, setConfig]);
+
   return (
-    <AnyclickProvider adapter={adapter} scoped theme={{ funMode: true }}>
-      <div className="p-6 rounded-2xl border border-pink-500/30 bg-pink-500/5">
-        Drive me with WASD/arrow keys. The track is this scoped provider,
-        and collisions bounce off siblings/children.
+    <AnyclickProvider adapter={adapter} scoped>
+      <div
+        ref={trackRef}
+        data-obstacle
+        className="p-6 rounded-2xl border border-pink-500/30 bg-pink-500/5"
+        onMouseEnter={() => setFunEnabled(true)}
+        onMouseLeave={() => setFunEnabled(false)}
+      >
+        Drive me with WASD/arrow keys. The track is this scoped provider, and obstacles
+        are any elements with data-obstacle.
       </div>
     </AnyclickProvider>
   );

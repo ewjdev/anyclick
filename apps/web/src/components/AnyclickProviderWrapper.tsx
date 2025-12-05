@@ -56,7 +56,7 @@ const allMenuItems: AnyclickMenuItem[] = [
 ];
 
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
-  const userContext = {};
+  const userContext = useMemo(() => ({}), []);
   // Filter menu items based on user roles
   const menuItems = useMemo(() => {
     return filterMenuItemsByRole(allMenuItems, userContext);

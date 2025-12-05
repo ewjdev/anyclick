@@ -60,6 +60,7 @@ export function AnyclickProvider({
   menuClassName,
   disabled = false,
   highlightConfig,
+  header,
   screenshotConfig,
   scoped = false,
   theme,
@@ -551,6 +552,7 @@ export function AnyclickProvider({
         className={effectiveMenuClassName}
         highlightConfig={effectiveHighlightConfig}
         screenshotConfig={effectiveScreenshotConfig}
+        header={header}
       />
     </AnyclickContext.Provider>
   );

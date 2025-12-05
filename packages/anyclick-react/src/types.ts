@@ -147,6 +147,8 @@ export function filterMenuItemsByRole(
  * Props for the AnyclickProvider component
  */
 export interface AnyclickProviderProps {
+  /** Header content */
+  header?: ReactNode | null;
   /** The adapter to use for submitting anyclick */
   adapter: AnyclickAdapter;
   /** Child components */
