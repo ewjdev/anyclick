@@ -50,3 +50,15 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Update roadmap releases data
+        if: steps.changesets.outputs.published == 'true'
+        run: node scripts/update-releases-json.mjs
+
+      - name: Commit releases.json updates
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add apps/web/src/data/releases.json
+          git diff --staged --quiet || git commit -m "chore: update roadmap releases data"
+          git push
