@@ -1,5 +1,17 @@
 # @ewjdev/anyclick-react
 
+## 1.2.0
+
+### Minor Changes
+
+- Add experimental adapters package with a game mode adapter, integrate fun-mode toggling via pointer config, and update examples/docs to use the new adapter flow.
+
+### Patch Changes
+
+- Updated dependencies
+  - @ewjdev/anyclick-core@1.2.0
+  - @ewjdev/anyclick-pointer@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes

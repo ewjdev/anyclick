@@ -1,4 +1,4 @@
-import type { FeedbackPayload, FeedbackType, PageContext } from "./types";
+import type { AnyclickPayload, AnyclickType, PageContext } from "./types";
 import { buildElementContext } from "./dom";
 
 /**
@@ -36,11 +36,11 @@ export function buildPageContext(): PageContext {
 }
 
 /**
- * Build a complete FeedbackPayload from an element and feedback type
+ * Build a complete AnyclickPayload from an element and anyclick type
  */
-export function buildFeedbackPayload(
+export function buildAnyclickPayload(
   element: Element,
-  type: FeedbackType,
+  type: AnyclickType,
   options: {
     comment?: string;
     metadata?: Record<string, unknown>;
@@ -49,7 +49,7 @@ export function buildFeedbackPayload(
     maxAncestors?: number;
     stripAttributes?: string[];
   } = {},
-): FeedbackPayload {
+): AnyclickPayload {
   const { comment, metadata, ...elementOptions } = options;
 
   return {

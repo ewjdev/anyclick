@@ -1,5 +1,5 @@
 import type {
-  FeedbackPayload,
+  AnyclickPayload,
   ScreenshotData,
   ScreenshotCapture,
 } from "@ewjdev/anyclick-core";
@@ -20,8 +20,8 @@ export class GitHubAdapter {
   private owner: string;
   private repo: string;
   private defaultLabels: string[];
-  private formatTitle: (payload: FeedbackPayload) => string;
-  private formatBody: (payload: FeedbackPayload) => string;
+  private formatTitle: (payload: AnyclickPayload) => string;
+  private formatBody: (payload: AnyclickPayload) => string;
   private apiBaseUrl: string;
   private mediaBranch: string;
   private assetsPath: string;
@@ -183,7 +183,7 @@ Validation failed. This could mean:
    * Create a GitHub issue from a feedback payload
    * If screenshots are present, uploads them to the media branch first
    */
-  async createIssue(payload: FeedbackPayload): Promise<GitHubIssueResult> {
+  async createIssue(payload: AnyclickPayload): Promise<GitHubIssueResult> {
     let processedPayload = payload;
     let submissionId: string | undefined;
 

@@ -1,7 +1,7 @@
 {
   "name": "anyclick",
   "private": true,
-  "description": "Why not click on anything? - capture DOM context, screenshots, and integrate with GitHub Issues or AI coding agents",
+  "description": "Why not click on everything? - capture DOM context, screenshots, and integrate with GitHub Issues or AI coding agents",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git"

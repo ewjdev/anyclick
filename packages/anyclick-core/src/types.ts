@@ -1,13 +1,13 @@
 /**
- * Built-in feedback types
+ * Built-in anyclick types
  */
-export type BuiltInFeedbackType = "issue" | "feature" | "like";
+export type AnyclickBuiltInType = "issue" | "feature" | "like";
 
 /**
- * Type of feedback the user is submitting
+ * Type of anyclick the user is submitting
  * Supports built-in types and custom string types for extensibility
  */
-export type FeedbackType = BuiltInFeedbackType | (string & {});
+export type AnyclickType = AnyclickBuiltInType | (string & {});
 
 /**
  * Information about a single ancestor element in the DOM hierarchy
@@ -53,7 +53,7 @@ export interface ElementContext {
 }
 
 /**
- * Page-level context at the time of feedback
+ * Page-level context at the time of anyclick
  */
 export interface PageContext {
   /** Current URL */
@@ -175,9 +175,9 @@ export const DEFAULT_SENSITIVE_SELECTORS: string[] = [
 /**
  * The complete payload sent to the adapter
  */
-export interface FeedbackPayload {
-  /** Type of feedback */
-  type: FeedbackType;
+export interface AnyclickPayload {
+  /** Type of anyclick */
+  type: AnyclickType;
   /** Optional user comment */
   comment?: string;
   /** Element context */
@@ -191,47 +191,47 @@ export interface FeedbackPayload {
 }
 
 /**
- * Adapter interface for submitting feedback to any backend
+ * Adapter interface for submitting anyclick to any backend
  */
-export interface FeedbackAdapter {
+export interface AnyclickAdapter {
   /**
-   * Submit feedback payload to the backend
-   * @returns Promise that resolves when feedback is submitted
+   * Submit anyclick payload to the backend
+   * @returns Promise that resolves when anyclick is submitted
    */
-  submitFeedback(payload: FeedbackPayload): Promise<void>;
+  submitAnyclick(payload: AnyclickPayload): Promise<void>;
 }
 
 /**
- * Event types that can trigger the feedback context menu
+ * Event types that can trigger the anyclick context menu
  */
-export type FeedbackTriggerEvent = MouseEvent | TouchEvent;
+export type AnyclickTriggerEvent = MouseEvent | TouchEvent;
 
 /**
  * Synthetic event with position information for context menu positioning
  * Used to normalize mouse and touch events
  */
-export interface FeedbackMenuEvent {
+export interface AnyclickMenuEvent {
   /** Client X position (viewport coordinates) */
   clientX: number;
   /** Client Y position (viewport coordinates) */
   clientY: number;
   /** The original event that triggered the menu */
-  originalEvent: FeedbackTriggerEvent;
+  originalEvent: AnyclickTriggerEvent;
   /** Whether this was triggered by touch (press-and-hold) */
   isTouch: boolean;
 }
 
 /**
- * Configuration options for the FeedbackClient
+ * Configuration options for the AnyclickClient
  */
-export interface FeedbackClientOptions {
-  /** The adapter to use for submitting feedback */
-  adapter: FeedbackAdapter;
+export interface AnyclickClientOptions {
+  /** The adapter to use for submitting anyclick */
+  adapter: AnyclickAdapter;
   /**
-   * Filter function to determine if feedback should be captured for a target element
-   * Return true to allow feedback, false to ignore
+   * Filter function to determine if anyclick should be captured for a target element
+   * Return true to allow anyclick, false to ignore
    */
-  targetFilter?: (event: FeedbackTriggerEvent, target: Element) => boolean;
+  targetFilter?: (event: AnyclickTriggerEvent, target: Element) => boolean;
   /** Maximum length for innerText capture */
   maxInnerTextLength?: number;
   /** Maximum length for outerHTML capture */
@@ -255,18 +255,18 @@ export interface FeedbackClientOptions {
 }
 
 /**
- * Result of a feedback submission attempt
+ * Result of a anyclick submission attempt
  */
-export interface FeedbackResult {
+export interface AnyclickResult {
   success: boolean;
   error?: Error;
 }
 
 /**
- * Event fired when feedback is about to be submitted
+ * Event fired when anyclick is about to be submitted
  */
-export interface FeedbackEvent {
-  type: FeedbackType;
+export interface AnyclickEvent {
+  type: AnyclickType;
   element: Element;
-  payload: FeedbackPayload;
+  payload: AnyclickPayload;
 }

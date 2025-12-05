@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 /**
  * Options for the HTTP adapter (browser-side)
@@ -11,7 +11,7 @@ export interface HttpAdapterOptions {
   /** HTTP method to use (defaults to POST) */
   method?: "POST" | "PUT";
   /** Transform the payload before sending (e.g., add auth tokens) */
-  transformPayload?: (payload: FeedbackPayload) => Record<string, unknown>;
+  transformPayload?: (payload: AnyclickPayload) => Record<string, unknown>;
   /** Request timeout in milliseconds */
   timeout?: number;
 }
@@ -29,9 +29,9 @@ export interface GitHubAdapterOptions {
   /** Optional: Default labels to add to issues */
   defaultLabels?: string[];
   /** Optional: Transform payload to custom issue title */
-  formatTitle?: (payload: FeedbackPayload) => string;
+  formatTitle?: (payload: AnyclickPayload) => string;
   /** Optional: Transform payload to custom issue body */
-  formatBody?: (payload: FeedbackPayload) => string;
+  formatBody?: (payload: AnyclickPayload) => string;
   /** Optional: GitHub API base URL (for GitHub Enterprise) */
   apiBaseUrl?: string;
   /** Optional: Branch to store screenshot assets (default: 'issues/src') */

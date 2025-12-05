@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 /**
  * Execution mode for cursor-agent
@@ -23,7 +23,7 @@ export interface LocalCursorAdapterOptions {
   /** Model to use (optional, uses cursor default if not specified) */
   model?: string;
   /** Custom prompt formatter */
-  formatPrompt?: (payload: FeedbackPayload) => string;
+  formatPrompt?: (payload: AnyclickPayload) => string;
   /** Timeout for print mode execution in milliseconds (default: 300000 = 5 min) */
   timeout?: number;
 }

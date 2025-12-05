@@ -1,5 +1,11 @@
 # @ewjdev/anyclick-core
 
+## 1.2.0
+
+### Minor Changes
+
+- Add experimental adapters package with a game mode adapter, integrate fun-mode toggling via pointer config, and update examples/docs to use the new adapter flow.
+
 ## 1.1.1
 
 ### Patch Changes
@@ -22,7 +28,7 @@
 
 ### API Changes
 
-- `FeedbackClient.onContextMenu` callback signature updated to `(event: MouseEvent, element: Element) => boolean | void`
+- `AnyclickClient.onContextMenu` callback signature updated to `(event: MouseEvent, element: Element) => boolean | void`
   - Return `false` to allow native context menu (e.g., for disabled scopes)
   - Return `true` or `void` to prevent native menu and show custom menu
 

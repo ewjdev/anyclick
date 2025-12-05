@@ -2,10 +2,11 @@
 
 import {
   AnyclickProvider,
+  FunModeBridge,
   filterMenuItemsByRole,
 } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import type { FeedbackMenuItem } from "@ewjdev/anyclick-react";
+import type { AnyclickMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
 import type { ReactNode } from "react";
@@ -22,7 +23,7 @@ const isDev = process.env.NODE_ENV === "development";
 /**
  * All available menu items with role requirements
  */
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: AnyclickMenuItem[] = [
   { type: "issue", label: "Report an issue", showComment: true },
   { type: "feature", label: "Request a feature", showComment: true },
   { type: "like", label: "I like this!", showComment: false },
@@ -55,7 +56,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 ];
 
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
-  const userContext = {};
+  const userContext = useMemo(() => ({}), []);
   // Filter menu items based on user roles
   const menuItems = useMemo(() => {
     return filterMenuItemsByRole(allMenuItems, userContext);
@@ -101,6 +102,7 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
           hideDefaultCursor: true,
         }}
       >
+        <FunModeBridge />
         {children}
       </PointerProvider>
     </AnyclickProvider>

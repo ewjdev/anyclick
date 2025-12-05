@@ -1,16 +1,16 @@
-import type { FeedbackAdapter, FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickAdapter, AnyclickPayload } from "@ewjdev/anyclick-core";
 import type { HttpAdapterOptions } from "./types";
 
 /**
  * HTTP adapter for browser-side usage
- * Sends feedback payloads to your backend endpoint
+ * Sends anyclick payloads to your backend endpoint
  */
-export class HttpAdapter implements FeedbackAdapter {
+export class HttpAdapter implements AnyclickAdapter {
   private endpoint: string;
   private headers: Record<string, string>;
   private method: "POST" | "PUT";
   private transformPayload?: (
-    payload: FeedbackPayload,
+    payload: AnyclickPayload,
   ) => Record<string, unknown>;
   private timeout: number;
 
@@ -25,7 +25,7 @@ export class HttpAdapter implements FeedbackAdapter {
     this.timeout = options.timeout ?? 10000;
   }
 
-  async submitFeedback(payload: FeedbackPayload): Promise<void> {
+  async submitAnyclick(payload: AnyclickPayload): Promise<void> {
     const body = this.transformPayload
       ? this.transformPayload(payload)
       : payload;

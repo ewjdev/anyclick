@@ -496,6 +496,30 @@ Check that `hideDefaultCursor: true` is set and no other CSS is overriding `curs
 
 Some elements with very high z-index may appear above the pointer. Adjust the pointer's `zIndex` accordingly.
 
+## Fun mode (go-kart cursor)
+
+Opt into a playful go-kart cursor with keyboard controls and collision against the scoped container:
+
+```tsx
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
+import { AnyclickProvider, FunModeBridge } from "@ewjdev/anyclick-react";
+
+function App() {
+  return (
+    <PointerProvider>
+      <AnyclickProvider adapter={adapter} scoped theme={{ funMode: true }}>
+        <FunModeBridge />
+        {/* children inside this scoped provider become the track */}
+      </AnyclickProvider>
+    </PointerProvider>
+  );
+}
+```
+
+- Keyboard: WASD/arrow keys steer and accelerate the kart.
+- Collision: kart stays inside the scoped provider and bumps off siblings/children.
+- Opt-in: set `theme.funMode` on a scoped provider; the bridge toggles the pointer to `mode="fun"` only while inside that scope.
+
 ## License
 
 MIT

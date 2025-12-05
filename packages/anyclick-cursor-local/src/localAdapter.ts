@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 import type {
   LocalCursorAdapterOptions,
   LocalCursorResult,
@@ -20,7 +20,7 @@ export class LocalCursorAdapter {
   private outputFormat: OutputFormat;
   private model?: string;
   private timeout: number;
-  private formatPrompt: (payload: FeedbackPayload) => string;
+  private formatPrompt: (payload: AnyclickPayload) => string;
 
   constructor(options: LocalCursorAdapterOptions = {}) {
     this.workingDirectory = options.workingDirectory ?? process.cwd();
@@ -34,7 +34,7 @@ export class LocalCursorAdapter {
   /**
    * Run cursor-agent with the feedback payload
    */
-  async runAgent(payload: FeedbackPayload): Promise<LocalCursorResult> {
+  async runAgent(payload: AnyclickPayload): Promise<LocalCursorResult> {
     const prompt = this.formatPrompt(payload);
 
     if (this.mode === "interactive") {

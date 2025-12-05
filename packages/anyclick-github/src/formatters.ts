@@ -1,9 +1,9 @@
-import type { FeedbackPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
 
 /**
  * Default title formatter for GitHub issues
  */
-export function defaultFormatTitle(payload: FeedbackPayload): string {
+export function defaultFormatTitle(payload: AnyclickPayload): string {
   const typeLabels: Record<string, string> = {
     issue: "🐛 Bug Report",
     feature: "✨ Feature Request",
@@ -50,7 +50,7 @@ function formatBytes(bytes: number): string {
  * Default body formatter for GitHub issues
  * Includes element and container screenshots if available
  */
-export function defaultFormatBody(payload: FeedbackPayload): string {
+export function defaultFormatBody(payload: AnyclickPayload): string {
   const lines: string[] = [];
 
   // Header
