@@ -35,10 +35,22 @@ export type {
   FeedbackUserContext,
   ScreenshotPreviewProps,
   MenuPositionMode,
+  FeedbackMenuBadge,
+  FeedbackMenuStatus,
 } from "./types";
 
 // Types (deprecated, for backward compatibility)
 export type { FeedbackProviderProps, FeedbackContextValue } from "./types";
+
+// Presets
+export {
+  createPresetMenu,
+  listPresets,
+  presetDefaults,
+  type PresetRole,
+  type PresetConfig,
+  type CreatePresetMenuOptions,
+} from "./presets";
 
 // Utilities
 export { filterMenuItemsByRole } from "./types";

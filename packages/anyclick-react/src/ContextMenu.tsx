@@ -64,12 +64,50 @@ function MenuItem({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const isComingSoon = item.status === "comingSoon";
+  const badgeLabel = item.badge?.label ?? (isComingSoon ? "Coming soon" : null);
+  const badgeTone = item.badge?.tone ?? (isComingSoon ? "neutral" : "neutral");
+
+  const badgeStyle: React.CSSProperties | undefined = badgeLabel
+    ? {
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "2px 6px",
+        borderRadius: "9999px",
+        fontSize: "10px",
+        lineHeight: 1.2,
+        backgroundColor:
+          badgeTone === "warning"
+            ? "rgba(251, 191, 36, 0.15)"
+            : badgeTone === "info"
+              ? "rgba(59, 130, 246, 0.15)"
+              : badgeTone === "success"
+                ? "rgba(34, 197, 94, 0.15)"
+                : "rgba(148, 163, 184, 0.15)",
+        color:
+          badgeTone === "warning"
+            ? "#fbbf24"
+            : badgeTone === "info"
+              ? "#60a5fa"
+              : badgeTone === "success"
+                ? "#4ade80"
+                : "#cbd5e1",
+        border:
+          badgeTone === "warning"
+            ? "1px solid rgba(251, 191, 36, 0.3)"
+            : badgeTone === "info"
+              ? "1px solid rgba(59, 130, 246, 0.3)"
+              : badgeTone === "success"
+                ? "1px solid rgba(34, 197, 94, 0.3)"
+                : "1px solid rgba(148, 163, 184, 0.3)",
+      }
+    : undefined;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || isComingSoon}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
         setIsHovered(false);
@@ -95,7 +133,10 @@ function MenuItem({
       <span style={menuStyles.itemIcon}>
         {item.icon ?? defaultIcons[item.type]}
       </span>
-      <span style={{ flex: 1 }}>{item.label}</span>
+      <span style={{ flex: 1, display: "inline-flex", alignItems: "center", gap: "8px" }}>
+        {item.label}
+        {badgeLabel && <span style={badgeStyle}>{badgeLabel}</span>}
+      </span>
       {hasChildren && (
         <ChevronRightIcon
           className="w-4 h-4"
@@ -528,6 +569,10 @@ export function ContextMenu({
   }
 
   const handleItemClick = (item: FeedbackMenuItem) => {
+    if (item.status === "comingSoon") {
+      return;
+    }
+
     // If item has children, navigate to submenu
     if (item.children && item.children.length > 0) {
       setSubmenuStack((prev) => [...prev, item.children!]);

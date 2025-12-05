@@ -188,6 +188,33 @@ const userContext = { roles: ["user", "developer"] };
 const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
 ```
 
+## Role-Based Presets
+
+Skip hand-authoring menus by pulling in a preset for common roles. Coming-soon actions stay visible with a badge but are disabled by default.
+
+```tsx
+import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
+
+const qaPreset = createPresetMenu("qa");
+// Or: listPresets() to show available roles, createPresetMenu("developer", { includeComingSoon: false })
+
+<AnyclickProvider
+  adapter={adapter}
+  menuItems={qaPreset.menuItems}
+  screenshotConfig={qaPreset.screenshotConfig}
+  metadata={qaPreset.metadata}
+  theme={qaPreset.theme}
+>
+  {children}
+</AnyclickProvider>;
+```
+
+Preset defaults (examples):
+- QA: bug / repro / UX papercut + “Performance trace” (coming soon)
+- PM: feature idea / UX papercut + “Impact sizing” (coming soon)
+- Designer: visual bug / accessibility + “Motion glitch” (coming soon)
+- Developer: bug / refactor + diagnostics submenu (console/network traces marked coming soon)
+
 ## Highlight Configuration
 
 ```tsx

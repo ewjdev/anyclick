@@ -73,11 +73,30 @@ export interface FeedbackMenuItem {
   icon?: ReactNode;
   /** Whether to show a comment input for this type */
   showComment?: boolean;
+  /** Optional status to signal availability (e.g., coming soon) */
+  status?: FeedbackMenuStatus;
+  /** Optional badge to render next to the label */
+  badge?: FeedbackMenuBadge;
   /** Optional role(s) required to see this menu item */
   requiredRoles?: string[];
   /** Child menu items (creates a submenu) */
   children?: FeedbackMenuItem[];
 }
+
+/**
+ * Visual badge for menu items
+ */
+export interface FeedbackMenuBadge {
+  /** Text shown inside the badge */
+  label: string;
+  /** Optional tone to drive styling */
+  tone?: "neutral" | "info" | "warning" | "success";
+}
+
+/**
+ * Status of a menu item used for presets (e.g., coming soon)
+ */
+export type FeedbackMenuStatus = "available" | "comingSoon";
 
 /**
  * User context for role-based menu filtering
