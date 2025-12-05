@@ -55,7 +55,7 @@ import {
   RotateCcw,
   History,
 } from "lucide-react";
-import ElementHierarchyNav from "./ElementHierarchyNav";
+import ElementHierarchyNav, { isBlacklisted } from "./ElementHierarchyNav";
 
 /**
  * Types of style origins
@@ -2506,8 +2506,9 @@ export function InspectDialog({
               isCompact={isCompact}
             />
 
-            {/* Scrollable Content */}
-            <div style={inspectStyles.content}>
+            {/* Scrollable Content - only show for non-blacklisted elements */}
+            {!isBlacklisted(targetElement) && (
+              <div style={inspectStyles.content}>
               {/* Quick Info */}
               <Section title="Layout" icon={<Box size={14} />} defaultOpen>
                 <PropertyRow
@@ -2619,7 +2620,8 @@ export function InspectDialog({
                   />
                 </Section>
               )}
-            </div>
+              </div>
+            )}
 
             {/* Actions Footer */}
             <div

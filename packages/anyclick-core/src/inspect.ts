@@ -502,6 +502,38 @@ function truncateString(str: string, maxLength: number): string {
   return str.slice(0, maxLength) + "...";
 }
 
+/**
+ * Check if a class name is a utility class (Tailwind, Bootstrap, etc.)
+ * These are typically unstable and should be avoided in selectors
+ */
+function isUtilityClass(className: string): boolean {
+  // Tailwind-style utility patterns
+  const utilityPatterns = [
+    /^(p|m|pt|pr|pb|pl|px|py|mt|mr|mb|ml|mx|my)-/, // spacing
+    /^(w|h|min-w|min-h|max-w|max-h)-/, // sizing
+    /^(text|font|leading|tracking|text-)-/, // typography
+    /^(bg|border|ring|shadow|outline)-/, // colors/borders
+    /^(flex|grid|inline|block|hidden|visible)-/, // display
+    /^(absolute|relative|fixed|sticky|static)$/, // position
+    /^(top|right|bottom|left|inset)-/, // position values
+    /^(rounded|opacity|cursor|pointer|select)-/, // misc utilities
+    /^(hover|focus|active|disabled|group):/, // state modifiers
+    /^(sm|md|lg|xl|2xl):/, // breakpoint modifiers
+    /^\[.*\]$/, // arbitrary values like bg-[#000]
+  ];
+
+  return utilityPatterns.some((pattern) => pattern.test(className));
+}
+
+/**
+ * Get meaningful classes for selector (non-utility classes)
+ */
+function getMeaningfulClasses(element: Element): string[] {
+  return Array.from(element.classList)
+    .filter((c) => !isUtilityClass(c))
+    .slice(0, 2); // Max 2 meaningful classes
+}
+
 function generateUniqueSelector(element: Element): string {
   if (element.id) {
     return `#${CSS.escape(element.id)}`;
@@ -523,9 +555,10 @@ function generateUniqueSelector(element: Element): string {
       break;
     }
 
-    const classes = Array.from(current.classList).slice(0, 2);
-    if (classes.length > 0) {
-      selector += classes.map((c) => `.${CSS.escape(c)}`).join("");
+    // Only include meaningful classes (not utility classes)
+    const meaningfulClasses = getMeaningfulClasses(current);
+    if (meaningfulClasses.length > 0) {
+      selector += meaningfulClasses.map((c) => `.${CSS.escape(c)}`).join("");
     }
 
     const parent = current.parentElement;

@@ -122,11 +122,11 @@ export function openInIDE(
 
   try {
     const url = buildIDEUrl(location, config);
-    
+
     // Use window.open with a short timeout to avoid popup blockers
     // The protocol handler should intercept this
     window.location.href = url;
-    
+
     return true;
   } catch (error) {
     console.error("Failed to open file in IDE:", error);
@@ -144,7 +144,7 @@ export function isIDEProtocolSupported(): boolean {
   // Protocol handlers are generally supported on desktop browsers
   // but not on mobile or in some restricted environments
   const userAgent = navigator.userAgent.toLowerCase();
-  
+
   // Mobile browsers generally don't support custom protocol handlers well
   if (/mobile|android|iphone|ipad/i.test(userAgent)) {
     return false;
@@ -163,7 +163,7 @@ export function detectPreferredIDE(): IDEProtocol {
   // Check for Cursor-specific indicators
   // Cursor sets some specific user agent or environment hints
   const userAgent = navigator.userAgent;
-  
+
   // For now, default to Cursor since this is the anyclick project
   // In production, this could be enhanced with better detection
   return "cursor";
@@ -252,4 +252,3 @@ export function formatSourceLocation(location: SourceLocation): string {
   }
   return `${file}:${line}`;
 }
-

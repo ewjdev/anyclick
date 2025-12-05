@@ -8,7 +8,7 @@ import CopyButton from "../CopyButton";
  */
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: "10px 12px",
+    padding: "8px 8px",
     borderBottom: "1px solid #333",
     backgroundColor: "#1a1a1a",
     fontFamily: 'Menlo, Monaco, "Courier New", monospace',
@@ -16,23 +16,31 @@ const styles: Record<string, React.CSSProperties> = {
   line: {
     display: "flex",
     alignItems: "center",
-    padding: "4px 8px",
-    margin: "2px 0",
-    borderRadius: "4px",
+    padding: "2px 4px",
+    margin: "1px 0",
+    borderRadius: "3px",
     cursor: "pointer",
     transition: "background-color 0.15s ease",
+    userSelect: "none" as const,
+    fontSize: "13px",
+    lineHeight: "20px",
+    minHeight: "24px",
+    maxHeight: "24px",
+    overflow: "hidden",
+    whiteSpace: "nowrap" as const,
   },
   lineHover: {
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    outline: "1px solid rgba(86, 156, 214, 0.3)",
   },
   lineCurrent: {
     backgroundColor: "rgba(86, 156, 214, 0.15)",
     borderLeft: "2px solid #569cd6",
-    paddingLeft: "6px",
+    // paddingLeft: "2px",
   },
   lineDisabled: {
-    opacity: 0.5,
-    cursor: "not-allowed",
+    opacity: 0.6,
+    fontStyle: "italic",
   },
   tag: {
     color: "#569cd6",
@@ -66,6 +74,7 @@ const styles: Record<string, React.CSSProperties> = {
 
 // Elements that should not be selectable but can be shown in hierarchy
 const BLACKLISTED_TAGS = new Set([
+  "br",
   "svg",
   "path",
   "circle",
@@ -101,21 +110,18 @@ function isProviderBoundary(element: Element | null): boolean {
 }
 
 /**
- * Check if element is blacklisted (can show but not select)
+ * Check if element is blacklisted (can show in hierarchy but details are hidden)
+ * Exported so InspectDialog can use it to conditionally hide details
  */
-function isBlacklisted(element: Element): boolean {
+export function isBlacklisted(element: Element): boolean {
   const tagName = element.tagName.toLowerCase();
   if (BLACKLISTED_TAGS.has(tagName)) return true;
 
-  // Our own UI elements
+  // Our own UI elements - only check the element itself, not ancestors
   if (element.classList.contains("uifeedback-highlight-target")) return true;
   if (element.classList.contains("uifeedback-highlight-container")) {
     return true;
   }
-  if (element.closest('[role="dialog"][aria-label="Element Inspector"]')) {
-    return true;
-  }
-  if (element.closest('[role="menu"]')) return true;
 
   return false;
 }
@@ -144,8 +150,15 @@ function getElementInfo(element: Element) {
 
 /**
  * Calculate indentation level by counting parents up to boundary
+ * Returns both the actual level and a capped display level
  */
-function getIndentLevel(element: Element, targetElement: Element): number {
+function getIndentLevel(
+  element: Element,
+  targetElement: Element,
+): {
+  actualLevel: number;
+  displayLevel: number;
+} {
   let level = 0;
   let current: Element | null = targetElement;
 
@@ -156,7 +169,33 @@ function getIndentLevel(element: Element, targetElement: Element): number {
     }
   }
 
-  return level;
+  // Cap display level at 3 to prevent excessive indentation
+  const MAX_DISPLAY_LEVEL = 3;
+  return {
+    actualLevel: level,
+    displayLevel: Math.min(level, MAX_DISPLAY_LEVEL),
+  };
+}
+
+/**
+ * Render an ellipsis line to indicate skipped levels
+ */
+function EllipsisLine({ displayLevel }: { displayLevel: number }) {
+  const indentPx = displayLevel * 16;
+  return (
+    <div
+      style={{
+        ...styles.line,
+        paddingLeft: `${8 + indentPx}px`,
+        color: "#666",
+        fontSize: "12px",
+        cursor: "default",
+        pointerEvents: "none",
+      }}
+    >
+      ...
+    </div>
+  );
 }
 
 /**
@@ -165,7 +204,8 @@ function getIndentLevel(element: Element, targetElement: Element): number {
 function HierarchyLine({
   element,
   isCurrent,
-  indentLevel,
+  displayLevel,
+  selector,
   onSelect,
   onMouseEnter,
   onMouseLeave,
@@ -173,7 +213,8 @@ function HierarchyLine({
 }: {
   element: Element;
   isCurrent: boolean;
-  indentLevel: number;
+  displayLevel: number;
+  selector?: string;
   onSelect: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -181,7 +222,7 @@ function HierarchyLine({
 }) {
   const { tagName, id, classNames } = getElementInfo(element);
   const blacklisted = isBlacklisted(element);
-  const indentPx = indentLevel * 16;
+  const indentPx = displayLevel * 16; // Standard code editor indent
 
   const lineStyle = {
     ...styles.line,
@@ -191,28 +232,81 @@ function HierarchyLine({
     ...(blacklisted ? styles.lineDisabled : {}),
   };
 
-  const handleClick = () => {
-    if (!blacklisted) {
-      onSelect();
-    }
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect();
   };
+
+  // Generate inspect command for console
+  const inspectCommand = selector
+    ? `inspect(document.querySelector('${selector}'))`
+    : "";
 
   return (
     <div
-      style={lineStyle}
+      style={{
+        ...lineStyle,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "8px",
+      }}
       onClick={handleClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span style={styles.tag}>&lt;{tagName}</span>
-      {id && <span style={styles.id}>#{id}</span>}
-      {classNames.length > 0 && (
-        <span style={styles.className}>
-          .{classNames.slice(0, 2).join(".")}
-          {classNames.length > 2 && "…"}
-        </span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          minWidth: 0,
+          flex: 1,
+          overflow: "hidden",
+        }}
+      >
+        <span style={{ ...styles.tag, flexShrink: 0 }}>&lt;{tagName}</span>
+        {id && (
+          <span
+            style={{
+              ...styles.id,
+              flexShrink: 0,
+              maxWidth: "150px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            #{id}
+          </span>
+        )}
+        {classNames.length > 0 && (
+          <span
+            style={{
+              ...styles.className,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
+            }}
+          >
+            .{classNames.join(".")}
+          </span>
+        )}
+        <span style={{ ...styles.tag, flexShrink: 0 }}>&gt;</span>
+      </div>
+      {isCurrent && selector && (
+        <div
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexShrink: 0,
+          }}
+          title="Copy inspect() command for console"
+        >
+          <CopyButton text={inspectCommand} size="small" />
+        </div>
       )}
-      <span style={styles.tag}>&gt;</span>
     </div>
   );
 }
@@ -239,14 +333,10 @@ function ElementHierarchyNav({
   highlightColors?: HighlightColors;
   isCompact?: boolean;
 }) {
-  // Find parent (line above)
-  let parent: Element | null = targetElement.parentElement;
-  while (parent && (shouldHideElement(parent) || isProviderBoundary(parent))) {
-    if (isProviderBoundary(parent)) {
-      parent = null;
-      break;
-    }
-    parent = parent.parentElement;
+  // Find previous sibling (line above)
+  let prevElement: Element | null = targetElement.previousElementSibling;
+  while (prevElement && shouldHideElement(prevElement)) {
+    prevElement = prevElement.previousElementSibling;
   }
 
   // Find next element (line below) - prefer next sibling, then first child
@@ -255,22 +345,56 @@ function ElementHierarchyNav({
     nextElement = nextElement.nextElementSibling;
   }
 
-  // If no sibling, try first child
-  let isChild = false;
+  // If no next sibling, try first child
+  let nextIsChild = false;
   if (!nextElement) {
     nextElement = targetElement.firstElementChild;
     while (nextElement && shouldHideElement(nextElement)) {
       nextElement = nextElement.nextElementSibling;
     }
     if (nextElement) {
-      isChild = true;
+      nextIsChild = true;
     }
   }
 
-  // Calculate indent levels
-  const parentIndent = parent ? getIndentLevel(parent, targetElement) : 0;
-  const currentIndent = parent ? parentIndent + 1 : 0;
-  const nextIndent = isChild ? currentIndent + 1 : currentIndent;
+  // Calculate actual depth of current element from document root
+  let currentActualDepth = 0;
+  let temp: Element | null = targetElement;
+  while (temp && !isProviderBoundary(temp.parentElement)) {
+    temp = temp.parentElement;
+    if (temp) currentActualDepth++;
+  }
+
+  // Determine display levels - show as code editor lines
+  const MAX_DISPLAY_LEVEL = 3;
+  let needsEllipsis = currentActualDepth > MAX_DISPLAY_LEVEL;
+
+  let prevDisplayLevel: number;
+  let currentDisplayLevel: number;
+  let nextDisplayLevel: number;
+
+  if (needsEllipsis) {
+    // Deeply nested: cap indentation, show ellipsis
+    // But if next is a child, we need to keep it visually indented more
+    if (nextIsChild) {
+      // Show as: prev(2), current(2), child(3)
+      prevDisplayLevel = MAX_DISPLAY_LEVEL - 1;
+      currentDisplayLevel = MAX_DISPLAY_LEVEL - 1;
+      nextDisplayLevel = MAX_DISPLAY_LEVEL;
+    } else {
+      // Show as: prev(3), current(3), sibling(3)
+      prevDisplayLevel = MAX_DISPLAY_LEVEL;
+      currentDisplayLevel = MAX_DISPLAY_LEVEL;
+      nextDisplayLevel = MAX_DISPLAY_LEVEL;
+    }
+  } else {
+    // Not deeply nested: show actual indentation
+    prevDisplayLevel = currentActualDepth; // Sibling at same level
+    currentDisplayLevel = currentActualDepth;
+    nextDisplayLevel = nextIsChild
+      ? currentActualDepth + 1
+      : currentActualDepth;
+  }
 
   // Hover state
   const [hoveredElement, setHoveredElement] = useState<Element | null>(null);
@@ -299,24 +423,28 @@ function ElementHierarchyNav({
 
   return (
     <div style={styles.container}>
-      {/* Parent line */}
-      {parent && (
+      {/* Ellipsis indicator when deeply nested */}
+      {needsEllipsis && <EllipsisLine displayLevel={0} />}
+
+      {/* Previous sibling line */}
+      {prevElement && (
         <HierarchyLine
-          element={parent}
+          element={prevElement}
           isCurrent={false}
-          indentLevel={parentIndent}
-          onSelect={() => handleSelect(parent)}
-          onMouseEnter={() => handleMouseEnter(parent)}
+          displayLevel={prevDisplayLevel}
+          onSelect={() => handleSelect(prevElement)}
+          onMouseEnter={() => handleMouseEnter(prevElement)}
           onMouseLeave={handleMouseLeave}
-          isHovered={hoveredElement === parent}
+          isHovered={hoveredElement === prevElement}
         />
       )}
 
-      {/* Current line */}
+      {/* Current line (selected) */}
       <HierarchyLine
         element={targetElement}
         isCurrent={true}
-        indentLevel={currentIndent}
+        displayLevel={currentDisplayLevel}
+        selector={elementInfo.selector}
         onSelect={() => {}}
         onMouseEnter={() => {}}
         onMouseLeave={() => {}}
@@ -328,7 +456,7 @@ function ElementHierarchyNav({
         <HierarchyLine
           element={nextElement}
           isCurrent={false}
-          indentLevel={nextIndent}
+          displayLevel={nextDisplayLevel}
           onSelect={() => handleSelect(nextElement)}
           onMouseEnter={() => handleMouseEnter(nextElement)}
           onMouseLeave={handleMouseLeave}
