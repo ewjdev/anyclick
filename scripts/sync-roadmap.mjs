@@ -29,7 +29,8 @@ import {
   writeRoadmapMarkdown,
   readExistingMarkdown,
   generateSyncReport,
-  loadExistingItems,
+  loadExistingData,
+  mergeWithExistingItems
   loadExistingData,
   mergeWithExistingItems
 } from './roadmap-utils.mjs';
