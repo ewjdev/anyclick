@@ -80,7 +80,7 @@ const colorMap: Record<string, { gradient: string; border: string; text: string;
 function getUpcomingFeaturesForRole(roleKey: string) {
   const tag = `homepage:${roleKey}`;
   return roadmapData.items.filter(
-    (item) => item.tags?.includes(tag) && item.status !== "completed" && item.status !== "closed"
+    (item) => (item.tags as string[])?.includes(tag) && item.status !== "completed" && item.status !== "closed"
   );
 }
 
@@ -304,7 +304,7 @@ export default function RootLayout({ children }) {
               (item) =>
                 item.status !== "completed" &&
                 item.status !== "closed" &&
-                item.tags?.some((t) => t.startsWith("homepage:"))
+                (item.tags as string[])?.some((t) => t.startsWith("homepage:"))
             );
             const upcomingTitles = upcomingItems
               .slice(0, 5)
