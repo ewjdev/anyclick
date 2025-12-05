@@ -170,7 +170,8 @@ function updateReleasesJson() {
     const era = "today";
 
     // Move current "today" releases to "past" if we have new ones
-    if (newReleases.length > 0 || allVersions.size > 0) {
+    // Move current "today" releases to "past" if we have new ones
+    if (allVersions.size > 0) {
       for (const existing of releasesData.releases) {
         if (existing.era === "today") {
           existing.era = "past";
