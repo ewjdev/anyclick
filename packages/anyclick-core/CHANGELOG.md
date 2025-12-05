@@ -2,12 +2,6 @@
 
 ## 1.4.0
 
-### Patch Changes
-
-- Update anyclick-core to 1.3.0
-
-## 1.3.0
-
 ### Minor Changes
 
 - 7942892: Improve element inspector hierarchy navigation and selector generation

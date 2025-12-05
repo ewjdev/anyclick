@@ -26,6 +26,7 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
       adapter={adapter}
       menuItems={chromePreset.menuItems}
       metadata={chromePreset.metadata}
+      header={<></>}
       theme={{
         highlightConfig: {
           enabled: true,
