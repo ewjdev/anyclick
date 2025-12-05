@@ -23,6 +23,23 @@ export interface AnyclickTheme {
   screenshotConfig?: ScreenshotConfig;
   /** Whether anyclick functionality is disabled in this theme */
   disabled?: boolean;
+  /**
+   * Enable fun mode (go-kart cursor) within this scoped provider.
+   * When true/configured, a FunModeBridge can hand off the track to the pointer.
+   */
+  funMode?: boolean | FunModeThemeConfig;
+}
+
+/**
+ * Optional fun mode configuration (forwarded to pointer fun mode)
+ */
+export interface FunModeThemeConfig {
+  /** Whether fun mode is enabled (default: true) */
+  enabled?: boolean;
+  /** Optional max speed override for this provider */
+  maxSpeed?: number;
+  /** Optional acceleration override */
+  acceleration?: number;
 }
 
 /**
@@ -62,7 +79,7 @@ export interface HighlightConfig {
 }
 
 /**
- * Menu item displayed in the feedback context menu
+ * Menu item displayed in the Anyclick context menu
  */
 export interface ContextMenuItem {
   /** Feedback type for this option (use unique identifier for parent items with children) */
@@ -81,6 +98,15 @@ export interface ContextMenuItem {
   requiredRoles?: string[];
   /** Child menu items (creates a submenu) */
   children?: ContextMenuItem[];
+  /**
+   * Optional click handler for custom behavior.
+   * Return `false` (or a Promise resolving to false) to skip the default submission flow.
+   */
+  onClick?: (context: {
+    targetElement: Element | null;
+    containerElement: Element | null;
+    closeMenu: () => void;
+  }) => void | boolean | Promise<void | boolean>;
 }
 
 /**
@@ -101,7 +127,7 @@ export type FeedbackMenuStatus = "available" | "comingSoon";
 /**
  * User context for role-based menu filtering
  */
-export interface FeedbackUserContext {
+export interface AnyclickUserContext {
   /** User's role(s) */
   roles?: string[];
   /** User ID */
@@ -115,7 +141,7 @@ export interface FeedbackUserContext {
  */
 export function filterMenuItemsByRole(
   items: ContextMenuItem[],
-  userContext?: FeedbackUserContext,
+  userContext?: AnyclickUserContext,
 ): ContextMenuItem[] {
   if (!userContext) {
     // If no user context, only show items without required roles
@@ -140,13 +166,15 @@ export function filterMenuItemsByRole(
  * Props for the AnyclickProvider component
  */
 export interface AnyclickProviderProps {
-  /** The adapter to use for submitting feedback */
+  /** Header content */
+  header?: ReactNode | null;
+  /** The adapter to use for submitting anyclick */
   adapter: AnyclickAdapter;
   /** Child components */
   children: ReactNode;
   /**
-   * Filter function to determine if feedback should be captured for a target element
-   * Return true to allow feedback, false to ignore
+   * Filter function to determine if anyclick should be captured for a target element
+   * Return true to allow anyclick, false to ignore
    * Accepts both MouseEvent (right-click) and TouchEvent (press-and-hold)
    */
   targetFilter?: (event: AnyclickTriggerEvent, target: Element) => boolean;
@@ -199,27 +227,22 @@ export interface AnyclickProviderProps {
 }
 
 /**
- * @deprecated Use AnyclickProviderProps instead
- */
-export type FeedbackProviderProps = AnyclickProviderProps;
-
-/**
  * Context value exposed by AnyclickProvider
  */
 export interface AnyclickContextValue {
-  /** Whether feedback is currently enabled */
+  /** Whether anyclick is currently enabled */
   isEnabled: boolean;
   /** Whether a submission is in progress */
   isSubmitting: boolean;
-  /** Submit feedback for a specific element */
-  submitFeedback: (
+  /** Submit anyclick for a specific element */
+  submitAnyclick: (
     element: Element,
     type: AnyclickType,
     comment?: string,
   ) => Promise<void>;
-  /** Open the feedback menu programmatically */
+  /** Open the anyclick menu programmatically */
   openMenu: (element: Element, position: { x: number; y: number }) => void;
-  /** Close the feedback menu */
+  /** Close the anyclick menu */
   closeMenu: () => void;
   /** The current merged theme (inherited from ancestors) */
   theme: AnyclickTheme;
@@ -230,11 +253,6 @@ export interface AnyclickContextValue {
 }
 
 /**
- * @deprecated Use AnyclickContextValue instead
- */
-export type FeedbackContextValue = AnyclickContextValue;
-
-/**
  * Props for the context menu component
  */
 export interface ContextMenuProps {
@@ -242,7 +260,7 @@ export interface ContextMenuProps {
   visible: boolean;
   /** Position of the menu */
   position: { x: number; y: number };
-  /** Target element for feedback */
+  /** Target element for anyclick */
   targetElement: Element | null;
   /** Container element found by highlight logic */
   containerElement: Element | null;
@@ -268,6 +286,10 @@ export interface ContextMenuProps {
   screenshotConfig?: ScreenshotConfig;
   /** Menu positioning mode (default: 'inView') */
   positionMode?: MenuPositionMode;
+  /** Header content */
+  header?: ReactNode;
+  /** Footer content */
+  footer?: ReactNode;
 }
 
 /**

@@ -16,15 +16,19 @@ export {
 // Re-export MergedTheme type
 export type { MergedTheme } from "./PointerProvider";
 export { CustomPointer } from "./CustomPointer";
+export { GoKartPointer } from "./GoKartPointer";
 
 // Types
 export type {
   PointerVisibility,
+  PointerMode,
   PointerInteractionState,
   PointerThemeColors,
   PointerThemeSizes,
   PointerTheme,
   PointerConfig,
+  FunModeConfig,
+  GoKartState,
   PointerState,
   PointerProviderProps,
   CustomPointerProps,

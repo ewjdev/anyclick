@@ -11,6 +11,7 @@ import {
   MousePointer2,
   Layers,
   Users,
+  Gauge,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -91,6 +92,15 @@ const examples = [
     icon: Layers,
     color: "fuchsia",
     tags: ["Scoped", "Nested", "Theming", "Advanced"],
+  },
+  {
+    title: "Pointer Modes",
+    description:
+      "Switch between normal and fun go-kart mode inside scoped providers using the FunModeBridge.",
+    href: "/examples/modes",
+    icon: Gauge,
+    color: "cyan",
+    tags: ["Modes", "Fun", "Keyboard", "Scoped"],
   },
 ];
 

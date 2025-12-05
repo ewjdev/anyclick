@@ -79,6 +79,16 @@ function mergeConfig(config?: PointerConfig): Required<PointerConfig> {
     ...defaultPointerConfig,
     ...config,
     offset: config?.offset ?? defaultPointerConfig.offset,
+    funConfig: {
+      ...defaultPointerConfig.funConfig,
+      ...config?.funConfig,
+      getTrackElement:
+        config?.funConfig?.getTrackElement ??
+        defaultPointerConfig.funConfig.getTrackElement,
+      getObstacles:
+        config?.funConfig?.getObstacles ??
+        defaultPointerConfig.funConfig.getObstacles,
+    },
   };
 }
 

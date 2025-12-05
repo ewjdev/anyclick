@@ -55,6 +55,7 @@ export function ScopedProvidersDemo() {
               containerColor: "#ec4899", // Pink
             },
           },
+          funMode: true,
         }}
         menuItems={[
           { type: "issue", label: "Report Issue (Scoped)", showComment: true },

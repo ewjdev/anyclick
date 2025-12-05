@@ -3,6 +3,7 @@
 
 // New exports
 export { AnyclickProvider } from "./AnyclickProvider";
+export { FunModeBridge } from "./FunModeBridge";
 export { ContextMenu } from "./ContextMenu";
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
@@ -29,18 +30,16 @@ export type {
   AnyclickContextValue,
   AnyclickTheme,
   ContextMenuItem,
+  FunModeThemeConfig,
   ContextMenuProps,
   HighlightColors,
   HighlightConfig,
-  FeedbackUserContext,
+  AnyclickUserContext,
   ScreenshotPreviewProps,
   MenuPositionMode,
   FeedbackMenuBadge,
   FeedbackMenuStatus,
 } from "./types";
-
-// Types (deprecated, for backward compatibility)
-export type { FeedbackProviderProps, FeedbackContextValue } from "./types";
 
 // Presets
 export {
@@ -63,8 +62,8 @@ export type {
   ElementContext,
   PageContext,
   ScreenshotData,
-  ScreenshotCapture,
   ScreenshotConfig,
+  ScreenshotCapture,
   ScreenshotCaptureMode,
 } from "@ewjdev/anyclick-core";
 

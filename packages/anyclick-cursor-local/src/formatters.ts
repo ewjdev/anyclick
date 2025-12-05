@@ -1,4 +1,4 @@
-import type { FeedbackPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload, ScreenshotCapture } from "@ewjdev/anyclick-core";
 
 /**
  * Format bytes to human readable string
@@ -33,7 +33,7 @@ function formatScreenshotMarkdown(
  * Creates a detailed prompt that cursor-agent can act on
  * Includes all available screenshots (element, container, viewport)
  */
-export function defaultFormatPrompt(payload: FeedbackPayload): string {
+export function defaultFormatPrompt(payload: AnyclickPayload): string {
   const { type, comment, element, page, screenshots } = payload;
 
   const lines: string[] = [];

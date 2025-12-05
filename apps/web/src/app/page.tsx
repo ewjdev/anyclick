@@ -104,7 +104,7 @@ export default function Home() {
             </span>
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-              Why not click on anything?
+              Why not click on everything?
             </span>
           </h1>
 

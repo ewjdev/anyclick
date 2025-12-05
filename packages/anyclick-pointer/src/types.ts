@@ -6,6 +6,14 @@ import type { ReactNode, CSSProperties } from "react";
 export type PointerVisibility = "always" | "enabled" | "never";
 
 /**
+ * Pointer operating modes
+ * - normal: existing behavior
+ * - fun: go-kart cursor with keyboard controls
+ * - calm: reserved for future low-stimulus mode
+ */
+export type PointerMode = "normal" | "fun" | "calm";
+
+/**
  * Pointer state during interactions
  */
 export type PointerInteractionState = "normal" | "rightClick" | "pressing";
@@ -68,6 +76,44 @@ export interface PointerConfig {
   respectReducedMotion?: boolean;
   /** Offset from cursor position in pixels [x, y] (default: [0, 0]) */
   offset?: [number, number];
+  /**
+   * Pointer operating mode (default: normal)
+   */
+  mode?: PointerMode;
+  /**
+   * Fun mode configuration
+   */
+  funConfig?: FunModeConfig;
+}
+
+/**
+ * Configuration for fun mode (go-kart cursor)
+ */
+export interface FunModeConfig {
+  /** Max speed in pixels per second (default: 650) */
+  maxSpeed?: number;
+  /** Acceleration in pixels per second^2 (default: 2200) */
+  acceleration?: number;
+  /** Friction per second (0-1, default: 0.82) */
+  friction?: number;
+  /** Bounce damping when hitting walls (0-1, default: 0.35) */
+  bounceDamping?: number;
+  /** Optional custom track element; falls back to viewport if absent */
+  getTrackElement?: () => HTMLElement | null;
+  /**
+   * Optional function to provide obstacle bounding boxes for collisions.
+   * Keep small for perf (e.g., sibling/child rects).
+   */
+  getObstacles?: () => DOMRect[];
+}
+
+/**
+ * Internal state for go-kart pointer
+ */
+export interface GoKartState {
+  position: { x: number; y: number };
+  velocity: { x: number; y: number };
+  angle: number;
 }
 
 /**
@@ -178,4 +224,13 @@ export const defaultPointerConfig: Required<PointerConfig> = {
   zIndex: 10001,
   respectReducedMotion: true,
   offset: [0, 0],
+  mode: "normal",
+  funConfig: {
+    maxSpeed: 650,
+    acceleration: 2200,
+    friction: 0.82,
+    bounceDamping: 0.35,
+    getTrackElement: () => document.body,
+    getObstacles: () => [],
+  },
 };

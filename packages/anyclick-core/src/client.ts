@@ -1,10 +1,14 @@
 import type {
+  AnyclickAdapter,
   AnyclickClientOptions,
   AnyclickMenuEvent,
+  AnyclickPayload,
   AnyclickResult,
+  AnyclickTriggerEvent,
+  AnyclickType,
   ScreenshotData,
 } from "./types";
-import { buildFeedbackPayload } from "./payload";
+import { buildAnyclickPayload } from "./payload";
 
 /** Default touch hold duration in milliseconds */
 const DEFAULT_TOUCH_HOLD_DURATION_MS = 500;
@@ -13,7 +17,7 @@ const DEFAULT_TOUCH_HOLD_DURATION_MS = 500;
 const DEFAULT_TOUCH_MOVE_THRESHOLD = 10;
 
 /**
- * Default target filter - ignores html, body, and elements with data-feedback-ignore
+ * Default target filter - ignores html, body, and elements with data-anyclick-ignore
  */
 function defaultTargetFilter(
   _event: AnyclickTriggerEvent,
@@ -21,12 +25,12 @@ function defaultTargetFilter(
 ): boolean {
   const tag = target.tagName.toLowerCase();
   if (tag === "html" || tag === "body") return false;
-  if (target.closest("[data-feedback-ignore]")) return false;
+  if (target.closest("[data-anyclick-ignore]")) return false;
   return true;
 }
 
 /**
- * FeedbackClient manages DOM event handling and feedback submission
+ * AnyclickClient manages DOM event handling and anyclick submission
  */
 export class AnyclickClient {
   private adapter: AnyclickAdapter;
@@ -670,7 +674,7 @@ export class AnyclickClient {
       screenshots?: ScreenshotData;
     } = {},
   ): AnyclickPayload {
-    const payload = buildFeedbackPayload(element, type, {
+    const payload = buildAnyclickPayload(element, type, {
       comment: options.comment,
       metadata: options.metadata,
       maxInnerTextLength: this.maxInnerTextLength,
@@ -688,9 +692,9 @@ export class AnyclickClient {
   }
 
   /**
-   * Submit feedback for an element
+   * Submit anyclick for an element
    */
-  async submitFeedback(
+  async submitAnyclick(
     element: Element,
     type: AnyclickType,
     options: {
@@ -710,7 +714,7 @@ export class AnyclickClient {
     const payload = this.buildPayload(element, type, options);
 
     try {
-      await this.adapter.submitFeedback(payload);
+      await this.adapter.submitAnyclick(payload);
       this.lastSubmissionTime = Date.now();
       this.onSubmitSuccess?.(payload);
       return { success: true };
@@ -722,9 +726,9 @@ export class AnyclickClient {
   }
 
   /**
-   * Submit feedback for the pending element (the one that was right-clicked)
+   * Submit anyclick for the pending element (the one that was right-clicked)
    */
-  async submitPendingFeedback(
+  async submitPendingAnyclick(
     type: AnyclickType,
     options: {
       comment?: string;
@@ -735,11 +739,11 @@ export class AnyclickClient {
     if (!this.pendingElement) {
       return {
         success: false,
-        error: new Error("No pending element to submit feedback for"),
+        error: new Error("No pending element to submit anyclick for"),
       };
     }
 
-    const result = await this.submitFeedback(
+    const result = await this.submitAnyclick(
       this.pendingElement,
       type,
       options,
@@ -750,7 +754,7 @@ export class AnyclickClient {
 }
 
 /**
- * Create a new FeedbackClient instance
+ * Create a new AnyclickClient instance
  */
 export function createAnyclickClient(
   options: AnyclickClientOptions,

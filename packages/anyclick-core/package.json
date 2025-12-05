@@ -1,11 +1,12 @@
 {
   "name": "@ewjdev/anyclick-core",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": false,
-  "description": "Framework-agnostic core library for UI feedback capture with DOM context",
+  "description": "Framework-agnostic core library for UI / UX events capture with DOM context",
   "keywords": [
-    "feedback",
+    "anyclick",
     "ui",
+    "ux",
     "context-menu",
     "dom-capture",
     "typescript"

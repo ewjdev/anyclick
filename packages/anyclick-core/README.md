@@ -1,25 +1,25 @@
 # @ewjdev/anyclick-core
 
-> Framework-agnostic core library for UI feedback capture with DOM context
+> Framework-agnostic core library for UI / UX events with DOM context
 
 [![npm version](https://img.shields.io/npm/v/@ewjdev/anyclick-core.svg)](https://www.npmjs.com/package/@ewjdev/anyclick-core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-`@ewjdev/anyclick-core` provides the foundational utilities for capturing UI feedback with full DOM context. It's framework-agnostic and can be used with any JavaScript framework or vanilla JavaScript.
+`@ewjdev/anyclick-core` provides the foundational utilities for capturing UI/UX events with full DOM context. It's framework-agnostic and can be used with any JavaScript framework or vanilla JavaScript.
 
 ## Installation
 
 ```bash
-npm install @ewjdev/anyclick-core
+yarn install @ewjdev/anyclick-core
 ```
 
 ## Features
 
 - 🎯 **DOM Capture** - Extract selectors, data attributes, and ancestor information
 - 📸 **Screenshot Utilities** - Capture element and page screenshots
-- 📦 **Payload Building** - Construct structured feedback payloads
+- 📦 **Payload Building** - Construct structured lightweight payloads
 - 🔌 **Adapter Interface** - Flexible adapter pattern for custom integrations
 
 ## Basic Usage
@@ -40,8 +40,8 @@ const client = createAnyclickClient({
 // Attach to DOM (starts listening for context menu events)
 client.attach();
 
-// Later, submit feedback programmatically
-await client.submitFeedback(element, "issue", {
+// Later, submit analytic programmatically
+await client.submitAnalytic(element, "issue", {
   comment: "This button is broken",
 });
 
@@ -101,9 +101,9 @@ if (isScreenshotSupported()) {
 ### Payload Building
 
 ```typescript
-import { buildFeedbackPayload, buildPageContext } from "@ewjdev/anyclick-core";
+import { buildAnyclickPayload, buildPageContext } from "@ewjdev/anyclick-core";
 
-const payload = buildFeedbackPayload({
+const payload = buildAnyclickPayload({
   element,
   type: "issue",
   comment: "Something is wrong here",
@@ -113,11 +113,11 @@ const payload = buildFeedbackPayload({
 
 ## Types
 
-### FeedbackPayload
+### AnyclickPayload
 
 ```typescript
-interface FeedbackPayload {
-  type: FeedbackType;
+interface AnyclickPayload {
+  type: AnyclickType;
   timestamp: string;
   page: PageContext;
   element: ElementContext;

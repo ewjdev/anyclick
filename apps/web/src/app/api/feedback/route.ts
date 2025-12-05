@@ -1,6 +1,6 @@
 import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 import { createCursorAgentAdapter } from "@ewjdev/anyclick-cursor";
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 // Lazily create the GitHub adapter to allow proper error handling
 function getGitHubAdapter() {
@@ -32,7 +32,7 @@ const LOCAL_CURSOR_SERVER =
   process.env.LOCAL_CURSOR_SERVER_URL ?? "http://localhost:3847";
 
 export async function POST(req: Request) {
-  const payload: FeedbackPayload = await req.json();
+  const payload: AnyclickPayload = await req.json();
 
   // Handle cursor_local requests (development only)
   if (payload.type === "cursor_local") {

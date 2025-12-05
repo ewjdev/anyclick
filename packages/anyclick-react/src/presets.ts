@@ -1,7 +1,8 @@
 import type { ScreenshotConfig } from "@ewjdev/anyclick-core";
 import type { AnyclickTheme, ContextMenuItem } from "./types";
+import { CSSProperties } from "react";
 
-export type PresetRole = "qa" | "pm" | "designer" | "developer";
+export type PresetRole = "qa" | "pm" | "designer" | "developer" | "chrome";
 
 export interface PresetConfig {
   role: PresetRole;
@@ -184,6 +185,118 @@ const presetDefaults: Record<PresetRole, PresetConfig> = {
           containerColor: "#0ea5e9",
         },
       },
+    },
+  },
+  chrome: {
+    role: "chrome",
+    label: "Chrome",
+    description:
+      "Chrome-like context menu with core browser actions and native styling.",
+    menuItems: [
+      {
+        type: "reload_page",
+        label: "Reload page",
+        showComment: false,
+        onClick: ({ closeMenu }) => {
+          closeMenu();
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          }
+          return false;
+        },
+      },
+      {
+        type: "print_page",
+        label: "Print…",
+        showComment: false,
+        onClick: ({ closeMenu }) => {
+          closeMenu();
+          if (typeof window !== "undefined") {
+            window.print();
+          }
+          return false;
+        },
+      },
+      {
+        type: "search_google",
+        label: 'Search "Google"',
+        showComment: false,
+        onClick: ({ closeMenu }) => {
+          closeMenu();
+          if (typeof window === "undefined") return false;
+          const selection = window.getSelection()?.toString().trim();
+          const query = selection && selection.length > 0 ? selection : "";
+          const url = query
+            ? `https://www.google.com/search?q=${encodeURIComponent(query)}`
+            : "https://www.google.com";
+          window.open(url, "_blank", "noopener,noreferrer");
+          return false;
+        },
+      },
+      {
+        type: "share_page",
+        label: "Share…",
+        showComment: false,
+        onClick: async ({ closeMenu }) => {
+          closeMenu();
+          if (typeof window === "undefined") return false;
+          const shareData = {
+            title: document.title,
+            text: document.title,
+            url: window.location.href,
+          };
+          try {
+            if (navigator.share) {
+              await navigator.share(shareData);
+            } else if (navigator.clipboard?.writeText) {
+              await navigator.clipboard.writeText(window.location.href);
+            }
+          } catch {
+            // Silently ignore share/clipboard errors to match native feel
+          }
+          return false;
+        },
+      },
+      {
+        type: "inspect",
+        label: "Inspect",
+        showComment: false,
+        onClick: ({ closeMenu, targetElement }) => {
+          closeMenu();
+
+          return false;
+        },
+      },
+    ],
+    screenshotConfig: {
+      enabled: false,
+    },
+    theme: {
+      menuStyle: {
+        // Chrome-like palette, hover, and muted text to match the native menu
+        "--anyclick-menu-bg": "#202124",
+        "--anyclick-menu-hover": "#2f3135",
+        "--anyclick-menu-text": "#e8eaed",
+        "--anyclick-menu-text-muted": "#9aa0a6",
+        "--anyclick-menu-border": "#3c4043",
+        "--anyclick-menu-accent": "#8ab4f8",
+        "--anyclick-menu-accent-text": "#0b1117",
+        "--anyclick-menu-input-bg": "#2f3135",
+        "--anyclick-menu-input-border": "#3c4043",
+        "--anyclick-menu-cancel-bg": "#2f3135",
+        "--anyclick-menu-cancel-text": "#9aa0a6",
+        backgroundColor: "#202124",
+        color: "#e8eaed",
+        border: "1px solid #3c4043",
+        borderRadius: 6,
+        boxShadow: "0 8px 18px rgba(0, 0, 0, 0.4)",
+        minWidth: 240,
+        padding: 0,
+        fontFamily:
+          'Roboto, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif',
+        fontSize: 14,
+        letterSpacing: 0,
+      } as CSSProperties,
     },
   },
 };

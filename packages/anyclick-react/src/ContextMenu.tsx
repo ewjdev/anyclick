@@ -26,13 +26,10 @@ const VIEWPORT_PADDING = 10;
 
 const screenshotIndicatorStyle: React.CSSProperties = {
   display: "flex",
-  alignItems: "center",
-  gap: "6px",
-  padding: "8px 12px",
-  fontSize: "11px",
-  color: "var(--anyclick-menu-text-muted, #9ca3af)",
-  borderTop: "1px solid var(--anyclick-menu-border, #f3f4f6)",
-  marginTop: "4px",
+  marginLeft: "4px",
+  opacity: 0.7,
+  justifyContent: "flex-end",
+  flex: 1,
 };
 
 /**
@@ -42,6 +39,25 @@ const defaultIcons: Record<string, React.ReactNode> = {
   issue: <FlagIcon className="w-4 h-4" />,
   feature: <PlusIcon className="w-4 h-4" />,
   like: <ThumbsUpIcon className="w-4 h-4" />,
+};
+
+const DefaultHeader = ({
+  styles,
+  className,
+  title = "Send Feedback",
+  children,
+}: {
+  styles?: React.CSSProperties;
+  className?: string;
+  title?: string;
+  children?: React.ReactNode;
+}) => {
+  return (
+    <div style={styles} className={className}>
+      <span>{title}</span>
+      {children}
+    </div>
+  );
 };
 
 /**
@@ -54,7 +70,7 @@ function MenuItem({
   hasChildren,
 }: {
   item: ContextMenuItem;
-  onClick: () => void;
+  onClick: () => any;
   disabled: boolean;
   hasChildren?: boolean;
 }) {
@@ -99,6 +115,8 @@ function MenuItem({
       }
     : undefined;
 
+  const iconNode = item.icon ?? defaultIcons[item.type];
+
   return (
     <button
       type="button"
@@ -113,12 +131,12 @@ function MenuItem({
       onTouchEnd={() => setIsPressed(false)}
       onTouchCancel={() => setIsPressed(false)}
       style={{
+        // Slightly leaner height to match Chrome menu sizing
+        minHeight: "38px",
         ...menuStyles.item,
         // Apply hover/pressed state for both mouse and touch
         ...(isHovered || isPressed ? menuStyles.itemHover : {}),
         ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
-        // Ensure minimum touch target size (44px is recommended)
-        minHeight: "44px",
         // Prevent text selection on touch
         WebkitUserSelect: "none",
         userSelect: "none",
@@ -126,9 +144,7 @@ function MenuItem({
         WebkitTouchCallout: "none",
       }}
     >
-      <span style={menuStyles.itemIcon}>
-        {item.icon ?? defaultIcons[item.type]}
-      </span>
+      {iconNode ? <span style={menuStyles.itemIcon}>{iconNode}</span> : null}
       <span
         style={{
           flex: 1,
@@ -312,6 +328,8 @@ export function ContextMenu({
   highlightConfig,
   screenshotConfig,
   positionMode = "inView",
+  header,
+  footer,
 }: ContextMenuProps) {
   const [selectedType, setSelectedType] = useState<AnyclickType | null>(null);
   const [currentView, setCurrentView] = useState<MenuView>("menu");
@@ -582,6 +600,20 @@ export function ContextMenu({
       return;
     }
 
+    // Allow custom click handler; if it returns false, skip default flow
+    if (item.onClick) {
+      try {
+        return item.onClick({
+          targetElement,
+          containerElement,
+          closeMenu: onClose,
+        });
+      } catch (error) {
+        console.error("Anyclick menu onClick error:", error);
+        return;
+      }
+    }
+
     // Otherwise, handle selection
     if (item.showComment) {
       setSelectedType(item.type);
@@ -678,17 +710,13 @@ export function ContextMenu({
       role="menu"
       aria-label="Feedback options"
     >
-      {/* Header with optional drag handle */}
-      {currentView !== "screenshot-preview" && (
-        <div
-          style={{
-            ...menuStyles.header,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span>Send Feedback</span>
+      {!header && currentView !== "screenshot-preview" && (
+        <DefaultHeader styles={menuStyles.header} title="Send Feedback">
+          {showPreview && (
+            <div style={screenshotIndicatorStyle}>
+              <CameraIcon className="w-3 h-3" />
+            </div>
+          )}
           {positionMode === "dynamic" && (
             <div
               data-drag-handle
@@ -714,8 +742,9 @@ export function ContextMenu({
               <GripVertical className="w-4 h-4" />
             </div>
           )}
-        </div>
+        </DefaultHeader>
       )}
+      {!!header && header}
 
       {currentView === "menu" && (
         <div style={menuStyles.itemList}>
@@ -729,12 +758,6 @@ export function ContextMenu({
               hasChildren={item.children && item.children.length > 0}
             />
           ))}
-          {showPreview && (
-            <div style={screenshotIndicatorStyle}>
-              <CameraIcon className="w-3 h-3" />
-              <span>Screenshots will be captured</span>
-            </div>
-          )}
         </div>
       )}
 

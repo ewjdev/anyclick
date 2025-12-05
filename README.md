@@ -1,6 +1,6 @@
 # anyclick
 
-> Why not click on anything?
+> Why not click on everything?
 
 [![npm version](https://img.shields.io/npm/v/@ewjdev/anyclick-react.svg)](https://www.npmjs.com/package/@ewjdev/anyclick-react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

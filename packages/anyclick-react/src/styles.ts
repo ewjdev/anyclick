@@ -60,16 +60,19 @@ export const menuStyles: Record<string, CSSProperties> = {
     ...menuCSSVariables,
   },
   header: {
-    padding: "12px 16px",
+    padding: "8px 12px",
     borderBottom: "1px solid var(--anyclick-menu-border, #e5e5e5)",
     color: "var(--anyclick-menu-text-muted, #666)",
     fontSize: "12px",
     fontWeight: 500,
     textTransform: "uppercase" as const,
     letterSpacing: "0.5px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   itemList: {
-    padding: "4px 0",
+    padding: "0px 0px",
   },
   item: {
     display: "flex",

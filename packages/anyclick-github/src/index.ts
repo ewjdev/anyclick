@@ -6,7 +6,7 @@ export type { HttpAdapterOptions } from "./types";
 
 // Re-export core types for convenience
 export type {
-  FeedbackAdapter,
-  FeedbackPayload,
-  FeedbackType,
+  AnyclickAdapter,
+  AnyclickPayload,
+  AnyclickType,
 } from "@ewjdev/anyclick-core";

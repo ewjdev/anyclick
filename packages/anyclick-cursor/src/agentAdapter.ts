@@ -1,4 +1,4 @@
-import type { FeedbackPayload } from "@ewjdev/anyclick-core";
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 import type {
   CursorAgentAdapterOptions,
   CursorAgentResult,
@@ -22,8 +22,8 @@ export class CursorAgentAdapter {
   private defaultTarget: AgentTarget;
   private apiBaseUrl: string;
   private timeout: number;
-  private formatPrompt: (payload: FeedbackPayload) => AgentPrompt;
-  private formatAgentName: (payload: FeedbackPayload) => string;
+  private formatPrompt: (payload: AnyclickPayload) => AgentPrompt;
+  private formatAgentName: (payload: AnyclickPayload) => string;
 
   constructor(options: CursorAgentAdapterOptions) {
     this.apiKey = options.apiKey;
@@ -39,7 +39,7 @@ export class CursorAgentAdapter {
    * Create a Cursor Cloud Agent from a feedback payload
    */
   async createAgent(
-    payload: FeedbackPayload,
+    payload: AnyclickPayload,
     options?: {
       source?: Partial<AgentSource>;
       target?: Partial<AgentTarget>;

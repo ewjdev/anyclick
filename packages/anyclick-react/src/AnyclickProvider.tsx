@@ -60,6 +60,7 @@ export function AnyclickProvider({
   menuClassName,
   disabled = false,
   highlightConfig,
+  header,
   screenshotConfig,
   scoped = false,
   theme,
@@ -385,7 +386,7 @@ export function AnyclickProvider({
   ]);
 
   // Submit feedback with optional screenshots
-  const submitFeedback = useCallback(
+  const submitAnyclick = useCallback(
     async (
       element: Element,
       type: AnyclickType,
@@ -439,10 +440,10 @@ export function AnyclickProvider({
   const handleMenuSelect = useCallback(
     (type: AnyclickType, comment?: string, screenshots?: ScreenshotData) => {
       if (targetElement) {
-        submitFeedback(targetElement, type, comment, screenshots);
+        submitAnyclick(targetElement, type, comment, screenshots);
       }
     },
-    [targetElement, submitFeedback],
+    [targetElement, submitAnyclick],
   );
 
   // Get merged theme for this provider
@@ -506,7 +507,7 @@ export function AnyclickProvider({
     () => ({
       isEnabled: !effectiveDisabled && !isDisabledByAncestor(providerId),
       isSubmitting,
-      submitFeedback,
+      submitAnyclick,
       openMenu,
       closeMenu,
       theme: mergedTheme,
@@ -518,7 +519,7 @@ export function AnyclickProvider({
       providerId,
       isDisabledByAncestor,
       isSubmitting,
-      submitFeedback,
+      submitAnyclick,
       openMenu,
       closeMenu,
       mergedTheme,
@@ -551,6 +552,7 @@ export function AnyclickProvider({
         className={effectiveMenuClassName}
         highlightConfig={effectiveHighlightConfig}
         screenshotConfig={effectiveScreenshotConfig}
+        header={header}
       />
     </AnyclickContext.Provider>
   );
