@@ -11,12 +11,21 @@ const lato = Lato({ weight: "400", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "anyclick - UI feedback that codes itself",
+    default: "anyclick - UX/DevX done right",
     template: "%s | anyclick",
   },
   description:
-    "Right-click any element in your app to capture feedback with full DOM context, screenshots, and automatic integration with GitHub Issues or AI coding agents.",
-  keywords: ["feedback", "ui", "react", "github", "cursor", "ai", "typescript"],
+    "Right-click any element in your app to capture feedback with full DOM context, screenshots, and automagically integrate with ticket systems,workflows, agents and more with adapters.",
+  keywords: [
+    "feedback",
+    "devx",
+    "ui",
+    "react",
+    "github",
+    "cursor",
+    "ai",
+    "typescript",
+  ],
 };
 
 export const viewport: Viewport = {

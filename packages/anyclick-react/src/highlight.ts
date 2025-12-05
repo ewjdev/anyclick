@@ -73,6 +73,16 @@ function generateHighlightCSS(colors: Required<HighlightColors>): string {
   top: 0;
 }
 
+/* SVG elements need special handling - don't apply styles that break their rendering */
+svg.${HIGHLIGHT_TARGET_CLASS},
+.${HIGHLIGHT_TARGET_CLASS} > svg {
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  position: static !important;
+  z-index: auto !important;
+}
+
 .${HIGHLIGHT_CONTAINER_CLASS} {
   outline: 2px dashed ${hexToRgba(containerColor, 0.6)} !important;
   outline-offset: 4px !important;
@@ -80,6 +90,16 @@ function generateHighlightCSS(colors: Required<HighlightColors>): string {
   border-radius: 6px !important;
   position: relative;
   z-index: 9996;
+}
+
+/* SVG elements in containers also need protection */
+svg.${HIGHLIGHT_CONTAINER_CLASS},
+.${HIGHLIGHT_CONTAINER_CLASS} > svg {
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  position: static !important;
+  z-index: auto !important;
 }
 `;
 }

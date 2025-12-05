@@ -3,6 +3,7 @@
 import React, {
   useCallback,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -18,11 +19,7 @@ import type {
 import { AnyclickContext, useAnyclick } from "./context";
 import { ContextMenu } from "./ContextMenu";
 import { findContainerParent } from "./highlight";
-import {
-  useProviderStore,
-  generateProviderId,
-  type ProviderInstance,
-} from "./store";
+import { useProviderStore, type ProviderInstance } from "./store";
 import type {
   AnyclickContextValue,
   AnyclickProviderProps,
@@ -75,9 +72,9 @@ export function AnyclickProvider({
     null,
   );
 
-  // Generate a stable ID for this provider instance
-  const providerIdRef = useRef<string>(generateProviderId());
-  const providerId = providerIdRef.current;
+  // Generate a stable ID for this provider instance using React's useId
+  // This ensures consistent IDs between server and client rendering
+  const providerId = useId();
 
   // Ref to the container element (for scoped providers)
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -528,8 +525,13 @@ export function AnyclickProvider({
   );
 
   // For scoped providers, wrap children in a container div
+  // Add data-anyclick-provider attribute to mark the boundary for hierarchy navigation
   const content = scoped ? (
-    <div ref={setContainerRef} style={{ display: "contents" }}>
+    <div
+      ref={setContainerRef}
+      style={{ display: "contents" }}
+      data-anyclick-provider={providerId}
+    >
       {children}
     </div>
   ) : (

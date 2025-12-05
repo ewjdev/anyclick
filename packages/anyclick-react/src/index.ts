@@ -91,3 +91,74 @@ export {
   defaultHighlightColors,
   defaultContainerSelectors,
 } from "./highlight";
+
+// Inspect Dialog
+export {
+  InspectDialog,
+  type InspectDialogProps,
+  type PinnedPosition,
+  type CompactModeConfig,
+  DEFAULT_COMPACT_CONFIG,
+} from "./InspectDialog/InspectDialog";
+export {
+  InspectDialogManager,
+  openInspectDialog,
+  INSPECT_DIALOG_EVENT,
+  type InspectDialogManagerProps,
+  type InspectDialogEventDetail,
+} from "./InspectDialog/InspectDialogManager";
+
+// Inspect Store (for modification tracking)
+export {
+  useInspectStore,
+  useHasHydrated,
+  waitForHydration,
+  generateElementId,
+  getElementDescription,
+  type ElementModification,
+  type DeletedElement,
+} from "./InspectDialog/inspectStore";
+
+// Anyclick Logo
+export { AnyclickLogo, type AnyclickLogoProps } from "./AnyclickLogo";
+
+// Modification Indicator
+export {
+  ModificationIndicator,
+  type ModificationIndicatorProps,
+} from "./InspectDialog/ModificationIndicator";
+
+// IDE Integration
+export {
+  openInIDE,
+  buildIDEUrl,
+  isIDEProtocolSupported,
+  detectPreferredIDE,
+  getSourceLocationFromElement,
+  findSourceLocationInAncestors,
+  createIDEOpener,
+  formatSourceLocation,
+  type IDEProtocol,
+  type IDEConfig,
+  type SourceLocation,
+} from "./ide";
+
+// Re-export inspect utilities from core
+export {
+  getComputedStyles,
+  getAccessibilityInfo,
+  getBoxModelInfo,
+  getAttributes,
+  getElementInspectInfo,
+  formatStylesAsCSS,
+  formatBoxModel,
+  CURATED_STYLE_PROPERTIES,
+  ALL_CURATED_PROPERTIES,
+} from "@ewjdev/anyclick-core";
+
+export type {
+  ComputedStylesInfo,
+  AccessibilityInfo,
+  BoxModelInfo,
+  ElementInspectInfo,
+} from "@ewjdev/anyclick-core";

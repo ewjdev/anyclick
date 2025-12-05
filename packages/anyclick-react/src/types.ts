@@ -7,6 +7,7 @@ import type {
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
 import type { ReactNode, CSSProperties } from "react";
+import { CompactModeConfig } from "./InspectDialog/InspectDialog";
 
 /**
  * Theme configuration for AnyclickProvider
@@ -308,4 +309,110 @@ export interface ScreenshotPreviewProps {
   onRetake: () => void;
   /** Whether submission is in progress */
   isSubmitting: boolean;
+}
+
+/**
+ * Generate compact styles from configuration
+ */
+export function generateCompactStyles(
+  config: CompactModeConfig,
+): Record<string, React.CSSProperties> {
+  return {
+    dialog: {
+      fontSize: `${config.fonts.base}px`,
+      width: `${config.sizes.dialogWidth}px`,
+    },
+    header: {
+      padding: config.spacing.headerPadding,
+    },
+    headerTitle: {
+      fontSize: `${config.fonts.title}px`,
+      gap: config.gaps.headerTitle,
+    },
+    pinButtons: {
+      padding: "1px",
+      gap: config.gaps.pinButtons,
+    },
+    closeButton: {
+      width: `${config.sizes.closeButton}px`,
+      height: `${config.sizes.closeButton}px`,
+    },
+    identity: {
+      padding: config.spacing.identityPadding,
+    },
+    tag: {
+      fontSize: `${config.fonts.tag}px`,
+    },
+    id: {
+      fontSize: `${config.fonts.tag}px`,
+    },
+    classes: {
+      fontSize: `${config.fonts.tag}px`,
+    },
+    selectorCode: {
+      padding: config.spacing.selectorCodePadding,
+      fontSize: `${config.fonts.selector}px`,
+    },
+    sectionHeader: {
+      padding: config.spacing.sectionHeaderPadding,
+      fontSize: `${config.fonts.section}px`,
+    },
+    sectionTitle: {
+      letterSpacing: config.letterSpacing.sectionTitle,
+    },
+    badge: {
+      padding: config.spacing.badgePadding,
+      fontSize: `${config.fonts.badge}px`,
+    },
+    sectionContent: {
+      padding: config.spacing.sectionContentPadding,
+    },
+    propertyRow: {
+      padding: config.spacing.propertyRowPadding,
+      gap: config.gaps.propertyRow,
+    },
+    propertyLabel: {
+      fontSize: `${config.fonts.property}px`,
+    },
+    propertyValue: {
+      fontSize: `${config.fonts.property}px`,
+      gap: config.gaps.propertyValue,
+    },
+    styleCategory: {
+      marginBottom: `${config.sizes.categoryMarginBottom}px`,
+    },
+    styleCategoryHeader: {
+      fontSize: `${config.fonts.property}px`,
+      marginBottom: `${config.sizes.styleCategoryHeaderMarginBottom}px`,
+    },
+    styleRow: {
+      padding: config.spacing.styleRowPadding,
+      fontSize: `${config.fonts.styleRow}px`,
+    },
+    styleValue: {
+      maxWidth: `${config.sizes.styleValueMaxWidth}px`,
+    },
+    footer: {
+      padding: config.spacing.footerPadding,
+      gap: config.gaps.footer,
+    },
+    actionButton: {
+      padding: config.spacing.buttonPadding,
+      fontSize: `${config.fonts.button}px`,
+      gap: config.gaps.button,
+    },
+    actionButtonPrimary: {
+      padding: config.spacing.buttonPrimaryPadding,
+      fontSize: `${config.fonts.button}px`,
+      gap: config.gaps.button,
+    },
+    actionButtonDanger: {
+      padding: config.spacing.buttonDangerPadding,
+      fontSize: `${config.fonts.button}px`,
+    },
+    copyButtonSmall: {
+      width: `${config.sizes.copyButtonSmall}px`,
+      height: `${config.sizes.copyButtonSmall}px`,
+    },
+  };
 }

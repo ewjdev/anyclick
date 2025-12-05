@@ -15,6 +15,7 @@ Right-click any element in your app to capture feedback with full DOM context, s
 - 🤖 **AI Agent Integration** - Launch Cursor AI agents for automatic code fixes
 - ⚛️ **React Provider** - Drop-in component with customizable context menu
 - 🔌 **Adapter Pattern** - Flexible architecture for custom integrations
+- **Custom Theme** - Customize the look of the users interaction with your website
 
 ## Quick Start
 

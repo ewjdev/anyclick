@@ -1,6 +1,7 @@
 import type { ScreenshotConfig } from "@ewjdev/anyclick-core";
 import type { AnyclickTheme, ContextMenuItem, HighlightConfig } from "./types";
 import { CSSProperties } from "react";
+import { openInspectDialog } from "./InspectDialog/InspectDialogManager";
 
 export type PresetRole = "qa" | "pm" | "designer" | "developer" | "chrome";
 
@@ -264,7 +265,9 @@ const presetDefaults: Record<PresetRole, PresetConfig> = {
         showComment: false,
         onClick: ({ closeMenu, targetElement }) => {
           closeMenu();
-
+          if (targetElement) {
+            openInspectDialog(targetElement);
+          }
           return false;
         },
       },
