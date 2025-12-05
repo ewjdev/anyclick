@@ -112,7 +112,27 @@ interface RoleConfig {
 function getRoles(): Record<string, RoleConfig> {
   const raw = roadmapData.roles;
   if (!raw || typeof raw !== "object") return {};
-  return raw as Record<string, RoleConfig>;
+
+  const isRole = (value: unknown): value is RoleConfig => {
+    if (!value || typeof value !== "object") return false;
+    const role = value as Partial<RoleConfig>;
+    const featuresValid =
+      Array.isArray(role.features) &&
+      role.features.every(
+        (f) =>
+          f && typeof f.text === "string" && typeof f.available === "boolean",
+      );
+    return (
+      typeof role.title === "string" &&
+      typeof role.subtitle === "string" &&
+      typeof role.icon === "string" &&
+      typeof role.color === "string" &&
+      featuresValid
+    );
+  };
+
+  const entries = Object.entries(raw).filter(([, value]) => isRole(value));
+  return Object.fromEntries(entries) as Record<string, RoleConfig>;
 }
 
 const roles = getRoles();
