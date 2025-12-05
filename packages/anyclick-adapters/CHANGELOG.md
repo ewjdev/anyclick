@@ -1,4 +1,4 @@
-# @ewjdev/anyclick-github
+# @ewjdev/anyclick-adapters
 
 ## 1.2.0
 
@@ -9,15 +9,4 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @ewjdev/anyclick-core@1.2.0
-
-## 1.0.0
-
-### Major Changes
-
-- a464d40: Initial release of the anyclick libraries
-
-### Patch Changes
-
-- Updated dependencies [a464d40]
-  - @ewjdev/anyclick-core@1.0.0
+  - @ewjdev/anyclick-pointer@1.2.0
