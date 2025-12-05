@@ -79,12 +79,21 @@ const colorMap: Record<
   },
 };
 
+// Safely normalize tags to a string array
+const getTags = (item: { tags?: unknown }): string[] => {
+  if (!item.tags) return [];
+  if (Array.isArray(item.tags)) {
+    return item.tags.filter((t): t is string => typeof t === "string");
+  }
+  return [];
+};
+
 // Get upcoming features for a role from roadmap items
 function getUpcomingFeaturesForRole(roleKey: string) {
   const tag = `homepage:${roleKey}`;
   return roadmapData.items.filter(
     (item) =>
-      (item.tags as string[])?.includes(tag) &&
+      getTags(item).includes(tag) &&
       item.status !== "completed" &&
       item.status !== "closed",
   );
@@ -316,7 +325,7 @@ export default function RootLayout({ children }) {
               (item) =>
                 item.status !== "completed" &&
                 item.status !== "closed" &&
-                (item.tags as string[])?.some((t) => t.startsWith("homepage:")),
+                getTags(item).some((t) => t.startsWith("homepage:")),
             );
             const upcomingTitles = upcomingItems
               .slice(0, 5)
