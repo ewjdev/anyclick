@@ -16,7 +16,7 @@ import type {
   ScreenshotConfig,
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
-import { CompactModeConfig } from "./InspectDialog/InspectDialog";
+import { CompactModeConfig } from "./InspectDialog/InspectSimple";
 
 // ============================================================================
 // Theme Configuration

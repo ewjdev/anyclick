@@ -1,5 +1,33 @@
 # @ewjdev/anyclick-react
 
+## 2.0.0
+
+### Major Changes
+
+- 20d6085: **BREAKING:** Replace `InspectDialog` with `InspectSimple`
+
+  - Remove `InspectDialog` export in favor of new lightweight `InspectSimple` component
+  - Add `InspectDialogManager` for automatic inspect event handling
+  - New `InspectSimple` features:
+    - Compact, consolidated layout with icon-only action buttons
+    - Mobile-responsive bottom drawer on small screens
+    - Click-outside to close
+    - Auto-dismiss status messages after 5 seconds
+    - Better feedback messaging with color-coded status
+
+  **Migration:**
+
+  ```tsx
+  // Before
+  import { InspectDialog } from "@ewjdev/anyclick-react";
+  // After
+  import { InspectDialogManager, InspectSimple } from "@ewjdev/anyclick-react";
+  ```
+
+### Minor Changes
+
+- b826935: move inspect into seperate package for devtools
+
 ## 1.4.1
 
 ### Patch Changes

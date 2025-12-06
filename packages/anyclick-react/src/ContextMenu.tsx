@@ -33,6 +33,8 @@ const defaultIcons: Record<string, React.ReactNode> = {
   like: <ThumbsUpIcon className="w-4 h-4" />,
 };
 
+const OFFSCREEN_POSITION = { x: -9999, y: -9999 };
+
 /**
  * Default header component for the context menu.
  */
@@ -298,7 +300,7 @@ export function ContextMenu({
   const [adjustedPosition, setAdjustedPosition] = useState<{
     x: number;
     y: number;
-  }>(position);
+  }>(OFFSCREEN_POSITION);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
     x: 0,
@@ -353,6 +355,7 @@ export function ContextMenu({
       setIsCapturing(false);
       setIsDragging(false);
       setDragOffset({ x: 0, y: 0 });
+      setAdjustedPosition(OFFSCREEN_POSITION);
       dragStartRef.current = null;
     }
   }, [visible]);

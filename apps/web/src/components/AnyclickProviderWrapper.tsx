@@ -2,15 +2,13 @@
 
 import type { ReactNode } from "react";
 import { useMemo } from "react";
-import {
-  InspectDialogManager,
-  ModificationIndicator,
-} from "@ewjdev/anyclick-devtools";
+import { ModificationIndicator } from "@ewjdev/anyclick-devtools";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import {
   AnyclickProvider,
   FunModeBridge,
+  InspectDialogManager,
   createPresetMenu,
 } from "@ewjdev/anyclick-react";
 import { MousePointer2 } from "lucide-react";
