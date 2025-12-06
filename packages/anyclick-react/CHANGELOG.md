@@ -1,5 +1,11 @@
 # @ewjdev/anyclick-react
 
+## 1.5.0
+
+### Minor Changes
+
+- b826935: move inspect into seperate package for devtools
+
 ## 1.4.1
 
 ### Patch Changes
