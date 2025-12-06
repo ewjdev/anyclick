@@ -24,32 +24,36 @@ Scope here does **not** block the error ingestion stack.
 - ✅ **Element Inspector**: Improved hierarchy navigation, utility class
   filtering, selector generation.
 
+<!-- ROADMAP:AUTO-START -->
+
 ## Short-term (next up)
 
-- Notifications package: Toast → Banner → Inline → Indicator, with
+- **Notifications Package**: Toast → Banner → Inline → Indicator, with
   NotificationContainer mount point.
-- A11y & UX: focus management, ARIA labels, reduced-motion, theme hooks shared
-  with `AnyclickProvider`.
-- Noise controls: coalescing identical errors, per-severity rate limits,
-  dismissal persistence, opt-in feedback prompts.
-- Config: timeouts, placement, portal target, mobile-safe spacing, z-index and
-  overlap rules.
+- **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme
+  hooks shared with AnyclickProvider.
+- **Noise Controls**: Coalescing identical errors, per-severity rate limits,
+  dismissal persistence, opt-in feedback prompt...
+- **Configuration Options**: Timeouts, placement, portal target, mobile-safe
+  spacing, z-index and overlap rules.
 
 ## Mid-term
 
-- Error dashboard (self-hostable) for viewing grouped errors, filters (project,
-  release, env, tag, severity, date), fingerprint details, and screenshots/DOM
-  context excerpts.
-- Auth: project-level API keys + dashboard session auth
-  (passwordless/link-based), project scoping, audit log for admin actions.
-- Alerting: webhook destinations with signing + retry/backoff, threshold-based
-  triggers (count, rate, new fingerprint), and muted periods.
+- ✅ **No Buttons??** [plan](.cursor/plans/no-buttons.plan.md) `Plan`
+- **Error Dashboard**: Self-hostable dashboard for viewing grouped errors,
+  filters (project, release, env, tag, severity, d...
+- **Authentication**: Project-level API keys + dashboard session auth
+  (passwordless/link-based), project scoping, audit lo...
+- **Alerting**: Webhook destinations with signing + retry/backoff,
+  threshold-based triggers (count, rate, new finger...
 
 ## Later
 
-- Integrations: Slack/Linear connectors, SSO options, CD/CI release mapping for
-  source-map lookups.
-- Analytics: trend views, cohorting by release/environment, regression
-  detection, and optional RUM sampling knobs.
-- Dashboard polish: saved views, shared links with redaction, dark/light themes,
-  and multi-tenant separation.
+- **Integrations**: Slack/Jira/Linear connectors, SSO options, CD/CI release
+  mapping for source-map lookups.
+- **Analytics**: Trend views, cohorting by release/environment, regression
+  detection, and optional RUM sampling knobs...
+- **Dashboard Polish**: Saved views, shared links with redaction, dark/light
+  themes, and multi-tenant separation.
+
+<!-- ROADMAP:AUTO-END -->

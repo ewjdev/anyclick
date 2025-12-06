@@ -1,4 +1,9 @@
-import Link from "next/link";
+import {
+  CodeBlock,
+  HeroCodeBlock,
+  TerminalBlock,
+} from "@/components/CodePreview";
+import roadmapData from "@/data/roadmap-items.json";
 import {
   ArrowRight,
   Box,
@@ -9,6 +14,7 @@ import {
   Eye,
   GitBranch,
   Layers,
+  LucideIcon,
   MousePointerClick,
   Palette,
   Sparkles,
@@ -18,11 +24,117 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import {
-  CodeBlock,
-  HeroCodeBlock,
-  TerminalBlock,
-} from "@/components/CodePreview";
+import Link from "next/link";
+
+// Icon mapping for dynamic rendering
+const iconMap: Record<string, LucideIcon> = {
+  TestTube,
+  Terminal,
+  Target,
+  Users,
+  Palette,
+  Eye,
+};
+
+// Color mapping for Tailwind classes
+const colorMap: Record<
+  string,
+  { gradient: string; border: string; text: string; bg: string }
+> = {
+  emerald: {
+    gradient: "from-emerald-500/20 to-emerald-500/5",
+    border: "hover:border-emerald-500/30",
+    text: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+  },
+  amber: {
+    gradient: "from-amber-500/20 to-amber-500/5",
+    border: "hover:border-amber-500/30",
+    text: "text-amber-400",
+    bg: "bg-amber-500/10",
+  },
+  violet: {
+    gradient: "from-violet-500/20 to-violet-500/5",
+    border: "hover:border-violet-500/30",
+    text: "text-violet-400",
+    bg: "bg-violet-500/10",
+  },
+  cyan: {
+    gradient: "from-cyan-500/20 to-cyan-500/5",
+    border: "hover:border-cyan-500/30",
+    text: "text-cyan-400",
+    bg: "bg-cyan-500/10",
+  },
+  rose: {
+    gradient: "from-rose-500/20 to-rose-500/5",
+    border: "hover:border-rose-500/30",
+    text: "text-rose-400",
+    bg: "bg-rose-500/10",
+  },
+  indigo: {
+    gradient: "from-indigo-500/20 to-indigo-500/5",
+    border: "hover:border-indigo-500/30",
+    text: "text-indigo-400",
+    bg: "bg-indigo-500/10",
+  },
+};
+
+// Safely normalize tags to a string array
+const getTags = (item: { tags?: unknown }): string[] => {
+  if (!item.tags) return [];
+  if (Array.isArray(item.tags)) {
+    return item.tags.filter((t): t is string => typeof t === "string");
+  }
+  return [];
+};
+
+// Get upcoming features for a role from roadmap items
+function getUpcomingFeaturesForRole(roleKey: string) {
+  const tag = `homepage:${roleKey}`;
+  return roadmapData.items.filter(
+    (item) =>
+      getTags(item).includes(tag) &&
+      item.status !== "completed" &&
+      item.status !== "closed",
+  );
+}
+
+// Type for role configuration
+interface RoleConfig {
+  title: string;
+  subtitle: string;
+  icon: string;
+  color: string;
+  features: Array<{ text: string; available: boolean }>;
+}
+
+// Validate and get roles from roadmap data
+function getRoles(): Record<string, RoleConfig> {
+  const raw = roadmapData.roles;
+  if (!raw || typeof raw !== "object") return {};
+
+  const isRole = (value: unknown): value is RoleConfig => {
+    if (!value || typeof value !== "object") return false;
+    const role = value as Partial<RoleConfig>;
+    const featuresValid = Array.isArray(role.features) &&
+      role.features.every(
+        (f) =>
+          f && typeof f.text === "string" && typeof f.available === "boolean",
+      );
+    return (
+      typeof role.title === "string" &&
+      typeof role.subtitle === "string" &&
+      typeof role.icon === "string" &&
+      typeof role.color === "string" &&
+      featuresValid
+    );
+  };
+
+  const entries = Object.entries(raw).filter(([, value]) => isRole(value));
+  return Object.fromEntries(entries) as Record<string, RoleConfig>;
+}
+
+const roles = getRoles();
 
 export default function Home() {
   return (
@@ -165,304 +277,108 @@ export default function RootLayout({ children }) {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* QA Engineer */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <TestTube className="w-6 h-6 text-emerald-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">QA Engineer</h3>
-                  <p className="text-sm text-gray-500">Bug bash partner</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Right-click feedback capture
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Screenshot capture (element, container, viewport)
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  GitHub Issues integration
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Sensitive data masking
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Jira integration
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Slack integration{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
+            {Object.entries(roles).map(([roleKey, role]) => {
+              const Icon = iconMap[role.icon] || Sparkles;
+              const colors = colorMap[role.color] || colorMap.emerald;
+              const upcomingFeatures = getUpcomingFeaturesForRole(roleKey);
 
-            {/* Developer */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Terminal className="w-6 h-6 text-amber-400" />
+              return (
+                <div
+                  key={roleKey}
+                  className={`group p-6 rounded-2xl bg-white/[0.02] border border-white/5 ${colors.border} transition-all hover:bg-white/[0.04]`}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                    >
+                      <Icon className={`w-6 h-6 ${colors.text}`} />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold">{role.title}</h3>
+                      <p className="text-sm text-gray-500">{role.subtitle}</p>
+                    </div>
+                  </div>
+                  <ul className="space-y-2 text-sm">
+                    {/* Available features */}
+                    {role.features
+                      .filter((f) => f.available)
+                      .map((feature, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-center gap-2 text-gray-300"
+                        >
+                          <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                          {feature.text}
+                        </li>
+                      ))}
+                    {/* Upcoming features from roadmap */}
+                    {upcomingFeatures.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex items-center gap-2 text-gray-500"
+                      >
+                        <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                        <span>
+                          {item.title}{" "}
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                            Soon
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Developer</h3>
-                  <p className="text-sm text-gray-500">
-                    AI-assisted bug fixing
-                  </p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Cursor AI agent (local & cloud)
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  GitHub Issues integration
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Context-aware DOM capture
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Full DOM context with ancestors
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Jira integration
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Playwright test generation{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Product Manager */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Target className="w-6 h-6 text-violet-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Product Manager</h3>
-                  <p className="text-sm text-gray-500">Capture pain points</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Feature feedback type
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Screenshot capture
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Comment support
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Custom menu items
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Workflow recording{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Pain point analytics{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Customer/End User */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-cyan-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Customer</h3>
-                  <p className="text-sm text-gray-500">Easy feedback</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Right-click feedback (easy to use)
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Screenshot capture
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Comment support
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Touch support (press-and-hold)
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Auto error collection{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Click behavior tracking{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* UX Designer */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-rose-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Palette className="w-6 h-6 text-rose-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">UX Designer</h3>
-                  <p className="text-sm text-gray-500">Customizable menus</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Custom menu items
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Role-based menu filtering
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Custom menu styling
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Custom cursor/pointer
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Element-specific menus{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Designer */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Eye className="w-6 h-6 text-indigo-400" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">Designer</h3>
-                  <p className="text-sm text-gray-500">Catch visual bugs</p>
-                </div>
-              </div>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Screenshot capture (element, container, viewport)
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Full DOM context
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Sensitive data masking
-                </li>
-                <li className="flex items-center gap-2 text-gray-300">
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  Element highlighting
-                </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Visual diff/comparison{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
-                </li>
-              </ul>
-            </div>
+              );
+            })}
           </div>
 
           {/* Roadmap Summary */}
-          <div className="mt-16 p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                  <Clock className="w-5 h-5 text-amber-400" />
-                  Coming Soon
-                </h3>
-                <p className="text-sm text-gray-400 max-w-2xl">
-                  Workflow recording, Slack & Linear integrations, automatic
-                  error collection, click behavior analytics, Playwright test
-                  generation, and more. See what&apos;s next on our{" "}
-                  <Link href="/roadmap" className="text-amber-300 underline">
-                    roadmap
-                  </Link>
-                  .
-                </p>
+          {(() => {
+            const upcomingItems = roadmapData.items.filter(
+              (item) =>
+                item.status !== "completed" &&
+                item.status !== "closed" &&
+                getTags(item).some((t) => t.startsWith("homepage:")),
+            );
+            const upcomingTitles = upcomingItems
+              .slice(0, 5)
+              .map((item) => item.title)
+              .join(", ");
+
+            return (
+              <div className="mt-16 p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                      <Clock className="w-5 h-5 text-amber-400" />
+                      Coming Soon
+                    </h3>
+                    <p className="text-sm text-gray-400 max-w-2xl">
+                      {upcomingTitles}
+                      {upcomingItems.length > 5 ? ", and more" : ""}. See
+                      what&apos;s next on our{" "}
+                      <Link
+                        href="/roadmap"
+                        className="text-amber-300 underline"
+                      >
+                        roadmap
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                  <a
+                    href="https://github.com/ewjdev/anyclick/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-shrink-0 px-5 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-medium transition-colors flex items-center gap-2"
+                  >
+                    Request a feature
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
-              <a
-                href="https://github.com/ewjdev/anyclick/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 px-5 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-medium transition-colors flex items-center gap-2"
-              >
-                Request a feature
-                <ArrowRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </section>
 

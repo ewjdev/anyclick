@@ -24,6 +24,7 @@ Scoped providers (`scoped={true}`) create a boundary using `containerRef` that l
    funMode?: boolean | FunModeConfig;
    ```
 
+
 Where `FunModeConfig` includes track rules, power-up settings, quest definitions, etc.
 
 2. **PointerProvider Enhancement**: Extend `PointerConfig` in `packages/anyclick-pointer/src/types.ts` to support fun mode:
@@ -31,6 +32,7 @@ Where `FunModeConfig` includes track rules, power-up settings, quest definitions
    mode?: 'normal' | 'fun' | 'calm';
    funConfig?: FunModeConfig;
    ```
+
 
 The `CustomPointer` component (`packages/anyclick-pointer/src/CustomPointer.tsx`) will conditionally render `GoKartPointer` when `mode === 'fun'`.
 

@@ -1,4 +1,23 @@
-<!-- bc303fd3-d2a0-475e-97b5-a8e24b91574a 909414e5-c38e-48f2-a8fe-860baeaf5f38 -->
+---
+name: Homepage Use Cases Showcase
+overview: ""
+todos:
+  - id: f034a97b-4976-4276-a23c-8fd46fa41b0b
+    content: Add new Use Cases section structure to page.tsx with header and grid layout
+    status: pending
+  - id: 09d4b015-beff-4127-b735-53e939f1b9a8
+    content: Create persona card components for QA, Dev, Prod, Customer, UX, and Design with icons and descriptions
+    status: pending
+  - id: 572fcf77-4f06-4e49-8696-9f4f0d8a5acd
+    content: Add feature lists with checkmarks for supported features and Coming Soon badges for roadmap items
+    status: pending
+  - id: 7c538f17-d55f-4de8-b8b9-3cf88cffedf5
+    content: Add roadmap summary section at bottom of Use Cases with all planned features
+    status: pending
+  - id: f28452a3-fdc9-4d3c-896f-15494c7abe29
+    content: Apply consistent styling, hover effects, and ensure responsive design
+    status: pending
+---
 
 # Homepage Use Cases Showcase
 
@@ -136,11 +155,3 @@ Features to add to roadmap:
 - Ensure all icons are imported from lucide-react
 - Make roadmap items visually distinct but not overwhelming
 - Consider adding links to examples or docs for each persona's use case
-
-### To-dos
-
-- [ ] Add new Use Cases section structure to page.tsx with header and grid layout
-- [ ] Create persona card components for QA, Dev, Prod, Customer, UX, and Design with icons and descriptions
-- [ ] Add feature lists with checkmarks for supported features and Coming Soon badges for roadmap items
-- [ ] Add roadmap summary section at bottom of Use Cases with all planned features
-- [ ] Apply consistent styling, hover effects, and ensure responsive design
