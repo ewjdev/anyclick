@@ -120,7 +120,7 @@ export const DEFAULT_COMPACT_CONFIG: CompactModeConfig = {
   },
 };
 
-export interface InspectDialogProps {
+export interface InspectSimpleProps {
   visible: boolean;
   targetElement: Element | null;
   onClose: () => void;
@@ -152,7 +152,7 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
-export function InspectDialog({
+export function InspectSimple({
   visible,
   targetElement,
   onClose,
@@ -160,7 +160,7 @@ export function InspectDialog({
   style,
   className,
   highlightColors,
-}: InspectDialogProps) {
+}: InspectSimpleProps) {
   const [info, setInfo] = useState<ElementInspectInfo | null>(null);
   const [sourceLocation, setSourceLocation] = useState<SourceLocation | null>(
     null,
@@ -473,3 +473,4 @@ const labelStyle: React.CSSProperties = {
   textTransform: "uppercase",
   letterSpacing: "0.04em",
 };
+
