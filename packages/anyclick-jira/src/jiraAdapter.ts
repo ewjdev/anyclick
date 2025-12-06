@@ -40,11 +40,15 @@ export class JiraAdapter {
 
   constructor(options: JiraAdapterOptions) {
     // Validate and normalize Jira URL
-    if (!options.jiraUrl.endsWith(".atlassian.net")) {
+    // Validate and normalize Jira URL
+    const normalizedUrl = options.jiraUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    if (!normalizedUrl.endsWith('.atlassian.net')) {
       throw new Error(
         `Invalid Jira URL: ${options.jiraUrl}. Must be a Jira Cloud URL (*.atlassian.net)`,
       );
     }
+
+    this.jiraUrl = `https://${normalizedUrl}`; // Ensure https protocol
 
     this.jiraUrl = options.jiraUrl.replace(/\/$/, ""); // Remove trailing slash
     this.email = options.email;
