@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, GitBranch, Terminal, Monitor, Cloud } from "lucide-react";
+import { ArrowRight, GitBranch, Terminal, Monitor, Cloud, Ticket } from "lucide-react";
 import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
@@ -38,6 +38,18 @@ export default function AdaptersDocsPage() {
             <p className="text-gray-400 text-sm">
               Create GitHub Issues with rich context, formatted markdown, and
               embedded screenshots.
+            </p>
+          </div>
+          <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-center gap-3 mb-2">
+              <Ticket className="w-5 h-5 text-blue-400" />
+              <code className="text-blue-300 font-mono">
+                @ewjdev/anyclick-jira
+              </code>
+            </div>
+            <p className="text-gray-400 text-sm">
+              Create Jira issues with Atlassian Document Format descriptions and
+              automatic screenshot attachments.
             </p>
           </div>
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
@@ -190,6 +202,140 @@ function customFormat(payload: FeedbackPayload): string {
 \\\`\\\`\\\`
   \`;
 }`}</CodeBlock>
+      </section>
+
+      {/* Jira Adapter */}
+      <section className="not-prose mb-12">
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-3">
+          <Ticket className="w-6 h-6 text-blue-400" />
+          Jira Adapter
+        </h2>
+        <p className="text-gray-400 mb-4 leading-relaxed">
+          The Jira adapter creates issues in your Jira Cloud instance with rich
+          Atlassian Document Format descriptions and automatic screenshot
+          attachments.
+        </p>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Installation</h3>
+        <CodeBlock>{`npm install @ewjdev/anyclick-jira`}</CodeBlock>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Server-Side Setup</h3>
+        <p className="text-gray-400 mb-4">
+          Create an API route that receives feedback and creates Jira issues:
+        </p>
+        <CodeBlock filename="app/api/feedback/route.ts">{`import { createJiraAdapter } from '@ewjdev/anyclick-jira/server';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
+
+const jira = createJiraAdapter({
+  jiraUrl: process.env.JIRA_URL!, // e.g., https://company.atlassian.net
+  email: process.env.JIRA_EMAIL!,
+  apiToken: process.env.JIRA_API_TOKEN!,
+  projectKey: process.env.JIRA_PROJECT_KEY!, // e.g., "PROJ"
+  // Optional: customize issue types
+  issueTypeMapping: {
+    issue: 'Bug',
+    feature: 'Story',
+    like: 'Task',
+  },
+  // Optional: default labels
+  defaultLabels: ['ui-feedback'],
+});
+
+export async function POST(request: Request) {
+  try {
+    const payload: AnyclickPayload = await request.json();
+    const issue = await jira.createIssue(payload);
+    return Response.json({
+      success: true,
+      issueKey: issue.key,
+      url: issue.url,
+    });
+  } catch (error) {
+    console.error('Jira error:', error);
+    return Response.json(
+      { success: false, error: 'Failed to create Jira issue' },
+      { status: 500 }
+    );
+  }
+}`}</CodeBlock>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Environment Variables</h3>
+        <CodeBlock filename=".env.local">{`JIRA_URL=https://your-company.atlassian.net
+JIRA_EMAIL=your-email@company.com
+JIRA_API_TOKEN=your-api-token-here
+JIRA_PROJECT_KEY=PROJ`}</CodeBlock>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Getting Your Jira API Token</h3>
+        <ol className="space-y-2 mb-4 text-gray-300 text-sm list-decimal list-inside">
+          <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">id.atlassian.com/manage-profile/security/api-tokens</a></li>
+          <li>Click &quot;Create API token&quot;</li>
+          <li>Give it a label (e.g., &quot;Anyclick Feedback&quot;)</li>
+          <li>Copy the token and add it to your <code className="text-cyan-400">.env.local</code> file</li>
+        </ol>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Multi-Adapter Setup (GitHub + Jira)</h3>
+        <p className="text-gray-400 mb-4">
+          Submit feedback to both GitHub and Jira simultaneously:
+        </p>
+        <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
+import { createJiraAdapter } from '@ewjdev/anyclick-jira/server';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
+
+export async function POST(request: Request) {
+  const payload: AnyclickPayload = await request.json();
+  const results = [];
+
+  // Submit to GitHub
+  if (process.env.GITHUB_TOKEN) {
+    try {
+      const github = createGitHubAdapter({
+        token: process.env.GITHUB_TOKEN,
+        owner: 'your-org',
+        repo: 'your-repo',
+      });
+      const issue = await github.createIssue(payload);
+      results.push({ adapter: 'GitHub', success: true, url: issue.htmlUrl });
+    } catch (error) {
+      results.push({ adapter: 'GitHub', success: false });
+    }
+  }
+
+  // Submit to Jira
+  if (process.env.JIRA_URL) {
+    try {
+      const jira = createJiraAdapter({
+        jiraUrl: process.env.JIRA_URL,
+        email: process.env.JIRA_EMAIL!,
+        apiToken: process.env.JIRA_API_TOKEN!,
+        projectKey: process.env.JIRA_PROJECT_KEY!,
+      });
+      const issue = await jira.createIssue(payload);
+      results.push({ adapter: 'Jira', success: true, url: issue.url });
+    } catch (error) {
+      results.push({ adapter: 'Jira', success: false });
+    }
+  }
+
+  const hasSuccess = results.some(r => r.success);
+  return Response.json({ success: hasSuccess, results });
+}`}</CodeBlock>
+
+        <h3 className="text-lg font-semibold mb-3 mt-8">Custom Fields</h3>
+        <p className="text-gray-400 mb-4">
+          Include custom fields like Epic Link or Team:
+        </p>
+        <CodeBlock>{`const jira = createJiraAdapter({
+  jiraUrl: process.env.JIRA_URL!,
+  email: process.env.JIRA_EMAIL!,
+  apiToken: process.env.JIRA_API_TOKEN!,
+  projectKey: 'PROJ',
+  customFields: {
+    // Epic link
+    customfield_10008: 'PROJ-123',
+    // Team
+    customfield_16300: { id: '12345' },
+  },
+});`}</CodeBlock>
       </section>
 
       {/* Cursor Cloud Adapter */}
