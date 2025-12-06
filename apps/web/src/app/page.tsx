@@ -116,8 +116,7 @@ function getRoles(): Record<string, RoleConfig> {
   const isRole = (value: unknown): value is RoleConfig => {
     if (!value || typeof value !== "object") return false;
     const role = value as Partial<RoleConfig>;
-    const featuresValid =
-      Array.isArray(role.features) &&
+    const featuresValid = Array.isArray(role.features) &&
       role.features.every(
         (f) =>
           f && typeof f.text === "string" && typeof f.available === "boolean",
@@ -170,12 +169,6 @@ export default function Home() {
               <Link href="/docs" className="hover:text-white transition-colors">
                 Docs
               </Link>
-              {/* <Link
-                href="/roadmap"
-                className="hover:text-white transition-colors"
-              >
-                Roadmap
-              </Link> */}
               <Link
                 href="/examples"
                 className="hover:text-white transition-colors"

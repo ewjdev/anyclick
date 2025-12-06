@@ -54,7 +54,7 @@
     "clean": "rimraf dist",
     "predev": "yarn setup",
     "dev": "tsup src/index.ts src/server.ts --format esm,cjs --dts --sourcemap --watch",
-    "setup": "node bin/setup-media-branch.js"
+    "setup": "node bin/setup-wrapper.js"
   },
   "dependencies": {
     "@ewjdev/anyclick-core": "^1.4.0"

@@ -175,8 +175,16 @@ function ReleaseMarker({
     ${eraColors[release.era]}
     ${isInteractive ? "cursor-pointer hover:scale-125" : ""}
     ${release.type === "major" ? glowClasses.major : ""}
-    ${release.type === "minor" && isInteractive ? "hover:" + glowClasses.minor : ""}
-    ${isSelected ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125" : ""}
+    ${
+    release.type === "minor" && isInteractive
+      ? "hover:" + glowClasses.minor
+      : ""
+  }
+    ${
+    isSelected
+      ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
+      : ""
+  }
   `;
 
   // When used as indicator inside a button, render as a div
@@ -259,7 +267,11 @@ function UpcomingMarker({
     w-4 h-4 md:w-5 md:h-5
     ${eraColors[feature.era]}
     ${glowColors[feature.era]}
-    ${isSelected ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125" : ""}
+    ${
+    isSelected
+      ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
+      : ""
+  }
     border-2 border-dashed border-white/30
     ${!asIndicator ? "cursor-pointer hover:scale-125" : ""}
   `;
@@ -275,10 +287,9 @@ function UpcomingMarker({
           <span
             className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
             style={{
-              backgroundColor:
-                feature.era === "next-major"
-                  ? "rgb(139, 92, 246)"
-                  : "rgb(251, 191, 36)",
+              backgroundColor: feature.era === "next-major"
+                ? "rgb(139, 92, 246)"
+                : "rgb(251, 191, 36)",
             }}
           />
         </div>
@@ -301,10 +312,9 @@ function UpcomingMarker({
         <span
           className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
           style={{
-            backgroundColor:
-              feature.era === "next-major"
-                ? "rgb(139, 92, 246)"
-                : "rgb(251, 191, 36)",
+            backgroundColor: feature.era === "next-major"
+              ? "rgb(139, 92, 246)"
+              : "rgb(251, 191, 36)",
           }}
         />
       </button>
@@ -358,7 +368,11 @@ function ReleaseDialog({
       <div
         className={`
           fixed top-1/2 -translate-y-1/2 z-50 w-full max-w-md
-          ${position === "left" ? "left-8 animate-slide-in-left" : "right-8 animate-slide-in-right"}
+          ${
+          position === "left"
+            ? "left-8 animate-slide-in-left"
+            : "right-8 animate-slide-in-right"
+        }
         `}
       >
         <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
@@ -372,27 +386,33 @@ function ReleaseDialog({
               <X className="w-4 h-4 text-gray-400" />
             </button>
 
-            {isRelease ? (
-              <div className="flex items-center gap-2 mb-2">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${eraConfig[release.era].bgColor} ${eraConfig[release.era].color}`}
-                >
-                  {(release as Release).type.toUpperCase()}
-                </span>
-                <span className="text-xs text-gray-500">
-                  v{(release as Release).version}
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 mb-2">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${eraConfig[release.era].bgColor} ${eraConfig[release.era].color}`}
-                >
-                  {eraConfig[release.era].label.toUpperCase()}
-                </span>
-                <span className="text-xs text-gray-500">Coming Soon</span>
-              </div>
-            )}
+            {isRelease
+              ? (
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      eraConfig[release.era].bgColor
+                    } ${eraConfig[release.era].color}`}
+                  >
+                    {(release as Release).type.toUpperCase()}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    v{(release as Release).version}
+                  </span>
+                </div>
+              )
+              : (
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      eraConfig[release.era].bgColor
+                    } ${eraConfig[release.era].color}`}
+                  >
+                    {eraConfig[release.era].label.toUpperCase()}
+                  </span>
+                  <span className="text-xs text-gray-500">Coming Soon</span>
+                </div>
+              )}
 
             <h3 className="text-xl font-bold text-white pr-8">
               {isRelease
@@ -579,27 +599,35 @@ function ReleaseDrawer({
             <div className="px-5 pb-4 border-b border-white/5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  {isRelease ? (
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${eraConfig[release.era].bgColor} ${eraConfig[release.era].color}`}
-                      >
-                        {(release as Release).type.toUpperCase()}
-                      </span>
-                      <span className="text-sm text-gray-400 font-mono">
-                        v{(release as Release).version}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${eraConfig[release.era].bgColor} ${eraConfig[release.era].color}`}
-                      >
-                        {eraConfig[release.era].label.toUpperCase()}
-                      </span>
-                      <span className="text-sm text-gray-400">Coming Soon</span>
-                    </div>
-                  )}
+                  {isRelease
+                    ? (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            eraConfig[release.era].bgColor
+                          } ${eraConfig[release.era].color}`}
+                        >
+                          {(release as Release).type.toUpperCase()}
+                        </span>
+                        <span className="text-sm text-gray-400 font-mono">
+                          v{(release as Release).version}
+                        </span>
+                      </div>
+                    )
+                    : (
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            eraConfig[release.era].bgColor
+                          } ${eraConfig[release.era].color}`}
+                        >
+                          {eraConfig[release.era].label.toUpperCase()}
+                        </span>
+                        <span className="text-sm text-gray-400">
+                          Coming Soon
+                        </span>
+                      </div>
+                    )}
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {isRelease
                       ? (release as Release).summary
@@ -733,7 +761,9 @@ function UpcomingCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${eraConfig[feature.era].bgColor} ${eraConfig[feature.era].color}`}
+              className={`px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider ${
+                eraConfig[feature.era].bgColor
+              } ${eraConfig[feature.era].color}`}
             >
               {eraConfig[feature.era].label}
             </span>
@@ -786,25 +816,29 @@ function RoadmapItemCard({
             <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-white/5 text-gray-400">
               {item.source}
             </span>
-            {item.status === "closed" || item.status === "completed" ? (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-emerald-500/20 text-emerald-400">
-                Done
-              </span>
-            ) : null}
+            {item.status === "closed" || item.status === "completed"
+              ? (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-emerald-500/20 text-emerald-400">
+                  Done
+                </span>
+              )
+              : null}
           </div>
           <h4 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
-            {item.url ? (
-              <Link
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                {item.title}
-              </Link>
-            ) : (
-              item.title
-            )}
+            {item.url
+              ? (
+                <Link
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline"
+                >
+                  {item.title}
+                </Link>
+              )
+              : (
+                item.title
+              )}
           </h4>
           <p className="text-xs text-gray-500 mt-1 line-clamp-2">
             {item.description}
@@ -959,7 +993,9 @@ export default function RoadmapPage() {
                   (era) => (
                     <div
                       key={era}
-                      className={`text-xs font-semibold uppercase tracking-wider ${eraConfig[era].color}`}
+                      className={`text-xs font-semibold uppercase tracking-wider ${
+                        eraConfig[era].color
+                      }`}
                     >
                       {eraConfig[era].label}
                     </div>
@@ -977,7 +1013,9 @@ export default function RoadmapPage() {
                   {Array.from({ length: 21 }).map((_, i) => (
                     <div
                       key={i}
-                      className={`w-px bg-white/10 ${i % 5 === 0 ? "h-4" : "h-2"}`}
+                      className={`w-px bg-white/10 ${
+                        i % 5 === 0 ? "h-4" : "h-2"
+                      }`}
                     />
                   ))}
                 </div>
@@ -995,10 +1033,9 @@ export default function RoadmapPage() {
                         key={era}
                         className="flex-1 flex items-center justify-center gap-3 relative"
                         style={{
-                          borderRight:
-                            eraIndex < 3
-                              ? "1px dashed rgba(255,255,255,0.1)"
-                              : "none",
+                          borderRight: eraIndex < 3
+                            ? "1px dashed rgba(255,255,255,0.1)"
+                            : "none",
                         }}
                       >
                         {/* "Today" indicator */}
@@ -1091,8 +1128,9 @@ export default function RoadmapPage() {
                 (era) => {
                   const releases = groupedReleases[era];
                   const upcoming = groupedUpcoming[era];
-                  if (releases.length === 0 && upcoming.length === 0)
+                  if (releases.length === 0 && upcoming.length === 0) {
                     return null;
+                  }
 
                   return (
                     <div key={era} className="mb-8 last:mb-0">
@@ -1103,10 +1141,10 @@ export default function RoadmapPage() {
                             era === "today"
                               ? "bg-cyan-500/20 ring-2 ring-cyan-400/50"
                               : era === "past"
-                                ? "bg-gray-500/20"
-                                : era === "near-future"
-                                  ? "bg-amber-500/20"
-                                  : "bg-violet-500/20"
+                              ? "bg-gray-500/20"
+                              : era === "near-future"
+                              ? "bg-amber-500/20"
+                              : "bg-violet-500/20"
                           }`}
                         >
                           <div
@@ -1114,10 +1152,10 @@ export default function RoadmapPage() {
                               era === "today"
                                 ? "bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
                                 : era === "past"
-                                  ? "bg-gray-500"
-                                  : era === "near-future"
-                                    ? "bg-amber-400"
-                                    : "bg-violet-400"
+                                ? "bg-gray-500"
+                                : era === "near-future"
+                                ? "bg-amber-400"
+                                : "bg-violet-400"
                             }`}
                           />
                           {era === "today" && (
@@ -1126,7 +1164,9 @@ export default function RoadmapPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-sm font-bold ${eraConfig[era].color}`}
+                            className={`text-sm font-bold ${
+                              eraConfig[era].color
+                            }`}
                           >
                             {eraConfig[era].label}
                           </span>
@@ -1145,17 +1185,16 @@ export default function RoadmapPage() {
                             key={release.id}
                             onClick={() =>
                               release.type !== "patch" &&
-                              handleReleaseClick(release)
-                            }
+                              handleReleaseClick(release)}
                             disabled={release.type === "patch"}
                             className={`
                               flex items-center gap-4 w-full text-left p-4 rounded-xl
                               transition-all duration-200 animate-fade-in-up
                               ${
-                                release.type === "patch"
-                                  ? "bg-white/[0.02] opacity-60"
-                                  : "bg-white/[0.03] active:bg-white/[0.08] active:scale-[0.98]"
-                              }
+                              release.type === "patch"
+                                ? "bg-white/[0.02] opacity-60"
+                                : "bg-white/[0.03] active:bg-white/[0.08] active:scale-[0.98]"
+                            }
                               border border-white/5
                             `}
                             style={{ animationDelay: `${index * 50}ms` }}
@@ -1199,7 +1238,9 @@ export default function RoadmapPage() {
                             onClick={() => handleReleaseClick(feature)}
                             className="flex items-center gap-4 w-full text-left p-4 rounded-xl transition-all duration-200 animate-fade-in-up bg-white/[0.03] active:bg-white/[0.08] active:scale-[0.98] border border-white/5 border-dashed"
                             style={{
-                              animationDelay: `${(releases.length + index) * 50}ms`,
+                              animationDelay: `${
+                                (releases.length + index) * 50
+                              }ms`,
                             }}
                           >
                             <div className="flex-shrink-0">
@@ -1216,7 +1257,9 @@ export default function RoadmapPage() {
                                 {feature.title}
                               </p>
                               <p
-                                className={`text-xs mt-1 ${eraConfig[feature.era].color}`}
+                                className={`text-xs mt-1 ${
+                                  eraConfig[feature.era].color
+                                }`}
                               >
                                 {eraConfig[feature.era].label}
                               </p>
@@ -1272,7 +1315,7 @@ export default function RoadmapPage() {
 
             {/* Short-term items */}
             {roadmapData.items.filter((i) => i.era === "short-term").length >
-              0 && (
+                0 && (
               <div className="mb-8">
                 <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4">
                   Short-term (Next Up)
@@ -1293,7 +1336,7 @@ export default function RoadmapPage() {
 
             {/* Mid-term items */}
             {roadmapData.items.filter((i) => i.era === "mid-term").length >
-              0 && (
+                0 && (
               <div className="mb-8">
                 <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
                   Mid-term
@@ -1340,9 +1383,9 @@ export default function RoadmapPage() {
         <ReleaseDialog
           release={selectedRelease}
           onClose={handleClose}
-          position={
-            selectedRelease ? getDialogPosition(selectedRelease) : "right"
-          }
+          position={selectedRelease
+            ? getDialogPosition(selectedRelease)
+            : "right"}
         />
       )}
 
@@ -1351,7 +1394,8 @@ export default function RoadmapPage() {
       )}
 
       {/* Custom animations */}
-      <style jsx global>{`
+      <style jsx global>
+        {`
         @keyframes fade-in {
           from {
             opacity: 0;
@@ -1482,7 +1526,8 @@ export default function RoadmapPage() {
             transform: none !important;
           }
         }
-      `}</style>
+      `}
+      </style>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Layers,
   Users,
   Gauge,
+  Ticket,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -65,6 +66,15 @@ const examples = [
     icon: GitBranch,
     color: "emerald",
     tags: ["GitHub", "Issues", "Screenshots", "Markdown"],
+  },
+  {
+    title: "Jira Integration",
+    description:
+      "Create Jira issues with rich ADF descriptions and automatic screenshot attachments.",
+    href: "/examples/jira-integration",
+    icon: Ticket,
+    color: "blue",
+    tags: ["Jira", "Issues", "ADF", "Attachments"],
   },
   {
     title: "Cursor Local",
