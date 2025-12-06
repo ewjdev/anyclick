@@ -5,9 +5,9 @@ import type { IDEConfig } from "../ide";
 import type { HighlightColors } from "../types";
 import {
   type CompactModeConfig,
-  InspectDialog,
+  InspectSimple,
   type PinnedPosition,
-} from "./InspectDialog";
+} from "./InspectSimple";
 
 /**
  * Custom event name for triggering the inspect dialog
@@ -113,7 +113,7 @@ export function InspectDialogManager({
   }, []);
 
   return (
-    <InspectDialog
+    <InspectSimple
       visible={visible}
       targetElement={targetElement}
       onClose={handleClose}

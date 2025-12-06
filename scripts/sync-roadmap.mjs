@@ -30,9 +30,7 @@ import {
   readExistingMarkdown,
   generateSyncReport,
   loadExistingData,
-  mergeWithExistingItems
-  loadExistingData,
-  mergeWithExistingItems
+  mergeWithExistingItems,
 } from './roadmap-utils.mjs';
 
 /**

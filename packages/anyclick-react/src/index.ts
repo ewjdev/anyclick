@@ -315,25 +315,33 @@ export { defaultHighlightColors } from "./highlight";
 export { defaultContainerSelectors } from "./highlight";
 
 // ============================================================================
-// Inspect Dialog
+// Inspect Simple (Lightweight Inspector)
 // ============================================================================
 
 /**
- * Chrome DevTools-style element inspector dialog.
+ * Lightweight element inspector component for mobile-friendly inspection.
  */
-export { InspectDialog } from "./InspectDialog/InspectDialog";
+export { InspectSimple } from "./InspectDialog/InspectSimple";
 
 /**
- * Default compact mode configuration for InspectDialog.
+ * Default compact mode configuration for InspectSimple.
  */
-export { DEFAULT_COMPACT_CONFIG } from "./InspectDialog/InspectDialog";
+export { DEFAULT_COMPACT_CONFIG } from "./InspectDialog/InspectSimple";
 
 export type {
+  /** Props for InspectSimple component */
+  InspectSimpleProps,
   /** Dialog pinned position options */
   PinnedPosition,
   /** Compact mode configuration */
   CompactModeConfig,
-} from "./InspectDialog/InspectDialog";
+} from "./InspectDialog/InspectSimple";
+
+/**
+ * Manager component that listens for inspect events and renders InspectSimple.
+ * Place this component once in your app to enable inspect functionality.
+ */
+export { InspectDialogManager } from "./InspectDialog/InspectDialogManager";
 
 /**
  * Opens the inspect dialog for a given element.
