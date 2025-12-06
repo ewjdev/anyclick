@@ -1,3 +1,10 @@
+const path = require("path");
+
+// Load environment variables from root .env.local
+require("dotenv").config({
+  path: path.resolve(__dirname, "../../.env.local"),
+});
+
 module.exports = {
   images: {
     remotePatterns: [new URL("https://s.yimg.com/**")],
@@ -10,5 +17,6 @@ module.exports = {
     "@ewjdev/anyclick-cursor",
     "@ewjdev/anyclick-cursor-local",
     "@ewjdev/anyclick-github",
+    "@ewjdev/anyclick-jira",
   ],
 };
