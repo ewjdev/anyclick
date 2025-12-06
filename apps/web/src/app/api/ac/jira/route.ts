@@ -1,16 +1,39 @@
 import { createJiraAdapter } from "@ewjdev/anyclick-jira/server";
 
-// Lazily create the Jira adapter to allow proper error handling
-function getJiraAdapter() {
+// Interface for session credentials passed via header
+interface SessionCredentials {
+  jiraUrl: string;
+  email: string;
+  apiToken: string;
+  projectKey: string;
+}
+
+// Parse session credentials from header
+function parseSessionCredentials(req: Request): SessionCredentials | null {
+  const headerValue = req.headers.get("x-jira-credentials");
+  if (!headerValue) return null;
+
+  try {
+    const creds = JSON.parse(headerValue) as SessionCredentials;
+    // Validate required fields
+    if (creds.jiraUrl && creds.email && creds.apiToken && creds.projectKey) {
+      return creds;
+    }
+  } catch (e) {
+    console.error("[Jira API] Failed to parse session credentials:", e);
+  }
+  return null;
+}
+
+// Create Jira adapter from env vars
+function getJiraAdapterFromEnv() {
   const jiraUrl = process.env.JIRA_URL;
   const email = process.env.JIRA_EMAIL;
   const apiToken = process.env.JIRA_API_TOKEN;
   const projectKey = process.env.JIRA_PROJECT_KEY;
 
   if (!jiraUrl || !email || !apiToken || !projectKey) {
-    throw new Error(
-      "Jira is not fully configured. Please set JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN, and JIRA_PROJECT_KEY environment variables.",
-    );
+    return null;
   }
 
   return createJiraAdapter({
@@ -21,7 +44,34 @@ function getJiraAdapter() {
   });
 }
 
-// Check if Jira is configured and return missing fields
+// Create Jira adapter from session credentials
+function getJiraAdapterFromSession(creds: SessionCredentials) {
+  return createJiraAdapter({
+    jiraUrl: creds.jiraUrl,
+    email: creds.email,
+    apiToken: creds.apiToken,
+    projectKey: creds.projectKey,
+  });
+}
+
+// Get Jira adapter - prefers env vars, falls back to session credentials
+function getJiraAdapter(req: Request) {
+  // First try env vars
+  const envAdapter = getJiraAdapterFromEnv();
+  if (envAdapter) {
+    return envAdapter;
+  }
+
+  // Fall back to session credentials
+  const sessionCreds = parseSessionCredentials(req);
+  if (sessionCreds) {
+    return getJiraAdapterFromSession(sessionCreds);
+  }
+
+  return null;
+}
+
+// Check if Jira is configured via env vars and return missing fields
 function getJiraConfigStatus(): { configured: boolean; missing: string[] } {
   const missing: string[] = [];
   if (!process.env.JIRA_URL) missing.push("JIRA_URL");
@@ -35,16 +85,20 @@ function getJiraConfigStatus(): { configured: boolean; missing: string[] } {
  * GET /api/ac/jira - Jira metadata and search operations
  *
  * Query params:
- *   - action=status: Get Jira configuration status
+ *   - action=status: Get Jira configuration status (env vars only)
  *   - action=issue-types: Get available Jira issue types
  *   - action=fields&issueType=Bug: Get fields for an issue type
  *   - action=search&field=Team&fieldKey=customfield_123&query=dev: Search for field values
+ *
+ * Headers:
+ *   - x-jira-credentials: JSON string with {jiraUrl, email, apiToken, projectKey}
+ *     Used as fallback when env vars are not configured
  */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
-  // Check configuration status
+  // Check configuration status (only reports env var status, not session)
   if (action === "status" || !action) {
     const status = getJiraConfigStatus();
     return Response.json({
@@ -56,19 +110,18 @@ export async function GET(req: Request) {
     });
   }
 
-  // All other actions require Jira to be configured
-  const configStatus = getJiraConfigStatus();
-  if (!configStatus.configured) {
+  // Get Jira adapter (from env or session credentials)
+  const jira = getJiraAdapter(req);
+  if (!jira) {
     return Response.json(
       {
-        error: "Jira is not configured",
-        missing: configStatus.missing,
+        error:
+          "Jira is not configured. Please provide credentials or set environment variables.",
+        missing: getJiraConfigStatus().missing,
       },
       { status: 400 },
     );
   }
-
-  const jira = getJiraAdapter();
 
   // Get available issue types
   if (action === "issue-types") {

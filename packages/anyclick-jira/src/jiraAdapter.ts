@@ -688,7 +688,7 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
 
     // Handle Team fields - use team/group picker
     if (lowerName === "team" || lowerName.includes("team")) {
-      return this.searchTeams(query);
+      return this.searchTeams(query, fieldKey);
     }
 
     // Handle User fields
@@ -723,65 +723,272 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
 
   /**
    * Search for Epic issues in the project
+   * Uses multiple strategies to find epics
    */
   async searchEpics(
     query: string,
   ): Promise<Array<{ id: string; name: string; value?: string }>> {
-    // Build JQL to find epics in the project
-    let jql = `project = "${this.projectKey}" AND issuetype = Epic`;
-    if (query.trim()) {
-      // Search by summary or key
-      jql += ` AND (summary ~ "${query}*" OR key = "${query.toUpperCase()}")`;
+    const trimmedQuery = query.trim();
+    console.log(`[JiraAdapter] Searching epics with query: "${trimmedQuery}"`);
+
+    // Strategy 1: Use issue picker API (most reliable for linking)
+    const pickerResults = await this.searchEpicsWithPicker(trimmedQuery);
+    if (pickerResults.length > 0) {
+      return pickerResults;
     }
-    jql += " ORDER BY updated DESC";
 
-    const path = `/rest/api/3/search?jql=${
-      encodeURIComponent(jql)
-    }&maxResults=20&fields=summary,key`;
+    // Strategy 2: Direct JQL search with multiple approaches
+    const jqlResults = await this.searchEpicsWithJQL(trimmedQuery);
+    if (jqlResults.length > 0) {
+      return jqlResults;
+    }
 
-    console.log("[JiraAdapter] Searching epics with JQL:", jql);
+    // Strategy 3: If query looks like a key, try direct issue fetch
+    if (trimmedQuery && /^[A-Z]+-\d+$/i.test(trimmedQuery)) {
+      const directResult = await this.getIssueByKey(trimmedQuery.toUpperCase());
+      if (directResult) {
+        return [directResult];
+      }
+    }
+
+    console.log("[JiraAdapter] No epics found with any strategy");
+    return [];
+  }
+
+  /**
+   * Search for epics using the issue picker API
+   */
+  private async searchEpicsWithPicker(
+    query: string,
+  ): Promise<Array<{ id: string; name: string; value?: string }>> {
+    // The issue picker is designed for finding issues to link
+    const params = new URLSearchParams({
+      currentProjectId: this.projectKey,
+      showSubTasks: "false",
+      showSubTaskParent: "false",
+    });
+
+    if (query) {
+      params.set("query", query);
+    }
+
+    // Add current JQL to filter to epics in this project
+    params.set(
+      "currentJQL",
+      `project = "${this.projectKey}" AND issuetype = Epic ORDER BY updated DESC`,
+    );
+
+    const path = `/rest/api/3/issue/picker?${params.toString()}`;
+    console.log("[JiraAdapter] Searching epics with picker API");
 
     const response = await this.fetchJira(path);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => "Unknown error");
       console.error(
-        `Failed to search epics: ${response.status} - ${errorText}`,
+        `[JiraAdapter] Issue picker failed: ${response.status} - ${errorText}`,
       );
       return [];
     }
 
     const data = (await response.json()) as {
-      issues?: Array<{
+      sections?: Array<{
         id: string;
-        key: string;
-        fields?: { summary?: string };
+        label: string;
+        issues?: Array<{
+          key: string;
+          keyHtml?: string;
+          summary?: string;
+          summaryText?: string;
+        }>;
       }>;
     };
-    const issues = data.issues || [];
 
-    console.log("[JiraAdapter] Found epics:", issues.length);
+    const allIssues: Array<{ id: string; name: string; value?: string }> = [];
 
-    return issues.map((issue) => ({
-      id: issue.key, // Epic Link uses issue key, not id
-      name: `${issue.key}: ${issue.fields?.summary || "Untitled"}`,
-      value: issue.key,
-    }));
+    // Collect issues from all sections
+    for (const section of data.sections || []) {
+      for (const issue of section.issues || []) {
+        const summary = issue.summaryText || issue.summary || "Untitled";
+        allIssues.push({
+          id: issue.key,
+          name: `${issue.key}: ${summary}`,
+          value: issue.key,
+        });
+      }
+    }
+
+    console.log(`[JiraAdapter] Picker found ${allIssues.length} issues`);
+    return allIssues;
   }
 
   /**
-   * Search for Teams using the groups/picker or team API
+   * Search for epics using JQL
+   */
+  private async searchEpicsWithJQL(
+    query: string,
+  ): Promise<Array<{ id: string; name: string; value?: string }>> {
+    // Try different JQL queries
+    const queries: string[] = [];
+
+    // Base query for epics in this project
+    const baseJQL = `project = "${this.projectKey}" AND issuetype = Epic`;
+
+    if (query) {
+      // Check if it's an issue key pattern
+      const isFullKey = /^[A-Z]+-\d+$/i.test(query);
+      const isPartialKey = /^\d+$/.test(query);
+      const hasProjectPrefix = query.toUpperCase().startsWith(this.projectKey);
+
+      if (isFullKey) {
+        // Search by exact key
+        queries.push(`key = "${query.toUpperCase()}"`);
+        // Also search in project epics that match this key
+        queries.push(`${baseJQL} AND key = "${query.toUpperCase()}"`);
+      } else if (isPartialKey) {
+        // Search by key number
+        queries.push(`key = "${this.projectKey}-${query}"`);
+      } else if (hasProjectPrefix) {
+        // Might be a partial key like "CP-101"
+        queries.push(`key ~ "${query.toUpperCase()}*"`);
+        queries.push(`${baseJQL} AND key ~ "${query.toUpperCase()}*"`);
+      }
+
+      // Text search in summary (works for all cases)
+      queries.push(`${baseJQL} AND summary ~ "${query}" ORDER BY updated DESC`);
+      // Broader text search
+      queries.push(`${baseJQL} AND text ~ "${query}" ORDER BY updated DESC`);
+    } else {
+      // No query - just get recent epics
+      queries.push(`${baseJQL} ORDER BY updated DESC`);
+    }
+
+    // Try each query until we get results
+    for (const jql of queries) {
+      console.log(`[JiraAdapter] Trying JQL: ${jql}`);
+
+      const path = `/rest/api/3/search?jql=${
+        encodeURIComponent(jql)
+      }&maxResults=20&fields=summary,key,issuetype`;
+
+      const response = await this.fetchJira(path);
+
+      if (response.ok) {
+        const data = (await response.json()) as {
+          issues?: Array<{
+            id: string;
+            key: string;
+            fields?: { summary?: string; issuetype?: { name: string } };
+          }>;
+        };
+        const issues = data.issues || [];
+
+        if (issues.length > 0) {
+          console.log(`[JiraAdapter] JQL found ${issues.length} issues`);
+          return issues.map((issue) => ({
+            id: issue.key,
+            name: `${issue.key}: ${issue.fields?.summary || "Untitled"}`,
+            value: issue.key,
+          }));
+        }
+      } else {
+        const errorText = await response.text().catch(() => "");
+        console.log(
+          `[JiraAdapter] JQL query failed: ${response.status} - ${
+            errorText.substring(0, 100)
+          }`,
+        );
+      }
+    }
+
+    return [];
+  }
+
+  /**
+   * Get a single issue by key
+   */
+  private async getIssueByKey(
+    key: string,
+  ): Promise<{ id: string; name: string; value?: string } | null> {
+    console.log(`[JiraAdapter] Fetching issue by key: ${key}`);
+
+    const path = `/rest/api/3/issue/${key}?fields=summary,issuetype`;
+    const response = await this.fetchJira(path);
+
+    if (!response.ok) {
+      console.log(`[JiraAdapter] Issue ${key} not found`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      key: string;
+      fields?: { summary?: string; issuetype?: { name: string } };
+    };
+
+    console.log(`[JiraAdapter] Found issue: ${data.key}`);
+    return {
+      id: data.key,
+      name: `${data.key}: ${data.fields?.summary || "Untitled"}`,
+      value: data.key,
+    };
+  }
+
+  /**
+   * Search for Teams using various Jira APIs
+   * Teams in Jira can be: custom select fields, groups, or Atlassian Teams
    */
   async searchTeams(
     query: string,
+    fieldKey?: string,
   ): Promise<Array<{ id: string; name: string; value?: string }>> {
-    // First try the groups picker API
+    console.log(
+      `[JiraAdapter] Searching teams with query: "${query}", fieldKey: ${fieldKey}`,
+    );
+
+    // If we have a field key, try to get options from the field's allowed values
+    if (fieldKey) {
+      const fieldOptions = await this.getFieldAllowedValues(fieldKey, query);
+      if (fieldOptions.length > 0) {
+        console.log(
+          "[JiraAdapter] Found team options from field:",
+          fieldOptions.length,
+        );
+        return fieldOptions;
+      }
+    }
+
+    // Try JQL autocomplete with "Team" field name
+    const jqlPath =
+      `/rest/api/3/jql/autocompletedata/suggestions?fieldName=Team&fieldValue=${
+        encodeURIComponent(query || "")
+      }`;
+
+    console.log("[JiraAdapter] Trying JQL autocomplete for Team");
+    const jqlResponse = await this.fetchJira(jqlPath);
+
+    if (jqlResponse.ok) {
+      const jqlData = (await jqlResponse.json()) as { results?: any[] };
+      const results = jqlData.results || [];
+
+      if (results.length > 0) {
+        console.log(
+          "[JiraAdapter] Found teams from JQL autocomplete:",
+          results.length,
+        );
+        return results.map((r: any) => ({
+          id: String(r.value || r.id || r.displayName || ""),
+          name: String(r.displayName || r.text || r.value || ""),
+          value: r.value,
+        }));
+      }
+    }
+
+    // Try the groups picker API as fallback
     const groupsPath = `/rest/api/3/groups/picker?query=${
-      encodeURIComponent(query)
+      encodeURIComponent(query || "")
     }&maxResults=20`;
 
-    console.log("[JiraAdapter] Searching teams/groups with query:", query);
-
+    console.log("[JiraAdapter] Trying groups picker");
     const groupsResponse = await this.fetchJira(groupsPath);
 
     if (groupsResponse.ok) {
@@ -800,55 +1007,153 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
       }
     }
 
-    // If groups picker doesn't work, try the team API (for Jira Software teams)
-    // This might be available in newer Jira Cloud instances
-    const teamsPath = `/rest/api/3/team?query=${
-      encodeURIComponent(query)
-    }&maxResults=20`;
+    console.log("[JiraAdapter] No team results found");
+    return [];
+  }
 
-    const teamsResponse = await this.fetchJira(teamsPath);
+  /**
+   * Get allowed values for a field by querying the create metadata
+   * This works for custom select fields like Team
+   */
+  async getFieldAllowedValues(
+    fieldKey: string,
+    query?: string,
+  ): Promise<Array<{ id: string; name: string; value?: string }>> {
+    try {
+      // First, try to get the field's autocomplete URL from the create meta
+      // We need to find which issue type has this field to get the autocomplete URL
+      const issueTypesPath =
+        `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes`;
+      const issueTypesResponse = await this.fetchJira(issueTypesPath);
 
-    if (teamsResponse.ok) {
-      const data = (await teamsResponse.json()) as {
-        values?: Array<{ id: string; name: string }>;
-        teams?: Array<{ id: string; name: string }>;
-      };
-      const teams = data.values || data.teams || [];
-
-      if (teams.length > 0) {
-        console.log("[JiraAdapter] Found teams:", teams.length);
-        return teams.map((t) => ({
-          id: String(t.id),
-          name: t.name,
-          value: String(t.id),
-        }));
+      if (!issueTypesResponse.ok) {
+        console.error(
+          "[JiraAdapter] Failed to get issue types for field values",
+        );
+        return [];
       }
+
+      const issueTypesData = (await issueTypesResponse.json()) as {
+        values?: Array<{ id: string; name: string }>;
+      };
+      const issueTypes = issueTypesData.values || [];
+
+      // Try the first issue type to get field metadata
+      if (issueTypes.length > 0) {
+        const fieldsPath =
+          `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes/${
+            issueTypes[0].id
+          }`;
+        const fieldsResponse = await this.fetchJira(fieldsPath);
+
+        if (fieldsResponse.ok) {
+          const fieldsData = (await fieldsResponse.json()) as {
+            values?: Array<{
+              fieldId: string;
+              allowedValues?: Array<
+                { id: string; value?: string; name?: string }
+              >;
+              autoCompleteUrl?: string;
+            }>;
+          };
+          const fields = fieldsData.values || [];
+
+          // Find our field
+          const field = fields.find((f) => f.fieldId === fieldKey);
+
+          if (field?.allowedValues && field.allowedValues.length > 0) {
+            console.log(
+              `[JiraAdapter] Found ${field.allowedValues.length} allowed values for ${fieldKey}`,
+            );
+            // Filter by query if provided
+            let values = field.allowedValues;
+            if (query) {
+              const lowerQuery = query.toLowerCase();
+              values = values.filter(
+                (v) =>
+                  v.name?.toLowerCase().includes(lowerQuery) ||
+                  v.value?.toLowerCase().includes(lowerQuery),
+              );
+            }
+            return values.map((v) => ({
+              id: String(v.id),
+              name: v.name || v.value || String(v.id),
+              value: String(v.id),
+            }));
+          }
+
+          // If field has autoCompleteUrl, use it
+          if (field?.autoCompleteUrl) {
+            console.log(
+              `[JiraAdapter] Using autocomplete URL for ${fieldKey}:`,
+              field.autoCompleteUrl,
+            );
+            return this.searchWithAutocompleteUrl(
+              field.autoCompleteUrl,
+              query || "",
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("[JiraAdapter] Error getting field allowed values:", error);
     }
 
-    // Last resort: try the JQL autocomplete with "Team" field
-    console.log("[JiraAdapter] Falling back to JQL autocomplete for Team");
-    const jqlPath =
-      `/rest/api/3/jql/autocompletedata/suggestions?fieldName=Team&fieldValue=${
-        encodeURIComponent(query)
-      }`;
+    return [];
+  }
 
-    const jqlResponse = await this.fetchJira(jqlPath);
+  /**
+   * Search using a field's autocomplete URL
+   */
+  async searchWithAutocompleteUrl(
+    autoCompleteUrl: string,
+    query: string,
+  ): Promise<Array<{ id: string; name: string; value?: string }>> {
+    // The autoCompleteUrl might be a full URL or a path
+    // It might have a placeholder for the query
+    let url = autoCompleteUrl;
+    if (url.includes("{query}")) {
+      url = url.replace("{query}", encodeURIComponent(query));
+    } else if (url.includes("?")) {
+      url += `&query=${encodeURIComponent(query)}`;
+    } else {
+      url += `?query=${encodeURIComponent(query)}`;
+    }
 
-    if (!jqlResponse.ok) {
+    // Ensure it's a path, not a full URL
+    if (url.startsWith("http")) {
+      const urlObj = new URL(url);
+      url = urlObj.pathname + urlObj.search;
+    }
+
+    console.log("[JiraAdapter] Searching with autocomplete URL:", url);
+
+    const response = await this.fetchJira(url);
+
+    if (!response.ok) {
       console.error(
-        `[JiraAdapter] Failed to search teams: ${jqlResponse.status}`,
+        `[JiraAdapter] Autocomplete URL search failed: ${response.status}`,
       );
       return [];
     }
 
-    const jqlData = (await jqlResponse.json()) as { results?: any[] };
-    const results = jqlData.results || [];
+    const data = (await response.json()) as any;
 
-    return results.map((r: any) => ({
-      id: String(r.value || r.id || r.displayName || ""),
-      name: String(r.displayName || r.text || r.value || ""),
-      value: r.value,
-    }));
+    // Handle various response formats
+    const results = data.results || data.values || data.suggestions || data ||
+      [];
+
+    if (Array.isArray(results)) {
+      return results.map((r: any) => ({
+        id: String(r.id || r.value || r.key || ""),
+        name: String(
+          r.displayName || r.name || r.label || r.text || r.value || "",
+        ),
+        value: String(r.id || r.value || r.key || ""),
+      }));
+    }
+
+    return [];
   }
 
   /**

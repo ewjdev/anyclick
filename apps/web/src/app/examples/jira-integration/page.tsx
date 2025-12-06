@@ -209,8 +209,11 @@ export default function JiraIntegrationPage() {
           success: true,
           results: result.results,
         });
-        // Only close the menu on success
-        setCustomMenuVisible(false);
+        // Return the URL so JiraFeedbackMenu can display it
+        const jiraResult = result.results?.find(
+          (r: { adapter: string }) => r.adapter === "Jira",
+        );
+        return { url: jiraResult?.url };
       } else {
         // Extract missing fields from Jira failures
         const jiraFailure = result.failures?.find(

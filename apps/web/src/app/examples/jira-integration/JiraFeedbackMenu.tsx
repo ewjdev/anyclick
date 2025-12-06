@@ -9,7 +9,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Eye,
+  EyeOff,
   FileText,
+  Key,
   Loader2,
   Search,
   Settings,
@@ -17,6 +20,10 @@ import {
   X,
 } from "lucide-react";
 import type { NormalizedJiraField } from "@ewjdev/anyclick-jira";
+
+// ============================================================================
+// Types
+// ============================================================================
 
 interface JiraIssueType {
   id: string;
@@ -31,6 +38,10 @@ interface AutocompleteOption {
   value?: string;
 }
 
+interface JiraSubmitResult {
+  url?: string;
+}
+
 interface JiraFeedbackMenuProps {
   targetElement: Element | null;
   containerElement: Element | null;
@@ -40,7 +51,155 @@ interface JiraFeedbackMenuProps {
     type: string,
     comment: string,
     customFields: Record<string, any>,
-  ) => Promise<void>;
+  ) => Promise<JiraSubmitResult | void>;
+}
+
+interface JiraCredentials {
+  jiraUrl: string;
+  email: string;
+  apiToken: string;
+  projectKey: string;
+}
+
+interface JiraPreferences {
+  credentials?: JiraCredentials;
+  fieldDefaults: {
+    [issueType: string]: Record<string, any>;
+  };
+  displayValueDefaults: {
+    [issueType: string]: Record<string, string>;
+  };
+  lastIssueType?: string;
+}
+
+// ============================================================================
+// Session Storage for Jira Preferences
+// ============================================================================
+
+const STORAGE_KEY = "anyclick-jira-preferences";
+
+function getJiraPreferences(): JiraPreferences {
+  if (typeof window === "undefined") {
+    return { fieldDefaults: {}, displayValueDefaults: {} };
+  }
+  try {
+    const stored = sessionStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error("[JiraPreferences] Failed to read preferences:", e);
+  }
+  return { fieldDefaults: {}, displayValueDefaults: {} };
+}
+
+function saveJiraPreferences(prefs: JiraPreferences): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  } catch (e) {
+    console.error("[JiraPreferences] Failed to save preferences:", e);
+  }
+}
+
+function useJiraPreferences() {
+  const [preferences, setPreferences] = useState<JiraPreferences>(() =>
+    getJiraPreferences()
+  );
+
+  const updatePreferences = useCallback((updates: Partial<JiraPreferences>) => {
+    setPreferences((prev) => {
+      const updated = { ...prev, ...updates };
+      saveJiraPreferences(updated);
+      return updated;
+    });
+  }, []);
+
+  const saveCredentials = useCallback((creds: JiraCredentials) => {
+    updatePreferences({ credentials: creds });
+  }, [updatePreferences]);
+
+  const saveFieldDefaults = useCallback(
+    (
+      issueType: string,
+      fields: Record<string, any>,
+      displayValues: Record<string, string>,
+    ) => {
+      setPreferences((prev) => {
+        const updated = {
+          ...prev,
+          fieldDefaults: {
+            ...prev.fieldDefaults,
+            [issueType]: fields,
+          },
+          displayValueDefaults: {
+            ...prev.displayValueDefaults,
+            [issueType]: displayValues,
+          },
+          lastIssueType: issueType,
+        };
+        saveJiraPreferences(updated);
+        return updated;
+      });
+    },
+    [],
+  );
+
+  const getFieldDefaults = useCallback(
+    (
+      issueType: string,
+    ): {
+      fields: Record<string, any>;
+      displayValues: Record<string, string>;
+    } => {
+      return {
+        fields: preferences.fieldDefaults[issueType] || {},
+        displayValues: preferences.displayValueDefaults[issueType] || {},
+      };
+    },
+    [preferences.fieldDefaults, preferences.displayValueDefaults],
+  );
+
+  return {
+    preferences,
+    updatePreferences,
+    saveCredentials,
+    saveFieldDefaults,
+    getFieldDefaults,
+    hasCredentials: !!preferences.credentials,
+  };
+}
+
+// ============================================================================
+// Context Description Generator
+// ============================================================================
+
+function generateContextDescription(
+  targetElement: Element | null,
+  containerElement: Element | null,
+): string {
+  if (typeof window === "undefined") return "";
+
+  const tag = targetElement?.tagName.toLowerCase() || "element";
+  const testId = targetElement?.getAttribute("data-testid");
+  const id = targetElement?.id;
+  const classes = targetElement?.className
+    ? `.${targetElement.className.split(" ").slice(0, 3).join(".")}`
+    : "";
+  const page = window.location.pathname;
+  const url = window.location.href;
+
+  const selectorParts = [tag];
+  if (testId) selectorParts.push(`[data-testid="${testId}"]`);
+  else if (id) selectorParts.push(`#${id}`);
+  else if (classes) selectorParts.push(classes);
+
+  return `**Element:** \`${selectorParts.join("")}\`
+**Page:** ${page}
+**URL:** ${url}
+
+**Issue Description:**
+`;
 }
 
 /**
@@ -221,6 +380,7 @@ function AutocompleteInput({
   onChange,
   onSelect,
   hasError,
+  requestHeaders,
 }: {
   field: NormalizedJiraField;
   value: string;
@@ -228,6 +388,7 @@ function AutocompleteInput({
   onChange: (value: string, display: string) => void;
   onSelect: (id: string, display: string) => void;
   hasError: boolean;
+  requestHeaders?: HeadersInit;
 }) {
   const [query, setQuery] = useState(displayValue || "");
   const [options, setOptions] = useState<AutocompleteOption[]>([]);
@@ -273,6 +434,7 @@ function AutocompleteInput({
         }&fieldKey=${encodeURIComponent(field.key || "")}&query=${
           encodeURIComponent(searchQuery)
         }`,
+        { headers: requestHeaders },
       );
       const data = await response.json();
       if (data.results) {
@@ -284,7 +446,7 @@ function AutocompleteInput({
     } finally {
       setIsLoading(false);
     }
-  }, [field.name, field.key]);
+  }, [field.name, field.key, requestHeaders]);
 
   // Debounced search
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -399,7 +561,13 @@ export function JiraFeedbackMenu({
   onSubmit,
 }: JiraFeedbackMenuProps) {
   const [step, setStep] = useState<
-    "loading" | "type-selection" | "form" | "submitting" | "success" | "error"
+    | "loading"
+    | "configure"
+    | "type-selection"
+    | "form"
+    | "submitting"
+    | "success"
+    | "error"
   >("loading");
   const [issueTypes, setIssueTypes] = useState<JiraIssueType[]>([]);
   const [selectedType, setSelectedType] = useState<JiraIssueType | null>(null);
@@ -416,33 +584,109 @@ export function JiraFeedbackMenu({
   // Track fields that Jira requires conditionally (based on other field values)
   const [conditionallyRequiredFields, setConditionallyRequiredFields] =
     useState<Set<string>>(new Set());
+  // Store the URL of the created issue for display in success view
+  const [createdIssueUrl, setCreatedIssueUrl] = useState<string | null>(null);
+  // Track if backend is configured
+  const [backendConfigured, setBackendConfigured] = useState<boolean | null>(
+    null,
+  );
+  // Credential form state
+  const [credentialForm, setCredentialForm] = useState<JiraCredentials>({
+    jiraUrl: "",
+    email: "",
+    apiToken: "",
+    projectKey: "",
+  });
+  const [showApiToken, setShowApiToken] = useState(false);
+  const [credentialErrors, setCredentialErrors] = useState<
+    Record<string, string>
+  >({});
 
-  // Fetch issue types on mount
+  // Use preferences hook
+  const {
+    preferences,
+    saveCredentials,
+    saveFieldDefaults,
+    getFieldDefaults,
+    hasCredentials,
+  } = useJiraPreferences();
+
+  // Build headers with session credentials if needed
+  const getRequestHeaders = useCallback((): HeadersInit => {
+    const headers: HeadersInit = {};
+    if (!backendConfigured && preferences.credentials) {
+      headers["x-jira-credentials"] = JSON.stringify(preferences.credentials);
+    }
+    return headers;
+  }, [backendConfigured, preferences.credentials]);
+
+  // Fetch issue types (with credential support)
+  const fetchIssueTypes = useCallback(async () => {
+    try {
+      const response = await fetch("/api/ac/jira?action=issue-types", {
+        headers: getRequestHeaders(),
+      });
+      const data = await response.json();
+
+      if (data.error) {
+        setLoadError(data.error);
+        setStep("error");
+        return false;
+      }
+
+      setIssueTypes(data.issueTypes || []);
+      return true;
+    } catch (error) {
+      console.error("Failed to fetch issue types:", error);
+      setLoadError(
+        "Failed to connect to Jira. Please check your configuration.",
+      );
+      setStep("error");
+      return false;
+    }
+  }, [getRequestHeaders]);
+
+  // Check configuration and load issue types on mount
   useEffect(() => {
-    async function fetchIssueTypes() {
+    async function checkConfigAndLoad() {
       try {
-        const response = await fetch("/api/ac/jira?action=issue-types");
-        const data = await response.json();
+        // First check if backend is configured
+        const statusResponse = await fetch("/api/ac/jira?action=status");
+        const statusData = await statusResponse.json();
+        const isBackendConfigured = statusData.configured;
+        setBackendConfigured(isBackendConfigured);
 
-        if (data.error) {
-          setLoadError(data.error);
-          setStep("error");
-          return;
+        if (isBackendConfigured) {
+          // Backend is configured, fetch issue types directly
+          const success = await fetchIssueTypes();
+          if (success) {
+            // Check if we have a remembered issue type to auto-select
+            if (preferences.lastIssueType) {
+              // We'll handle auto-select in type-selection, just go there
+              setStep("type-selection");
+            } else {
+              setStep("type-selection");
+            }
+          }
+        } else if (hasCredentials) {
+          // No backend config but we have session credentials
+          const success = await fetchIssueTypes();
+          if (success) {
+            setStep("type-selection");
+          }
+        } else {
+          // No backend config and no session credentials - show configure step
+          setStep("configure");
         }
-
-        setIssueTypes(data.issueTypes || []);
-        setStep("type-selection");
       } catch (error) {
-        console.error("Failed to fetch issue types:", error);
-        setLoadError(
-          "Failed to connect to Jira. Please check your configuration.",
-        );
+        console.error("Failed to check config:", error);
+        setLoadError("Failed to connect to Jira API");
         setStep("error");
       }
     }
 
-    fetchIssueTypes();
-  }, []);
+    checkConfigAndLoad();
+  }, [fetchIssueTypes, hasCredentials, preferences.lastIssueType]);
 
   // Handle escape key to close
   useEffect(() => {
@@ -504,6 +748,7 @@ export function JiraFeedbackMenu({
         `/api/ac/jira?action=fields&issueType=${
           encodeURIComponent(issueType.name)
         }&includeOptional=true`,
+        { headers: getRequestHeaders() },
       );
       const data = await response.json();
 
@@ -533,17 +778,41 @@ export function JiraFeedbackMenu({
         fetchedFields.filter((f) => !f.required).length,
       );
 
-      // Initialize form data with defaults and auto-selected values
+      // Get remembered defaults for this issue type
+      const {
+        fields: rememberedFields,
+        displayValues: rememberedDisplayValues,
+      } = getFieldDefaults(issueType.name);
+      console.log("[JiraMenu] Remembered field defaults:", rememberedFields);
+
+      // Initialize form data with defaults, remembered values, and auto-selected values
       const initialData: Record<string, any> = {
         // Always include summary with element context
         summary: `Issue with ${
           targetElement?.tagName.toLowerCase() || "element"
         } element`,
+        // Pre-fill description with rich context
+        description: generateContextDescription(
+          targetElement,
+          containerElement,
+        ),
       };
 
-      // Apply defaults from fields
+      // Initialize display values with remembered values
+      const initialDisplayValues: Record<string, string> = {
+        ...rememberedDisplayValues,
+      };
+
+      // Apply defaults from fields, then override with remembered values
       for (const field of fetchedFields) {
-        if (field.defaultValue !== undefined) {
+        // First check if we have a remembered value for this field
+        if (rememberedFields[field.key] !== undefined) {
+          initialData[field.key] = rememberedFields[field.key];
+          console.log(
+            `[JiraMenu] Restored ${field.key} from memory:`,
+            rememberedFields[field.key],
+          );
+        } else if (field.defaultValue !== undefined) {
           initialData[field.key] = field.defaultValue;
           console.log(
             `[JiraMenu] Auto-filled ${field.key} with default:`,
@@ -575,7 +844,7 @@ export function JiraFeedbackMenu({
 
       console.log("[JiraMenu] Initial form data:", initialData);
       setFormData(initialData);
-      setDisplayValues({});
+      setDisplayValues(initialDisplayValues);
       setShowOptionalFields(false);
       setConditionallyRequiredFields(new Set()); // Reset conditional requirements
       setErrors({}); // Clear any previous errors
@@ -586,7 +855,7 @@ export function JiraFeedbackMenu({
     } finally {
       setFieldsLoading(false);
     }
-  }, [targetElement]);
+  }, [targetElement, containerElement, getRequestHeaders, getFieldDefaults]);
 
   const handleTypeSelect = (type: JiraIssueType) => {
     setSelectedType(type);
@@ -773,7 +1042,7 @@ export function JiraFeedbackMenu({
         JSON.stringify(customFields, null, 2),
       );
 
-      await onSubmit(
+      const result = await onSubmit(
         selectedType.name.toLowerCase(),
         formData.description || "",
         {
@@ -782,10 +1051,23 @@ export function JiraFeedbackMenu({
         },
       );
 
+      // Store the created issue URL if available
+      if (result?.url) {
+        setCreatedIssueUrl(result.url);
+      }
+
+      // Save field values for future auto-fill (exclude description/summary as they're context-specific)
+      const fieldsToSave = { ...formData };
+      delete fieldsToSave.summary;
+      delete fieldsToSave.description;
+      saveFieldDefaults(selectedType.name, fieldsToSave, displayValues);
+      console.log(
+        "[JiraMenu] Saved field defaults for",
+        selectedType.name,
+        fieldsToSave,
+      );
+
       setStep("success");
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
     } catch (error) {
       console.error("Failed to submit:", error);
       setStep("form");
@@ -904,50 +1186,316 @@ export function JiraFeedbackMenu({
     </div>
   );
 
-  const renderTypeSelection = () => (
-    <div className="p-4 sm:p-6">
-      <h3 className="text-xl font-semibold mb-2 text-blue-900">
-        Report to Jira
-      </h3>
-      <p className="text-sm text-gray-600 mb-6">
-        Select the type of issue you&apos;d like to create
-      </p>
+  const validateCredentials = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
-      {issueTypes.length === 0
-        ? (
-          <div className="text-center py-8 text-gray-500">
-            <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>No issue types available</p>
+    if (!credentialForm.jiraUrl.trim()) {
+      newErrors.jiraUrl = "Jira URL is required";
+    } else if (!credentialForm.jiraUrl.includes("atlassian.net")) {
+      newErrors.jiraUrl =
+        "Please enter a valid Atlassian URL (e.g., https://your-company.atlassian.net)";
+    }
+
+    if (!credentialForm.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!credentialForm.email.includes("@")) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!credentialForm.apiToken.trim()) {
+      newErrors.apiToken = "API Token is required";
+    }
+
+    if (!credentialForm.projectKey.trim()) {
+      newErrors.projectKey = "Project Key is required";
+    } else if (
+      !/^[A-Z][A-Z0-9]*$/.test(credentialForm.projectKey.toUpperCase())
+    ) {
+      newErrors.projectKey =
+        "Project key should be uppercase letters (e.g., PROJ)";
+    }
+
+    setCredentialErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSaveCredentials = async () => {
+    if (!validateCredentials()) return;
+
+    // Normalize credentials
+    const normalizedCreds: JiraCredentials = {
+      jiraUrl: credentialForm.jiraUrl.trim().replace(/\/$/, ""), // Remove trailing slash
+      email: credentialForm.email.trim(),
+      apiToken: credentialForm.apiToken.trim(),
+      projectKey: credentialForm.projectKey.trim().toUpperCase(),
+    };
+
+    // Save to session storage
+    saveCredentials(normalizedCreds);
+
+    // Try to fetch issue types with the new credentials
+    setStep("loading");
+    const success = await fetchIssueTypes();
+    if (success) {
+      setStep("type-selection");
+    } else {
+      // If failed, go back to configure step
+      setStep("configure");
+      setCredentialErrors({
+        submit: "Failed to connect to Jira. Please check your credentials.",
+      });
+    }
+  };
+
+  const renderConfigure = () => (
+    <div className="p-4 sm:p-6 overflow-y-auto">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+          <Key className="w-5 h-5" />
+        </div>
+        <div>
+          <h3 className="text-xl font-semibold text-blue-900">
+            Configure Jira
+          </h3>
+          <p className="text-sm text-gray-600">
+            Enter your Jira credentials to get started
+          </p>
+        </div>
+      </div>
+
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+        <p className="text-sm text-amber-800">
+          <strong>Note:</strong>{" "}
+          Your credentials are stored in this browser session only and are not
+          saved to any server. They will be cleared when you close this tab.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {/* Jira URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Jira URL
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <input
+            type="url"
+            value={credentialForm.jiraUrl}
+            onChange={(e) =>
+              setCredentialForm({ ...credentialForm, jiraUrl: e.target.value })}
+            placeholder="https://your-company.atlassian.net"
+            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
+              credentialErrors.jiraUrl ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {credentialErrors.jiraUrl && (
+            <p className="text-xs text-red-500 mt-1">
+              {credentialErrors.jiraUrl}
+            </p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Email
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <input
+            type="email"
+            value={credentialForm.email}
+            onChange={(e) =>
+              setCredentialForm({ ...credentialForm, email: e.target.value })}
+            placeholder="your-email@company.com"
+            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
+              credentialErrors.email ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {credentialErrors.email && (
+            <p className="text-xs text-red-500 mt-1">
+              {credentialErrors.email}
+            </p>
+          )}
+        </div>
+
+        {/* API Token */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            API Token
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            <a
+              href="https://id.atlassian.com/manage-profile/security/api-tokens"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Create an API token
+            </a>{" "}
+            in your Atlassian account settings
+          </p>
+          <div className="relative">
+            <input
+              type={showApiToken ? "text" : "password"}
+              value={credentialForm.apiToken}
+              onChange={(e) =>
+                setCredentialForm({
+                  ...credentialForm,
+                  apiToken: e.target.value,
+                })}
+              placeholder="Enter your API token"
+              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
+                credentialErrors.apiToken ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowApiToken(!showApiToken)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showApiToken
+                ? <EyeOff className="w-5 h-5" />
+                : <Eye className="w-5 h-5" />}
+            </button>
           </div>
-        )
-        : (
-          <div className="space-y-3">
-            {issueTypes.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => handleTypeSelect(type)}
-                className="w-full p-4 rounded-xl border-2 border-blue-100 hover:border-blue-400 hover:bg-blue-50 transition-all text-left group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-200 group-hover:text-blue-700">
-                    {getIssueTypeIcon(type.name)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-blue-900 mb-1">
-                      {type.name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {type.description || `Create a ${type.name} issue`}
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 mt-2" />
-                </div>
-              </button>
-            ))}
+          {credentialErrors.apiToken && (
+            <p className="text-xs text-red-500 mt-1">
+              {credentialErrors.apiToken}
+            </p>
+          )}
+        </div>
+
+        {/* Project Key */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Project Key
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <p className="text-xs text-gray-500 mb-2">
+            The key of your Jira project (e.g., PROJ, DEV, SUPPORT)
+          </p>
+          <input
+            type="text"
+            value={credentialForm.projectKey}
+            onChange={(e) =>
+              setCredentialForm({
+                ...credentialForm,
+                projectKey: e.target.value.toUpperCase(),
+              })}
+            placeholder="PROJ"
+            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 uppercase ${
+              credentialErrors.projectKey ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {credentialErrors.projectKey && (
+            <p className="text-xs text-red-500 mt-1">
+              {credentialErrors.projectKey}
+            </p>
+          )}
+        </div>
+
+        {/* Submit Error */}
+        {credentialErrors.submit && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-700">{credentialErrors.submit}</p>
+            </div>
           </div>
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex gap-3 mt-6">
+        <button
+          onClick={handleClose}
+          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveCredentials}
+          className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          Connect to Jira
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
+
+  const renderTypeSelection = () => {
+    // Sort issue types to put last used one first
+    const sortedIssueTypes = [...issueTypes].sort((a, b) => {
+      if (a.name === preferences.lastIssueType) return -1;
+      if (b.name === preferences.lastIssueType) return 1;
+      return 0;
+    });
+
+    return (
+      <div className="p-4 sm:p-6">
+        <h3 className="text-xl font-semibold mb-2 text-blue-900">
+          Report to Jira
+        </h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Select the type of issue you&apos;d like to create
+        </p>
+
+        {issueTypes.length === 0
+          ? (
+            <div className="text-center py-8 text-gray-500">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No issue types available</p>
+            </div>
+          )
+          : (
+            <div className="space-y-3">
+              {sortedIssueTypes.map((type) => {
+                const isLastUsed = type.name === preferences.lastIssueType;
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => handleTypeSelect(type)}
+                    className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
+                      isLastUsed
+                        ? "border-blue-400 bg-blue-50 hover:border-blue-500 hover:bg-blue-100"
+                        : "border-blue-100 hover:border-blue-400 hover:bg-blue-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`p-2 rounded-lg ${
+                          isLastUsed
+                            ? "bg-blue-200 text-blue-700"
+                            : "bg-blue-100 text-blue-600 group-hover:bg-blue-200 group-hover:text-blue-700"
+                        }`}
+                      >
+                        {getIssueTypeIcon(type.name)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                          {type.name}
+                          {isLastUsed && (
+                            <span className="text-xs font-normal bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full">
+                              Last used
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {type.description || `Create a ${type.name} issue`}
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 mt-2" />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+      </div>
+    );
+  };
 
   const renderFieldInput = (field: NormalizedJiraField) => {
     const value = formData[field.key] ?? "";
@@ -974,6 +1522,7 @@ export function JiraFeedbackMenu({
             setDisplayValues({ ...displayValues, [field.key]: display });
           }}
           hasError={hasError}
+          requestHeaders={getRequestHeaders()}
         />
       );
     }
@@ -1388,9 +1937,38 @@ export function JiraFeedbackMenu({
         <h3 className="text-xl font-semibold text-emerald-900 mb-2">
           Issue Created!
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 mb-4">
           Your feedback has been submitted to Jira
         </p>
+        {createdIssueUrl && (
+          <a
+            href={createdIssueUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+          >
+            View in Jira
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        )}
+        <button
+          onClick={handleClose}
+          className="mt-4 block mx-auto text-sm text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          Close
+        </button>
       </div>
     </div>
   );
@@ -1454,6 +2032,7 @@ export function JiraFeedbackMenu({
         {/* Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {step === "loading" && renderLoading()}
+          {step === "configure" && renderConfigure()}
           {step === "error" && renderError()}
           {step === "type-selection" && renderTypeSelection()}
           {step === "form" && renderForm()}
