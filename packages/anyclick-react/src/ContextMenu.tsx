@@ -667,6 +667,16 @@ export function ContextMenu({
 
   const handleQuickChatPin = (pinned: boolean) => {
     setIsQuickChatPinned(pinned);
+    // Sync to session storage
+    try {
+      if (pinned) {
+        sessionStorage.setItem("anyclick-quick-chat-pinned", "true");
+      } else {
+        sessionStorage.removeItem("anyclick-quick-chat-pinned");
+      }
+    } catch {
+      // Ignore storage errors
+    }
     // When pinning, go back to menu view so context menu keeps working
     if (pinned) {
       setCurrentView("menu");
@@ -675,6 +685,11 @@ export function ContextMenu({
 
   const handleQuickChatClose = () => {
     setIsQuickChatPinned(false);
+    try {
+      sessionStorage.removeItem("anyclick-quick-chat-pinned");
+    } catch {
+      // Ignore storage errors
+    }
     setCurrentView("menu");
   };
 
@@ -685,14 +700,14 @@ export function ContextMenu({
         ? 320
         : undefined;
 
-  // Show pinned QuickChat regardless of menu visibility
-  const showPinnedQuickChat = isQuickChatPinned && quickChatConfig;
+  // Show pinned QuickChat drawer (separate from menu)
+  const showPinnedDrawer = isQuickChatPinned && quickChatConfig;
   const showMenu = visible && targetElement;
 
   return (
     <>
-      {/* Pinned QuickChat sidebar - always visible when pinned */}
-      {showPinnedQuickChat && (
+      {/* Pinned QuickChat drawer - anchored to right side, independent of menu */}
+      {showPinnedDrawer && (
         <QuickChat
           visible={true}
           targetElement={targetElement}
@@ -730,6 +745,30 @@ export function ContextMenu({
             currentView !== "screenshot-preview" &&
             currentView !== "quick-chat" && (
               <DefaultHeader styles={menuStyles.header} title="Send Feedback">
+                {positionMode === "dynamic" && (
+                  <div
+                    data-drag-handle
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.opacity = "0.5";
+                    }}
+                    onPointerDown={handleDragStart}
+                    style={{
+                      ...menuStyles.dragHandle,
+                      cursor: isDragging ? "grabbing" : "grab",
+                    }}
+                    title="Drag to move"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                )}
+                {showPreview && (
+                  <div style={menuStyles.screenshotIndicator}>
+                    <CameraIcon className="w-3 h-3" />
+                  </div>
+                )}
                 {quickChatConfig && (
                   <button
                     type="button"
@@ -757,30 +796,6 @@ export function ContextMenu({
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                   </button>
-                )}
-                {showPreview && (
-                  <div style={menuStyles.screenshotIndicator}>
-                    <CameraIcon className="w-3 h-3" />
-                  </div>
-                )}
-                {positionMode === "dynamic" && (
-                  <div
-                    data-drag-handle
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.opacity = "1";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.opacity = "0.5";
-                    }}
-                    onPointerDown={handleDragStart}
-                    style={{
-                      ...menuStyles.dragHandle,
-                      cursor: isDragging ? "grabbing" : "grab",
-                    }}
-                    title="Drag to move"
-                  >
-                    <GripVertical className="w-4 h-4" />
-                  </div>
                 )}
               </DefaultHeader>
             )}
@@ -820,6 +835,7 @@ export function ContextMenu({
             />
           )}
 
+          {/* Inline QuickChat - inside menu when not pinned */}
           {currentView === "quick-chat" &&
             quickChatConfig &&
             !isQuickChatPinned && (

@@ -10,7 +10,7 @@ import type { CSSProperties } from "react";
  * QuickChat component styles.
  */
 export const quickChatStyles: Record<string, CSSProperties> = {
-  // Container
+  // Inline container - inside the context menu
   container: {
     display: "flex",
     flexDirection: "column",
@@ -19,18 +19,18 @@ export const quickChatStyles: Record<string, CSSProperties> = {
     overflow: "hidden",
   },
 
-  // Pinned sidebar container
+  // Pinned drawer - anchored to right side of screen
   pinnedContainer: {
     position: "fixed",
-    top: "16px",
-    right: "16px",
-    bottom: "16px",
-    width: "320px",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: "340px",
     display: "flex",
     flexDirection: "column",
     backgroundColor: "var(--anyclick-menu-bg, #ffffff)",
-    borderRadius: "12px",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+    borderLeft: "1px solid var(--anyclick-menu-border, #e5e5e5)",
+    boxShadow: "-4px 0 24px rgba(0, 0, 0, 0.15)",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     fontSize: "14px",
@@ -107,20 +107,16 @@ export const quickChatStyles: Record<string, CSSProperties> = {
     backgroundColor: "rgba(0, 102, 204, 0.08)",
   },
 
-  // Context dropdown
+  // Context dropdown (in normal flow, not absolute)
   contextDropdown: {
-    position: "absolute" as const,
-    top: "100%",
-    left: "8px",
-    right: "8px",
-    marginTop: "4px",
-    padding: "8px",
-    backgroundColor: "var(--anyclick-menu-bg, #ffffff)",
-    border: "1px solid var(--anyclick-menu-border, #e5e5e5)",
-    borderRadius: "8px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-    zIndex: 10,
-    maxHeight: "120px",
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "2px",
+    padding: "6px 8px",
+    margin: "0 8px 6px 8px",
+    backgroundColor: "var(--anyclick-menu-hover, #f5f5f5)",
+    borderRadius: "6px",
+    maxHeight: "80px",
     overflowY: "auto" as const,
   },
 
@@ -252,6 +248,17 @@ export const quickChatStyles: Record<string, CSSProperties> = {
     cursor: "pointer",
     padding: 0,
   },
+  contextToggleSmall: {
+    fontSize: "9px",
+    fontWeight: 500,
+    color: "var(--anyclick-menu-text-muted, #666)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    padding: "2px 4px",
+    borderRadius: "3px",
+    transition: "all 0.15s ease",
+  },
   contextChunks: {
     display: "flex",
     flexDirection: "column",
@@ -265,6 +272,16 @@ export const quickChatStyles: Record<string, CSSProperties> = {
     borderRadius: "4px",
     fontSize: "11px",
     backgroundColor: "var(--anyclick-menu-hover, #f5f5f5)",
+    cursor: "pointer",
+    transition: "opacity 0.15s ease",
+  },
+  contextChunkCompact: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "2px 4px",
+    borderRadius: "3px",
+    fontSize: "10px",
     cursor: "pointer",
     transition: "opacity 0.15s ease",
   },
@@ -411,6 +428,24 @@ export const quickChatKeyframes = `
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
   }
 }
 

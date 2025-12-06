@@ -238,26 +238,28 @@ export function QuickChat({
 
   if (!visible) return null;
 
-  // Use pinned container styles when pinned
+  // Use different styles based on pinned state
   const containerStyles = isPinned
     ? {
         ...quickChatStyles.pinnedContainer,
-        animation: "slideIn 0.2s ease-out",
+        animation: "slideInFromRight 0.25s ease-out",
         ...style,
       }
     : {
         ...quickChatStyles.container,
-        animation: "slideIn 0.2s ease-out",
+        animation: "fadeIn 0.15s ease-out",
         ...style,
       };
 
   return (
-    <div
-      className={className}
-      style={{ ...containerStyles, position: "relative" as const }}
-    >
-      {/* Minimal Header with context badge */}
-      <div style={quickChatStyles.header}>
+    <div className={className} style={containerStyles}>
+      {/* Header with context badge */}
+      <div
+        style={{
+          ...quickChatStyles.header,
+          padding: isPinned ? "12px 12px 8px 12px" : "6px 8px",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {!isPinned && (
             <button
@@ -274,20 +276,47 @@ export function QuickChat({
           )}
           {/* Context badge */}
           {mergedConfig.showRedactionUI && contextChunks.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowContext(!showContext)}
-              style={{
-                ...quickChatStyles.contextBadge,
-                ...(showContext ? quickChatStyles.contextBadgeActive : {}),
-              }}
-              title="Edit context"
-            >
-              <span>
-                {includedCount}/{contextChunks.length} context
-              </span>
-              {showContext ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setShowContext(!showContext)}
+                style={{
+                  ...quickChatStyles.contextBadge,
+                  ...(showContext ? quickChatStyles.contextBadgeActive : {}),
+                }}
+                title="Edit context"
+              >
+                <span>
+                  {includedCount}/{contextChunks.length}
+                </span>
+                {showContext ? (
+                  <ChevronUp size={10} />
+                ) : (
+                  <ChevronDown size={10} />
+                )}
+              </button>
+              {/* All/None toggles when dropdown is open */}
+              {showContext && (
+                <div style={{ display: "flex", gap: "2px" }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleAllChunks(true)}
+                    style={quickChatStyles.contextToggleSmall}
+                    title="Include all"
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleAllChunks(false)}
+                    style={quickChatStyles.contextToggleSmall}
+                    title="Exclude all"
+                  >
+                    None
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
         <div style={quickChatStyles.headerActions}>
@@ -298,7 +327,7 @@ export function QuickChat({
               style={quickChatStyles.iconButton}
               title="Clear chat"
             >
-              <X size={14} />
+              <RefreshCw size={14} />
             </button>
           )}
           <button
@@ -308,72 +337,41 @@ export function QuickChat({
               ...quickChatStyles.iconButton,
               ...(isPinned ? quickChatStyles.iconButtonActive : {}),
             }}
-            title={isPinned ? "Unpin" : "Pin to side"}
+            title={isPinned ? "Unpin (closes with menu)" : "Pin (stays open)"}
           >
             {isPinned ? <PinOff size={14} /> : <Pin size={14} />}
           </button>
-          {isPinned && (
-            <button
-              type="button"
-              onClick={handleClose}
-              style={quickChatStyles.iconButton}
-              title="Close"
-            >
-              <X size={14} />
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleClose}
+            style={quickChatStyles.iconButton}
+            title="Close"
+          >
+            <X size={14} />
+          </button>
         </div>
       </div>
 
-      {/* Context dropdown */}
+      {/* Context dropdown - compact list */}
       {showContext && contextChunks.length > 0 && (
         <div style={quickChatStyles.contextDropdown}>
-          <div style={quickChatStyles.contextContainer}>
-            {contextChunks.map((chunk) => (
-              <label
-                key={chunk.id}
-                style={{
-                  ...quickChatStyles.contextChunk,
-                  ...(chunk.included
-                    ? {}
-                    : quickChatStyles.contextChunkExcluded),
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={chunk.included}
-                  onChange={() => toggleChunk(chunk.id)}
-                  style={quickChatStyles.contextCheckbox}
-                />
-                <span style={quickChatStyles.contextLabel}>{chunk.label}</span>
-                <span style={quickChatStyles.contextSize}>{chunk.size}c</span>
-              </label>
-            ))}
-            <div
+          {contextChunks.map((chunk) => (
+            <label
+              key={chunk.id}
               style={{
-                display: "flex",
-                gap: "8px",
-                marginTop: "6px",
-                paddingTop: "6px",
-                borderTop: "1px solid var(--anyclick-menu-border, #e5e5e5)",
+                ...quickChatStyles.contextChunkCompact,
+                ...(chunk.included ? {} : quickChatStyles.contextChunkExcluded),
               }}
             >
-              <button
-                type="button"
-                onClick={() => toggleAllChunks(true)}
-                style={quickChatStyles.contextToggle}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleAllChunks(false)}
-                style={quickChatStyles.contextToggle}
-              >
-                None
-              </button>
-            </div>
-          </div>
+              <input
+                type="checkbox"
+                checked={chunk.included}
+                onChange={() => toggleChunk(chunk.id)}
+                style={quickChatStyles.contextCheckbox}
+              />
+              <span style={quickChatStyles.contextLabel}>{chunk.label}</span>
+            </label>
+          ))}
         </div>
       )}
 

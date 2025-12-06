@@ -57,7 +57,7 @@
   },
   "peerDependencies": {
     "react": ">=19.2.1",
-    "react-dom": ">=19.2.7"
+    "react-dom": ">=19.2.1"
   },
   "devDependencies": {
     "@types/react": "^19.2.1",
