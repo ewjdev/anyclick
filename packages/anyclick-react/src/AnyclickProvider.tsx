@@ -82,6 +82,7 @@ export function AnyclickProvider({
   metadata,
   onSubmitError,
   onSubmitSuccess,
+  quickChatConfig,
   scoped = false,
   screenshotConfig,
   stripAttributes,
@@ -466,6 +467,7 @@ export function AnyclickProvider({
         onClose={closeMenu}
         onSelect={handleMenuSelect}
         position={menuPosition}
+        quickChatConfig={quickChatConfig}
         screenshotConfig={effectiveScreenshotConfig}
         style={effectiveMenuStyle}
         targetElement={targetElement}
