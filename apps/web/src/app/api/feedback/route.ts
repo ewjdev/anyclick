@@ -378,27 +378,36 @@ export async function POST(req: Request) {
   }
 
   // Try Jira if configured (via env vars OR session credentials)
-  const jiraAdapter = getJiraAdapter(req);
-  if (jiraAdapter) {
-    try {
-      const issue = await jiraAdapter.createIssue(payload);
-      results.push({ adapter: "Jira", success: true, url: issue.url });
-    } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to create Jira issue";
-      console.error("Jira adapter error:", message);
+  try {
+    const jiraAdapter = getJiraAdapter(req);
+    if (jiraAdapter) {
+      try {
+        const issue = await jiraAdapter.createIssue(payload);
+        results.push({ adapter: "Jira", success: true, url: issue.url });
+      } catch (error) {
+        const message = error instanceof Error
+          ? error.message
+          : "Failed to create Jira issue";
+        console.error("Jira adapter error:", message);
 
-      // Parse Jira error to extract missing/required fields
-      const missingFields = parseJiraMissingFields(message);
+        // Parse Jira error to extract missing/required fields
+        const missingFields = parseJiraMissingFields(message);
 
-      results.push({
-        adapter: "Jira",
-        success: false,
-        error: message,
-        missingFields: missingFields.length > 0 ? missingFields : undefined,
-      });
+        results.push({
+          adapter: "Jira",
+          success: false,
+          error: message,
+          missingFields: missingFields.length > 0 ? missingFields : undefined,
+        });
+      }
     }
+  } catch (error) {
+    // Jira adapter initialization failed (e.g., invalid URL format)
+    const message = error instanceof Error
+      ? error.message
+      : "Failed to initialize Jira adapter";
+    console.error("Jira adapter initialization error:", message);
+    results.push({ adapter: "Jira", success: false, error: message });
   }
 
   // If no adapters are configured

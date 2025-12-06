@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  BellRing,
   BarChart3,
+  BellRing,
+  CheckCircle2,
   Clock,
   Shield,
   Telescope,
@@ -16,6 +17,18 @@ export const metadata: Metadata = {
 };
 
 const sections = [
+  {
+    title: "Recently Completed",
+    icon: CheckCircle2,
+    color: "from-emerald-500/10 to-transparent border-emerald-500/20",
+    bullets: [
+      "✅ Jira Integration: Issue creation with screenshots, ADF descriptions, custom fields, session credentials",
+      "✅ GitHub Integration: Rich markdown issues with embedded screenshots and automatic labeling",
+      "✅ Cursor AI Agent: Local and cloud integrations for AI-assisted code fixes",
+      "✅ Menu Theming: CSS custom properties, scoped providers, theme inheritance",
+      "✅ Mobile Support: Touch handling with press-and-hold, scoped provider delegation",
+    ],
+  },
   {
     title: "Short-term (next up)",
     icon: BellRing,
@@ -42,7 +55,7 @@ const sections = [
     icon: Telescope,
     color: "from-violet-500/10 to-transparent border-violet-500/20",
     bullets: [
-      "Slack/Jira/Linear connectors, SSO options, release mapping for source-map lookups",
+      "Slack/Linear connectors, SSO options, release mapping for source-map lookups",
       "Analytics: trend views, cohorts by release/environment, regression detection, RUM sampling knobs",
       "Dashboard polish: saved views, sharable links with redaction, light/dark themes, multi-tenant separation",
     ],

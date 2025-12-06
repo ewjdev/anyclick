@@ -1,26 +1,26 @@
 import Link from "next/link";
 import {
-  MousePointerClick,
-  Code2,
-  Camera,
-  GitBranch,
-  Zap,
-  Layers,
   ArrowRight,
-  Terminal,
   Box,
-  Sparkles,
-  TestTube,
-  Target,
-  Users,
-  Palette,
-  Eye,
+  Camera,
   Check,
   Clock,
+  Code2,
+  Eye,
+  GitBranch,
+  Layers,
+  MousePointerClick,
+  Palette,
+  Sparkles,
+  Target,
+  Terminal,
+  TestTube,
+  Users,
+  Zap,
 } from "lucide-react";
 import {
-  HeroCodeBlock,
   CodeBlock,
+  HeroCodeBlock,
   TerminalBlock,
 } from "@/components/CodePreview";
 
@@ -57,12 +57,6 @@ export default function Home() {
               <Link href="/docs" className="hover:text-white transition-colors">
                 Docs
               </Link>
-              {/* <Link
-                href="/roadmap"
-                className="hover:text-white transition-colors"
-              >
-                Roadmap
-              </Link> */}
               <Link
                 href="/examples"
                 className="hover:text-white transition-colors"
@@ -199,14 +193,9 @@ export default function RootLayout({ children }) {
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   Sensitive data masking
                 </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Jira integration{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Jira integration
                 </li>
                 <li className="flex items-center gap-2 text-gray-500">
                   <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -250,14 +239,9 @@ export default function RootLayout({ children }) {
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   Full DOM context with ancestors
                 </li>
-                <li className="flex items-center gap-2 text-gray-500">
-                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span>
-                    Jira integration{" "}
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                      Soon
-                    </span>
-                  </span>
+                <li className="flex items-center gap-2 text-gray-300">
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  Jira integration
                 </li>
                 <li className="flex items-center gap-2 text-gray-500">
                   <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -459,8 +443,8 @@ export default function RootLayout({ children }) {
                   Coming Soon
                 </h3>
                 <p className="text-sm text-gray-400 max-w-2xl">
-                  Workflow recording, Jira & Slack integrations, automatic error
-                  collection, click behavior analytics, Playwright test
+                  Workflow recording, Slack & Linear integrations, automatic
+                  error collection, click behavior analytics, Playwright test
                   generation, and more. See what&apos;s next on our{" "}
                   <Link href="/roadmap" className="text-amber-300 underline">
                     roadmap

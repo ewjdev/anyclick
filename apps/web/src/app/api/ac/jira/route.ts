@@ -112,7 +112,18 @@ export async function GET(req: Request) {
   }
 
   // Get Jira adapter (from env or session credentials)
-  const jira = getJiraAdapter(req);
+  let jira;
+  try {
+    jira = getJiraAdapter(req);
+  } catch (error) {
+    // Jira adapter initialization failed (e.g., invalid URL format)
+    const message = error instanceof Error
+      ? error.message
+      : "Failed to initialize Jira adapter";
+    console.error("[Jira API] Adapter initialization error:", message);
+    return Response.json({ error: message }, { status: 400 });
+  }
+
   if (!jira) {
     return Response.json(
       {
