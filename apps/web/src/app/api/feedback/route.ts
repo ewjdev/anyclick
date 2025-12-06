@@ -28,17 +28,40 @@ function getGitHubAdapter() {
   });
 }
 
-// Lazily create the Jira adapter to allow proper error handling
-function getJiraAdapter() {
+// Interface for session credentials passed via header
+interface SessionCredentials {
+  jiraUrl: string;
+  email: string;
+  apiToken: string;
+  projectKey: string;
+}
+
+// Parse session credentials from header
+function parseSessionCredentials(req: Request): SessionCredentials | null {
+  const headerValue = req.headers.get("x-jira-credentials");
+  if (!headerValue) return null;
+
+  try {
+    const creds = JSON.parse(headerValue) as SessionCredentials;
+    // Validate required fields
+    if (creds.jiraUrl && creds.email && creds.apiToken && creds.projectKey) {
+      return creds;
+    }
+  } catch (e) {
+    console.error("[Feedback API] Failed to parse session credentials:", e);
+  }
+  return null;
+}
+
+// Lazily create the Jira adapter from env vars
+function getJiraAdapterFromEnv() {
   const jiraUrl = process.env.JIRA_URL;
   const email = process.env.JIRA_EMAIL;
   const apiToken = process.env.JIRA_API_TOKEN;
   const projectKey = process.env.JIRA_PROJECT_KEY;
 
   if (!jiraUrl || !email || !apiToken || !projectKey) {
-    throw new Error(
-      "Jira is not fully configured. Please set JIRA_URL, JIRA_EMAIL, JIRA_API_TOKEN, and JIRA_PROJECT_KEY environment variables.",
-    );
+    return null;
   }
 
   return createJiraAdapter({
@@ -47,6 +70,28 @@ function getJiraAdapter() {
     apiToken,
     projectKey,
   });
+}
+
+// Create Jira adapter from session credentials
+function getJiraAdapterFromSession(creds: SessionCredentials) {
+  return createJiraAdapter({
+    jiraUrl: creds.jiraUrl,
+    email: creds.email,
+    apiToken: creds.apiToken,
+    projectKey: creds.projectKey,
+  });
+}
+
+// Get Jira adapter - prefers session credentials, falls back to env vars
+function getJiraAdapter(req: Request) {
+  // First check if session credentials are provided via header
+  const sessionCreds = parseSessionCredentials(req);
+  if (sessionCreds) {
+    return getJiraAdapterFromSession(sessionCreds);
+  }
+
+  // Fall back to env vars
+  return getJiraAdapterFromEnv();
 }
 
 // Check if Jira is configured and return missing fields
@@ -332,11 +377,11 @@ export async function POST(req: Request) {
     }
   }
 
-  // Try Jira if configured
-  if (isJiraConfigured()) {
+  // Try Jira if configured (via env vars OR session credentials)
+  const jiraAdapter = getJiraAdapter(req);
+  if (jiraAdapter) {
     try {
-      const jira = getJiraAdapter();
-      const issue = await jira.createIssue(payload);
+      const issue = await jiraAdapter.createIssue(payload);
       results.push({ adapter: "Jira", success: true, url: issue.url });
     } catch (error) {
       const message = error instanceof Error
@@ -360,9 +405,10 @@ export async function POST(req: Request) {
   if (results.length === 0) {
     const jiraStatus = getJiraConfigStatus();
     const githubStatus = getGitHubConfigStatus();
+    const hasSessionCreds = parseSessionCredentials(req) !== null;
 
     const missingVars: string[] = [];
-    if (!jiraStatus.configured) {
+    if (!jiraStatus.configured && !hasSessionCreds) {
       missingVars.push(`Jira: missing ${jiraStatus.missing.join(", ")}`);
     }
     if (!githubStatus.configured) {

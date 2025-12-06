@@ -139,6 +139,12 @@ export default function JiraIntegrationPage() {
     type: string,
     comment: string,
     customFields: Record<string, any>,
+    credentials?: {
+      jiraUrl: string;
+      email: string;
+      apiToken: string;
+      projectKey: string;
+    },
   ) => {
     setIsSubmitting(true);
     // Don't close the menu yet - wait for the response
@@ -158,10 +164,18 @@ export default function JiraIntegrationPage() {
         });
       }
 
+      // Build headers - include credentials if provided
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (credentials) {
+        headers["x-jira-credentials"] = JSON.stringify(credentials);
+      }
+
       // Create a complete payload matching AnyclickPayload interface
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           type,
           comment,

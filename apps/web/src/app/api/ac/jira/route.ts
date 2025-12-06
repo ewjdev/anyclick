@@ -54,18 +54,19 @@ function getJiraAdapterFromSession(creds: SessionCredentials) {
   });
 }
 
-// Get Jira adapter - prefers env vars, falls back to session credentials
+// Get Jira adapter - prefers session credentials (when explicitly provided), falls back to env vars
 function getJiraAdapter(req: Request) {
-  // First try env vars
-  const envAdapter = getJiraAdapterFromEnv();
-  if (envAdapter) {
-    return envAdapter;
-  }
-
-  // Fall back to session credentials
+  // First check if session credentials are explicitly provided via header
+  // This takes priority because it means the user is intentionally using custom credentials
   const sessionCreds = parseSessionCredentials(req);
   if (sessionCreds) {
     return getJiraAdapterFromSession(sessionCreds);
+  }
+
+  // Fall back to env vars
+  const envAdapter = getJiraAdapterFromEnv();
+  if (envAdapter) {
+    return envAdapter;
   }
 
   return null;

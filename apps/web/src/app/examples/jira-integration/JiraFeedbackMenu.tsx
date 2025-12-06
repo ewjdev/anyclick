@@ -51,6 +51,7 @@ interface JiraFeedbackMenuProps {
     type: string,
     comment: string,
     customFields: Record<string, any>,
+    credentials?: JiraCredentials,
   ) => Promise<JiraSubmitResult | void>;
 }
 
@@ -168,6 +169,76 @@ function useJiraPreferences() {
     getFieldDefaults,
     hasCredentials: !!preferences.credentials,
   };
+}
+
+// ============================================================================
+// Error Message Sanitizer
+// ============================================================================
+
+/**
+ * Converts raw API error messages to user-friendly display messages.
+ * Logs the raw error for debugging but returns a clean message for the UI.
+ */
+function sanitizeErrorMessage(rawError: string): string {
+  // Log the raw error for debugging
+  console.error("[JiraMenu] Raw error:", rawError);
+
+  // Common error patterns and their user-friendly messages
+  const errorPatterns: Array<{ pattern: RegExp | string; message: string }> = [
+    {
+      pattern: /401|unauthorized|authentication/i,
+      message: "Authentication failed. Please check your email and API token.",
+    },
+    {
+      pattern: /403|forbidden|permission/i,
+      message: "Access denied. Please check your permissions for this project.",
+    },
+    {
+      pattern: /404|not found/i,
+      message:
+        "Project not found. Please verify your Jira URL and project key.",
+    },
+    {
+      pattern: /429|rate limit/i,
+      message: "Too many requests. Please wait a moment and try again.",
+    },
+    {
+      pattern: /500|internal server/i,
+      message: "Jira server error. Please try again later.",
+    },
+    {
+      pattern: /502|503|504|bad gateway|unavailable/i,
+      message: "Jira is temporarily unavailable. Please try again later.",
+    },
+    {
+      pattern: /network|fetch|connection|ECONNREFUSED/i,
+      message:
+        "Unable to connect to Jira. Please check your internet connection.",
+    },
+    { pattern: /timeout/i, message: "Request timed out. Please try again." },
+    {
+      pattern: /invalid.*url/i,
+      message: "Invalid Jira URL. Please check your configuration.",
+    },
+    {
+      pattern: /project.*key/i,
+      message: "Invalid project key. Please check your configuration.",
+    },
+  ];
+
+  // Check each pattern
+  for (const { pattern, message } of errorPatterns) {
+    if (
+      typeof pattern === "string"
+        ? rawError.includes(pattern)
+        : pattern.test(rawError)
+    ) {
+      return message;
+    }
+  }
+
+  // Default fallback message
+  return "Unable to connect to Jira. Please check your credentials and try again.";
 }
 
 // ============================================================================
@@ -471,8 +542,8 @@ function AutocompleteInput({
   };
 
   const baseInputClasses =
-    `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-      hasError ? "border-red-500" : "border-gray-300"
+    `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+      hasError ? "border-red-500" : "border-gray-200"
     }`;
 
   return (
@@ -528,7 +599,7 @@ function AutocompleteInput({
                   key={option.id}
                   type="button"
                   onClick={() => handleSelect(option)}
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-blue-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                  className="w-full px-4 py-3 text-left text-sm hover:bg-[#eef3f3] transition-colors first:rounded-t-xl last:rounded-b-xl"
                 >
                   <span className="font-medium text-gray-900">
                     {option.name}
@@ -564,7 +635,10 @@ export function JiraFeedbackMenu({
     | "loading"
     | "configure"
     | "type-selection"
-    | "form"
+    | "summary"
+    | "description"
+    | "required-fields"
+    | "review"
     | "submitting"
     | "success"
     | "error"
@@ -581,6 +655,13 @@ export function JiraFeedbackMenu({
   const [isClosing, setIsClosing] = useState(false);
   const [fieldsLoading, setFieldsLoading] = useState(false);
   const [showOptionalFields, setShowOptionalFields] = useState(false);
+  // Track which required field we're currently on in the conversational flow
+  const [currentFieldIndex, setCurrentFieldIndex] = useState(0);
+  // Track animation state for step transitions
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState<
+    "forward" | "backward"
+  >("forward");
   // Track fields that Jira requires conditionally (based on other field values)
   const [conditionallyRequiredFields, setConditionallyRequiredFields] =
     useState<Set<string>>(new Set());
@@ -590,6 +671,8 @@ export function JiraFeedbackMenu({
   const [backendConfigured, setBackendConfigured] = useState<boolean | null>(
     null,
   );
+  // Track if user wants to use session credentials (explicitly configured via UI)
+  const [useSessionCredentials, setUseSessionCredentials] = useState(false);
   // Credential form state
   const [credentialForm, setCredentialForm] = useState<JiraCredentials>({
     jiraUrl: "",
@@ -612,39 +695,52 @@ export function JiraFeedbackMenu({
   } = useJiraPreferences();
 
   // Build headers with session credentials if needed
-  const getRequestHeaders = useCallback((): HeadersInit => {
-    const headers: HeadersInit = {};
-    if (!backendConfigured && preferences.credentials) {
-      headers["x-jira-credentials"] = JSON.stringify(preferences.credentials);
-    }
-    return headers;
-  }, [backendConfigured, preferences.credentials]);
+  // Use session credentials if: user explicitly chose to use them OR backend isn't configured
+  const getRequestHeaders = useCallback(
+    (overrideCredentials?: JiraCredentials): HeadersInit => {
+      const headers: HeadersInit = {};
+      const creds = overrideCredentials || preferences.credentials;
+      if (
+        (useSessionCredentials || !backendConfigured || overrideCredentials) &&
+        creds
+      ) {
+        headers["x-jira-credentials"] = JSON.stringify(creds);
+      }
+      return headers;
+    },
+    [backendConfigured, useSessionCredentials, preferences.credentials],
+  );
 
   // Fetch issue types (with credential support)
-  const fetchIssueTypes = useCallback(async () => {
-    try {
-      const response = await fetch("/api/ac/jira?action=issue-types", {
-        headers: getRequestHeaders(),
-      });
-      const data = await response.json();
+  // Optional overrideCredentials parameter for when credentials are being tested before state is updated
+  const fetchIssueTypes = useCallback(
+    async (overrideCredentials?: JiraCredentials) => {
+      try {
+        const response = await fetch("/api/ac/jira?action=issue-types", {
+          headers: getRequestHeaders(overrideCredentials),
+        });
+        const data = await response.json();
 
-      if (data.error) {
-        setLoadError(data.error);
+        if (data.error) {
+          setLoadError(sanitizeErrorMessage(data.error));
+          setStep("error");
+          return false;
+        }
+
+        setIssueTypes(data.issueTypes || []);
+        return true;
+      } catch (error) {
+        console.error("Failed to fetch issue types:", error);
+        const errorMessage = error instanceof Error
+          ? error.message
+          : String(error);
+        setLoadError(sanitizeErrorMessage(errorMessage));
         setStep("error");
         return false;
       }
-
-      setIssueTypes(data.issueTypes || []);
-      return true;
-    } catch (error) {
-      console.error("Failed to fetch issue types:", error);
-      setLoadError(
-        "Failed to connect to Jira. Please check your configuration.",
-      );
-      setStep("error");
-      return false;
-    }
-  }, [getRequestHeaders]);
+    },
+    [getRequestHeaders],
+  );
 
   // Check configuration and load issue types on mount
   useEffect(() => {
@@ -660,17 +756,12 @@ export function JiraFeedbackMenu({
           // Backend is configured, fetch issue types directly
           const success = await fetchIssueTypes();
           if (success) {
-            // Check if we have a remembered issue type to auto-select
-            if (preferences.lastIssueType) {
-              // We'll handle auto-select in type-selection, just go there
-              setStep("type-selection");
-            } else {
-              setStep("type-selection");
-            }
+            setStep("type-selection");
           }
         } else if (hasCredentials) {
-          // No backend config but we have session credentials
-          const success = await fetchIssueTypes();
+          // No backend config but we have session credentials - use them
+          setUseSessionCredentials(true);
+          const success = await fetchIssueTypes(preferences.credentials!);
           if (success) {
             setStep("type-selection");
           }
@@ -686,7 +777,7 @@ export function JiraFeedbackMenu({
     }
 
     checkConfigAndLoad();
-  }, [fetchIssueTypes, hasCredentials, preferences.lastIssueType]);
+  }, [fetchIssueTypes, hasCredentials, preferences.credentials]);
 
   // Handle escape key to close
   useEffect(() => {
@@ -754,7 +845,8 @@ export function JiraFeedbackMenu({
 
       if (data.error) {
         console.error("Failed to fetch fields:", data.error);
-        setLoadError(data.error);
+        setLoadError(sanitizeErrorMessage(data.error));
+        setStep("error");
         return;
       }
 
@@ -791,11 +883,9 @@ export function JiraFeedbackMenu({
         summary: `Issue with ${
           targetElement?.tagName.toLowerCase() || "element"
         } element`,
-        // Pre-fill description with rich context
-        description: generateContextDescription(
-          targetElement,
-          containerElement,
-        ),
+        // Don't pre-fill description in conversational flow - user enters their own
+        // The context will be combined with their description when submitting
+        description: "",
       };
 
       // Initialize display values with remembered values
@@ -848,10 +938,15 @@ export function JiraFeedbackMenu({
       setShowOptionalFields(false);
       setConditionallyRequiredFields(new Set()); // Reset conditional requirements
       setErrors({}); // Clear any previous errors
-      setStep("form");
+      setCurrentFieldIndex(0); // Reset field index for conversational flow
+      setStep("summary");
     } catch (error) {
       console.error("Failed to fetch fields:", error);
-      setLoadError("Failed to load form fields");
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
+      setLoadError(sanitizeErrorMessage(errorMessage));
+      setStep("error");
     } finally {
       setFieldsLoading(false);
     }
@@ -1042,13 +1137,25 @@ export function JiraFeedbackMenu({
         JSON.stringify(customFields, null, 2),
       );
 
+      // Combine the auto-generated context with the user's description
+      const contextInfo = generateContextDescription(
+        targetElement,
+        containerElement,
+      );
+      const userDescription = formData.description?.trim() || "";
+      const fullDescription = userDescription
+        ? `${contextInfo}${userDescription}`
+        : contextInfo.replace("**Issue Description:**\n", ""); // Remove trailing prompt if no user description
+
       const result = await onSubmit(
         selectedType.name.toLowerCase(),
-        formData.description || "",
+        fullDescription,
         {
           summary: formData.summary,
           ...customFields,
         },
+        // Pass session credentials if using them (not using backend env vars)
+        useSessionCredentials ? preferences.credentials : undefined,
       );
 
       // Store the created issue URL if available
@@ -1070,7 +1177,7 @@ export function JiraFeedbackMenu({
       setStep("success");
     } catch (error) {
       console.error("Failed to submit:", error);
-      setStep("form");
+      setStep("review");
 
       const rawErrorMessage = error instanceof Error
         ? error.message
@@ -1157,14 +1264,24 @@ export function JiraFeedbackMenu({
   const renderLoading = () => (
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="text-center">
-        <Loader2 className="w-10 h-10 text-blue-600 animate-spin mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">
-          Loading Jira Configuration...
+        <Loader2 className="w-10 h-10 text-[#0d6e7c] animate-spin mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-[#0d3b3e] mb-2">
+          Connecting...
         </h3>
-        <p className="text-sm text-gray-600">Fetching available issue types</p>
+        <p className="text-sm text-gray-500">Fetching available issue types</p>
       </div>
     </div>
   );
+
+  const handleReconfigure = () => {
+    // Pre-fill the credential form with existing credentials if available
+    if (preferences.credentials) {
+      setCredentialForm(preferences.credentials);
+    }
+    setCredentialErrors({});
+    setLoadError(null);
+    setStep("configure");
+  };
 
   const renderError = () => (
     <div className="flex-1 flex items-center justify-center p-8">
@@ -1176,12 +1293,21 @@ export function JiraFeedbackMenu({
           Configuration Error
         </h3>
         <p className="text-sm text-gray-600 mb-4">{loadError}</p>
-        <button
-          onClick={handleClose}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition-colors"
-        >
-          Close
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleReconfigure}
+            className="px-4 py-2 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 rounded-lg text-white font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <Key className="w-4 h-4" />
+            {preferences.credentials ? "Update Credentials" : "Configure Jira"}
+          </button>
+          <button
+            onClick={handleClose}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1230,13 +1356,13 @@ export function JiraFeedbackMenu({
       projectKey: credentialForm.projectKey.trim().toUpperCase(),
     };
 
-    // Save to session storage
-    saveCredentials(normalizedCreds);
-
-    // Try to fetch issue types with the new credentials
+    // Try to fetch issue types with the new credentials (pass directly to avoid state timing issues)
     setStep("loading");
-    const success = await fetchIssueTypes();
+    const success = await fetchIssueTypes(normalizedCreds);
     if (success) {
+      // Save to session storage and mark that we're using session credentials
+      saveCredentials(normalizedCreds);
+      setUseSessionCredentials(true);
       setStep("type-selection");
     } else {
       // If failed, go back to configure step
@@ -1247,183 +1373,215 @@ export function JiraFeedbackMenu({
     }
   };
 
-  const renderConfigure = () => (
-    <div className="p-4 sm:p-6 overflow-y-auto">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
-          <Key className="w-5 h-5" />
+  const renderConfigure = () => {
+    const isUpdating = credentialForm.jiraUrl || credentialForm.email ||
+      credentialForm.apiToken;
+
+    return (
+      <div className="p-4 sm:p-6 overflow-y-auto">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-amber-100 text-amber-600">
+            <Key className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-[#0d3b3e]">
+              {isUpdating ? "Update Credentials" : "Connect to Jira"}
+            </h3>
+            <p className="text-sm text-gray-600">
+              {isUpdating
+                ? "Update your Jira credentials below"
+                : "Enter your Jira credentials to get started"}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-semibold text-blue-900">
-            Configure Jira
-          </h3>
-          <p className="text-sm text-gray-600">
-            Enter your Jira credentials to get started
+
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+          <p className="text-sm text-amber-800">
+            <strong>Note:</strong>{" "}
+            Your credentials are stored in this browser session only and are not
+            saved to any server. They will be cleared when you close this tab.
           </p>
         </div>
-      </div>
 
-      <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
-        <p className="text-sm text-amber-800">
-          <strong>Note:</strong>{" "}
-          Your credentials are stored in this browser session only and are not
-          saved to any server. They will be cleared when you close this tab.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        {/* Jira URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Jira URL
-            <span className="text-red-500 ml-1">*</span>
-          </label>
-          <input
-            type="url"
-            value={credentialForm.jiraUrl}
-            onChange={(e) =>
-              setCredentialForm({ ...credentialForm, jiraUrl: e.target.value })}
-            placeholder="https://your-company.atlassian.net"
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-              credentialErrors.jiraUrl ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {credentialErrors.jiraUrl && (
-            <p className="text-xs text-red-500 mt-1">
-              {credentialErrors.jiraUrl}
-            </p>
-          )}
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email
-            <span className="text-red-500 ml-1">*</span>
-          </label>
-          <input
-            type="email"
-            value={credentialForm.email}
-            onChange={(e) =>
-              setCredentialForm({ ...credentialForm, email: e.target.value })}
-            placeholder="your-email@company.com"
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-              credentialErrors.email ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {credentialErrors.email && (
-            <p className="text-xs text-red-500 mt-1">
-              {credentialErrors.email}
-            </p>
-          )}
-        </div>
-
-        {/* API Token */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            API Token
-            <span className="text-red-500 ml-1">*</span>
-          </label>
-          <p className="text-xs text-gray-500 mb-2">
-            <a
-              href="https://id.atlassian.com/manage-profile/security/api-tokens"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              Create an API token
-            </a>{" "}
-            in your Atlassian account settings
-          </p>
-          <div className="relative">
+        <div className="space-y-4" data-form-type="other">
+          {/* Jira URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Jira URL
+              <span className="text-red-500 ml-1">*</span>
+            </label>
             <input
-              type={showApiToken ? "text" : "password"}
-              value={credentialForm.apiToken}
+              type="url"
+              name="jira-instance-url"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
+              value={credentialForm.jiraUrl}
               onChange={(e) =>
                 setCredentialForm({
                   ...credentialForm,
-                  apiToken: e.target.value,
+                  jiraUrl: e.target.value,
                 })}
-              placeholder="Enter your API token"
-              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-                credentialErrors.apiToken ? "border-red-500" : "border-gray-300"
+              placeholder="https://your-company.atlassian.net"
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+                credentialErrors.jiraUrl ? "border-red-500" : "border-gray-200"
               }`}
             />
-            <button
-              type="button"
-              onClick={() => setShowApiToken(!showApiToken)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showApiToken
-                ? <EyeOff className="w-5 h-5" />
-                : <Eye className="w-5 h-5" />}
-            </button>
+            {credentialErrors.jiraUrl && (
+              <p className="text-xs text-red-500 mt-1">
+                {credentialErrors.jiraUrl}
+              </p>
+            )}
           </div>
-          {credentialErrors.apiToken && (
-            <p className="text-xs text-red-500 mt-1">
-              {credentialErrors.apiToken}
-            </p>
-          )}
-        </div>
 
-        {/* Project Key */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Project Key
-            <span className="text-red-500 ml-1">*</span>
-          </label>
-          <p className="text-xs text-gray-500 mb-2">
-            The key of your Jira project (e.g., PROJ, DEV, SUPPORT)
-          </p>
-          <input
-            type="text"
-            value={credentialForm.projectKey}
-            onChange={(e) =>
-              setCredentialForm({
-                ...credentialForm,
-                projectKey: e.target.value.toUpperCase(),
-              })}
-            placeholder="PROJ"
-            className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 uppercase ${
-              credentialErrors.projectKey ? "border-red-500" : "border-gray-300"
-            }`}
-          />
-          {credentialErrors.projectKey && (
-            <p className="text-xs text-red-500 mt-1">
-              {credentialErrors.projectKey}
-            </p>
-          )}
-        </div>
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              name="jira-account-email"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
+              value={credentialForm.email}
+              onChange={(e) =>
+                setCredentialForm({ ...credentialForm, email: e.target.value })}
+              placeholder="your-email@company.com"
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+                credentialErrors.email ? "border-red-500" : "border-gray-200"
+              }`}
+            />
+            {credentialErrors.email && (
+              <p className="text-xs text-red-500 mt-1">
+                {credentialErrors.email}
+              </p>
+            )}
+          </div>
 
-        {/* Submit Error */}
-        {credentialErrors.submit && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700">{credentialErrors.submit}</p>
+          {/* API Token */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              API Token
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              <a
+                href="https://id.atlassian.com/manage-profile/security/api-tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#0d6e7c] hover:underline"
+              >
+                Create an API token
+              </a>{" "}
+              in your Atlassian account settings
+            </p>
+            <div className="relative">
+              <input
+                type={showApiToken ? "text" : "password"}
+                name="jira-api-token"
+                autoComplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                value={credentialForm.apiToken}
+                onChange={(e) =>
+                  setCredentialForm({
+                    ...credentialForm,
+                    apiToken: e.target.value,
+                  })}
+                placeholder="Enter your API token"
+                className={`w-full px-4 py-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+                  credentialErrors.apiToken
+                    ? "border-red-500"
+                    : "border-gray-200"
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowApiToken(!showApiToken)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showApiToken
+                  ? <EyeOff className="w-5 h-5" />
+                  : <Eye className="w-5 h-5" />}
+              </button>
             </div>
+            {credentialErrors.apiToken && (
+              <p className="text-xs text-red-500 mt-1">
+                {credentialErrors.apiToken}
+              </p>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Footer */}
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={handleClose}
-          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSaveCredentials}
-          className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-        >
-          Connect to Jira
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          {/* Project Key */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Project Key
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              The key of your Jira project (e.g., PROJ, DEV, SUPPORT)
+            </p>
+            <input
+              type="text"
+              name="jira-project-key"
+              autoComplete="off"
+              data-lpignore="true"
+              data-form-type="other"
+              value={credentialForm.projectKey}
+              onChange={(e) =>
+                setCredentialForm({
+                  ...credentialForm,
+                  projectKey: e.target.value.toUpperCase(),
+                })}
+              placeholder="PROJ"
+              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 uppercase ${
+                credentialErrors.projectKey
+                  ? "border-red-500"
+                  : "border-gray-200"
+              }`}
+            />
+            {credentialErrors.projectKey && (
+              <p className="text-xs text-red-500 mt-1">
+                {credentialErrors.projectKey}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Error */}
+          {credentialErrors.submit && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-red-700">
+                  {credentialErrors.submit}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={handleClose}
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSaveCredentials}
+            className="flex-1 px-4 py-3 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+          >
+            {isUpdating ? "Update & Connect" : "Connect"}
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderTypeSelection = () => {
     // Sort issue types to put last used one first
@@ -1435,11 +1593,11 @@ export function JiraFeedbackMenu({
 
     return (
       <div className="p-4 sm:p-6">
-        <h3 className="text-xl font-semibold mb-2 text-blue-900">
-          Report to Jira
+        <h3 className="text-xl font-semibold mb-2 text-[#0d3b3e]">
+          What would you like to report?
         </h3>
-        <p className="text-sm text-gray-600 mb-6">
-          Select the type of issue you&apos;d like to create
+        <p className="text-sm text-gray-500 mb-6">
+          Choose the type of issue
         </p>
 
         {issueTypes.length === 0
@@ -1450,43 +1608,45 @@ export function JiraFeedbackMenu({
             </div>
           )
           : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {sortedIssueTypes.map((type) => {
                 const isLastUsed = type.name === preferences.lastIssueType;
                 return (
                   <button
                     key={type.id}
                     onClick={() => handleTypeSelect(type)}
-                    className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
+                    className={`w-full p-4 rounded-xl border transition-all text-left group ${
                       isLastUsed
-                        ? "border-blue-400 bg-blue-50 hover:border-blue-500 hover:bg-blue-100"
-                        : "border-blue-100 hover:border-blue-400 hover:bg-blue-50"
+                        ? "border-[#0d6e7c] bg-[#eef3f3] hover:bg-[#0d6e7c]/10"
+                        : "border-gray-200 hover:border-[#0d6e7c]/50 hover:bg-[#eef3f3]"
                     }`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-center gap-3">
                       <div
                         className={`p-2 rounded-lg ${
                           isLastUsed
-                            ? "bg-blue-200 text-blue-700"
-                            : "bg-blue-100 text-blue-600 group-hover:bg-blue-200 group-hover:text-blue-700"
+                            ? "bg-[#0d6e7c]/20 text-[#0d6e7c]"
+                            : "bg-gray-100 text-gray-600 group-hover:bg-[#0d6e7c]/10 group-hover:text-[#0d6e7c]"
                         }`}
                       >
                         {getIssueTypeIcon(type.name)}
                       </div>
-                      <div className="flex-1">
-                        <div className="font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[#0d3b3e] flex items-center gap-2">
                           {type.name}
                           {isLastUsed && (
-                            <span className="text-xs font-normal bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full">
-                              Last used
+                            <span className="text-xs font-normal bg-[#0d6e7c]/20 text-[#0d6e7c] px-2 py-0.5 rounded-full">
+                              Recent
                             </span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {type.description || `Create a ${type.name} issue`}
-                        </div>
+                        {type.description && (
+                          <div className="text-sm text-gray-500 truncate">
+                            {type.description}
+                          </div>
+                        )}
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 mt-2" />
+                      <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#0d6e7c] flex-shrink-0" />
                     </div>
                   </button>
                 );
@@ -1497,13 +1657,510 @@ export function JiraFeedbackMenu({
     );
   };
 
+  // Get required fields for conversational flow
+  const getRequiredFields = () => {
+    return fields.filter(
+      (f) => f.required || conditionallyRequiredFields.has(f.key),
+    );
+  };
+
+  // Calculate total steps for progress indicator
+  const getTotalSteps = () => {
+    const requiredFields = getRequiredFields();
+    // Type selection + Summary + Description + Required fields + Review
+    return 2 + (requiredFields.length > 0 ? requiredFields.length : 0) + 1;
+  };
+
+  // Calculate current step number for progress
+  const getCurrentStepNumber = () => {
+    switch (step) {
+      case "summary":
+        return 1;
+      case "description":
+        return 2;
+      case "required-fields":
+        return 3 + currentFieldIndex;
+      case "review":
+        return getTotalSteps();
+      default:
+        return 0;
+    }
+  };
+
+  // Animated step transition helper
+  const animateToStep = (
+    nextStep: typeof step,
+    direction: "forward" | "backward" = "forward",
+  ) => {
+    setAnimationDirection(direction);
+    setIsAnimating(true);
+    setTimeout(() => {
+      setStep(nextStep);
+      setTimeout(() => setIsAnimating(false), 50);
+    }, 150);
+  };
+
+  // Render summary step
+  const renderSummaryStep = () => {
+    if (!selectedType) return null;
+
+    const handleNext = () => {
+      if (!formData.summary?.trim()) {
+        setErrors({ summary: "Please enter a summary" });
+        return;
+      }
+      setErrors({});
+      animateToStep("description", "forward");
+    };
+
+    const animationClass = isAnimating
+      ? animationDirection === "forward"
+        ? "opacity-0 translate-x-4"
+        : "opacity-0 -translate-x-4"
+      : "opacity-100 translate-x-0";
+
+    return (
+      <div
+        className={`flex flex-col h-full transition-all duration-200 ease-out ${animationClass}`}
+      >
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-sm mx-auto">
+            {/* Question */}
+            <div className="mb-8">
+              <h3 className="text-xl font-medium text-[#0d3b3e] mb-2">
+                What&apos;s the issue?
+              </h3>
+              <p className="text-sm text-gray-500">
+                A brief title for your {selectedType.name.toLowerCase()}
+              </p>
+            </div>
+
+            {/* Input */}
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={formData.summary || ""}
+                onChange={(e) => {
+                  setFormData({ ...formData, summary: e.target.value });
+                  if (errors.summary) setErrors({});
+                }}
+                placeholder="e.g., Button not responding on click"
+                autoFocus
+                className={`w-full px-4 py-4 text-lg border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+                  errors.summary ? "border-red-500" : "border-gray-200"
+                }`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleNext();
+                }}
+              />
+              {errors.summary && (
+                <p className="text-sm text-red-500">{errors.summary}</p>
+              )}
+            </div>
+
+            {/* Context hint */}
+            <div className="mt-6 p-3 bg-[#eef3f3] rounded-lg">
+              <p className="text-xs text-gray-600">
+                <span className="font-medium">Element:</span>{" "}
+                {targetElement?.tagName.toLowerCase() || "page"} on{" "}
+                {typeof window !== "undefined" ? window.location.pathname : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-4 sm:p-6 border-t border-gray-100 bg-white">
+          <button
+            onClick={() => animateToStep("type-selection", "backward")}
+            className="px-4 py-3 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleNext}
+            className="flex-1 px-4 py-3 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-xl font-medium transition-colors"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render description step
+  const renderDescriptionStep = () => {
+    if (!selectedType) return null;
+
+    const requiredFields = getRequiredFields();
+
+    const handleNext = () => {
+      setErrors({});
+      if (requiredFields.length > 0) {
+        setCurrentFieldIndex(0);
+        animateToStep("required-fields", "forward");
+      } else {
+        animateToStep("review", "forward");
+      }
+    };
+
+    const animationClass = isAnimating
+      ? animationDirection === "forward"
+        ? "opacity-0 translate-x-4"
+        : "opacity-0 -translate-x-4"
+      : "opacity-100 translate-x-0";
+
+    return (
+      <div
+        className={`flex flex-col h-full transition-all duration-200 ease-out ${animationClass}`}
+      >
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-sm mx-auto">
+            {/* Question */}
+            <div className="mb-8">
+              <h3 className="text-xl font-medium text-[#0d3b3e] mb-2">
+                Add some details
+              </h3>
+              <p className="text-sm text-gray-500">
+                Optional - describe what happened
+              </p>
+            </div>
+
+            {/* Input */}
+            <textarea
+              value={formData.description || ""}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })}
+              placeholder="Steps to reproduce, expected behavior, or any additional context..."
+              rows={6}
+              autoFocus
+              className="w-full px-4 py-4 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] resize-none text-gray-900"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-4 sm:p-6 border-t border-gray-100 bg-white">
+          <button
+            onClick={() => animateToStep("summary", "backward")}
+            className="px-4 py-3 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleNext}
+            className="flex-1 px-4 py-3 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-xl font-medium transition-colors"
+          >
+            {requiredFields.length > 0 ? "Continue" : "Review"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render required fields step (one at a time)
+  const renderRequiredFieldsStep = () => {
+    if (!selectedType) return null;
+
+    const requiredFields = getRequiredFields();
+    const currentField = requiredFields[currentFieldIndex];
+
+    if (!currentField) {
+      animateToStep("review", "forward");
+      return null;
+    }
+
+    const handleNext = () => {
+      const value = formData[currentField.key];
+      if (!value && currentField.required) {
+        setErrors({
+          [currentField.key]:
+            `Please select a ${currentField.name.toLowerCase()}`,
+        });
+        return;
+      }
+      setErrors({});
+
+      if (currentFieldIndex < requiredFields.length - 1) {
+        setIsAnimating(true);
+        setAnimationDirection("forward");
+        setTimeout(() => {
+          setCurrentFieldIndex(currentFieldIndex + 1);
+          setTimeout(() => setIsAnimating(false), 50);
+        }, 150);
+      } else {
+        animateToStep("review", "forward");
+      }
+    };
+
+    const handleBack = () => {
+      if (currentFieldIndex > 0) {
+        setIsAnimating(true);
+        setAnimationDirection("backward");
+        setTimeout(() => {
+          setCurrentFieldIndex(currentFieldIndex - 1);
+          setTimeout(() => setIsAnimating(false), 50);
+        }, 150);
+      } else {
+        animateToStep("description", "backward");
+      }
+    };
+
+    const animationClass = isAnimating
+      ? animationDirection === "forward"
+        ? "opacity-0 translate-x-4"
+        : "opacity-0 -translate-x-4"
+      : "opacity-100 translate-x-0";
+
+    return (
+      <div
+        className={`flex flex-col h-full transition-all duration-200 ease-out ${animationClass}`}
+      >
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-sm mx-auto">
+            {/* Progress indicator */}
+            <div className="mb-6">
+              <span className="text-xs text-gray-500">
+                {currentFieldIndex + 1} of {requiredFields.length}{" "}
+                required fields
+              </span>
+            </div>
+
+            {/* Question */}
+            <div className="mb-8">
+              <h3 className="text-xl font-medium text-[#0d3b3e] mb-2">
+                {currentField.name}
+              </h3>
+              {currentField.description && (
+                <p className="text-sm text-gray-500">
+                  {currentField.description}
+                </p>
+              )}
+            </div>
+
+            {/* Field Input */}
+            <div className="space-y-4">
+              {renderFieldInput(currentField)}
+              {errors[currentField.key] && (
+                <p className="text-sm text-red-500">
+                  {errors[currentField.key]}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-4 sm:p-6 border-t border-gray-100 bg-white">
+          <button
+            onClick={handleBack}
+            className="px-4 py-3 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleNext}
+            className="flex-1 px-4 py-3 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-xl font-medium transition-colors"
+          >
+            {currentFieldIndex < requiredFields.length - 1
+              ? "Continue"
+              : "Review"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Render review step
+  const renderReviewStep = () => {
+    if (!selectedType) return null;
+
+    const requiredFields = getRequiredFields();
+    const optionalFields = fields.filter(
+      (f) => !f.required && !conditionallyRequiredFields.has(f.key),
+    );
+
+    const getDisplayValue = (field: NormalizedJiraField) => {
+      const value = formData[field.key];
+      if (!value) return "Not set";
+
+      // Check display values first
+      if (displayValues[field.key]) return displayValues[field.key];
+
+      // For select fields, find the label
+      if (field.options) {
+        const option = field.options.find((o) =>
+          o.id === value || o.value === value
+        );
+        if (option) return option.label;
+      }
+
+      return String(value);
+    };
+
+    const animationClass = isAnimating
+      ? animationDirection === "forward"
+        ? "opacity-0 translate-x-4"
+        : "opacity-0 -translate-x-4"
+      : "opacity-100 translate-x-0";
+
+    return (
+      <div
+        className={`flex flex-col h-full transition-all duration-200 ease-out ${animationClass}`}
+      >
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="mb-6">
+            <h3 className="text-xl font-medium text-[#0d3b3e] mb-2">
+              Review your issue
+            </h3>
+            <p className="text-sm text-gray-500">
+              Make sure everything looks correct
+            </p>
+          </div>
+
+          {/* Summary */}
+          <div className="space-y-4">
+            <div
+              className="p-4 bg-[#eef3f3] rounded-xl cursor-pointer hover:bg-[#0d6e7c]/10 transition-colors"
+              onClick={() => animateToStep("summary", "backward")}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">Summary</p>
+                  <p className="text-[#0d3b3e] font-medium">
+                    {formData.summary}
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </div>
+            </div>
+
+            {/* Description */}
+            {formData.description && (
+              <div
+                className="p-4 bg-[#eef3f3] rounded-xl cursor-pointer hover:bg-[#0d6e7c]/10 transition-colors"
+                onClick={() => animateToStep("description", "backward")}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 mb-1">Description</p>
+                    <p className="text-gray-700 text-sm truncate">
+                      {formData.description}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0 ml-2" />
+                </div>
+              </div>
+            )}
+
+            {/* Required Fields */}
+            {requiredFields.map((field, index) => (
+              <div
+                key={field.key}
+                className="p-4 bg-[#eef3f3] rounded-xl cursor-pointer hover:bg-[#0d6e7c]/10 transition-colors"
+                onClick={() => {
+                  setCurrentFieldIndex(index);
+                  animateToStep("required-fields", "backward");
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">{field.name}</p>
+                    <p className="text-gray-700 text-sm">
+                      {getDisplayValue(field)}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+            ))}
+
+            {/* Optional Fields Toggle */}
+            {optionalFields.length > 0 && (
+              <div className="pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowOptionalFields(!showOptionalFields)}
+                  className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      More options
+                    </span>
+                    <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                      {optionalFields.length}
+                    </span>
+                  </div>
+                  {showOptionalFields
+                    ? <ChevronUp className="w-5 h-5 text-gray-500" />
+                    : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                </button>
+
+                {showOptionalFields && (
+                  <div className="mt-4 space-y-4">
+                    {optionalFields.map((field) => (
+                      <div key={field.key}>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {field.name}
+                        </label>
+                        {renderFieldInput(field)}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Submit Error */}
+            {errors.submit && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{errors.submit}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 p-4 sm:p-6 border-t border-gray-100 bg-white">
+          <button
+            onClick={() => {
+              const reqFields = getRequiredFields();
+              if (reqFields.length > 0) {
+                setCurrentFieldIndex(reqFields.length - 1);
+                animateToStep("required-fields", "backward");
+              } else {
+                animateToStep("description", "backward");
+              }
+            }}
+            className="px-4 py-3 text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            Back
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="flex-1 px-4 py-3 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-xl font-medium transition-colors"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderFieldInput = (field: NormalizedJiraField) => {
     const value = formData[field.key] ?? "";
     const hasError = !!errors[field.key];
 
     const baseInputClasses =
-      `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-        hasError ? "border-red-500" : "border-gray-300"
+      `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+        hasError ? "border-red-500" : "border-gray-200"
       }`;
 
     // Check if this field needs autocomplete
@@ -1598,7 +2255,7 @@ export function JiraFeedbackMenu({
               checked={value === true || value === "true"}
               onChange={(e) =>
                 setFormData({ ...formData, [field.key]: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="w-5 h-5 rounded border-gray-300 text-[#0d6e7c] focus:ring-[#0d6e7c]"
             />
             <label
               htmlFor={`field-${field.key}`}
@@ -1646,283 +2303,15 @@ export function JiraFeedbackMenu({
     }
   };
 
-  const renderForm = () => {
-    if (!selectedType) return null;
-
-    // Separate required and optional fields
-    // Fields that are conditionally required (from Jira validation) should also appear as required
-    const requiredFields = fields.filter(
-      (f) => f.required || conditionallyRequiredFields.has(f.key),
-    );
-    const optionalFields = fields.filter(
-      (f) => !f.required && !conditionallyRequiredFields.has(f.key),
-    );
-
-    // Check if a field is conditionally required (for special styling)
-    const isConditionallyRequired = (field: NormalizedJiraField) =>
-      !field.required && conditionallyRequiredFields.has(field.key);
-
-    return (
-      <div className="flex flex-col h-full">
-        {/* Form Header */}
-        <div className="flex items-center gap-3 p-4 sm:p-6 border-b border-gray-100">
-          <button
-            onClick={() => setStep("type-selection")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-600">
-              {getIssueTypeIcon(selectedType.name)}
-            </div>
-            <h3 className="text-lg font-semibold text-blue-900">
-              {selectedType.name}
-            </h3>
-          </div>
-        </div>
-
-        {fieldsLoading
-          ? (
-            <div className="flex-1 flex items-center justify-center p-8">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            </div>
-          )
-          : (
-            <>
-              {/* Scrollable Form Content */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-                <div className="space-y-5">
-                  {/* Summary - Always first */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Summary
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      A brief title for this issue
-                    </p>
-                    <input
-                      type="text"
-                      value={formData.summary || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, summary: e.target.value })}
-                      placeholder="Brief description of the issue"
-                      className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 ${
-                        errors.summary ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {errors.summary && (
-                      <p className="text-xs text-red-500 mt-1">
-                        {errors.summary}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      Detailed explanation of the issue
-                    </p>
-                    <textarea
-                      value={formData.description || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          description: e.target.value,
-                        })}
-                      placeholder="Describe the issue, steps to reproduce, expected behavior..."
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-900"
-                    />
-                  </div>
-
-                  {/* Required Fields */}
-                  {requiredFields.length > 0 && (
-                    <>
-                      <div className="border-t border-gray-200 pt-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-4">
-                          Required Fields
-                          {conditionallyRequiredFields.size > 0 && (
-                            <span className="ml-2 text-xs font-normal text-amber-600">
-                              (some fields required by Jira configuration)
-                            </span>
-                          )}
-                        </h4>
-                      </div>
-                      {requiredFields.map((field) => (
-                        <div
-                          key={field.key}
-                          className={isConditionallyRequired(field)
-                            ? "p-3 -mx-3 rounded-lg bg-amber-50 border border-amber-200"
-                            : ""}
-                        >
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            {field.name}
-                            <span className="text-red-500 ml-1">*</span>
-                            {isConditionallyRequired(field) && (
-                              <span className="ml-2 text-xs font-normal text-amber-600">
-                                (required by Jira)
-                              </span>
-                            )}
-                          </label>
-                          {field.description && (
-                            <p className="text-xs text-gray-500 mb-2">
-                              {field.description}
-                            </p>
-                          )}
-                          {renderFieldInput(field)}
-                          {errors[field.key] && (
-                            <p className="text-xs text-red-500 mt-1">
-                              {errors[field.key]}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </>
-                  )}
-
-                  {/* Element Context Info */}
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                      Element Context
-                    </h4>
-                    <div className="text-xs text-gray-700 space-y-1">
-                      <div>
-                        <strong>Tag:</strong>{" "}
-                        {targetElement?.tagName.toLowerCase()}
-                      </div>
-                      <div>
-                        <strong>Selector:</strong>{" "}
-                        {targetElement?.getAttribute("data-testid") ||
-                          targetElement?.id || "N/A"}
-                      </div>
-                      <div>
-                        <strong>Page:</strong> {typeof window !== "undefined"
-                          ? window.location.pathname
-                          : ""}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Screenshots and full context will be automatically
-                      attached to the Jira issue.
-                    </p>
-                  </div>
-
-                  {/* Optional Fields Toggle */}
-                  {optionalFields.length > 0 && (
-                    <div className="border-t border-gray-200 pt-4">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowOptionalFields(!showOptionalFields)}
-                        className="w-full flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">
-                            Optional Fields
-                          </span>
-                          <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                            {optionalFields.length}
-                          </span>
-                        </div>
-                        {showOptionalFields
-                          ? <ChevronUp className="w-5 h-5 text-gray-500" />
-                          : <ChevronDown className="w-5 h-5 text-gray-500" />}
-                      </button>
-
-                      {showOptionalFields && (
-                        <div className="mt-4 space-y-5">
-                          {optionalFields.map((field) => (
-                            <div key={field.key}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                {field.name}
-                              </label>
-                              {field.description && (
-                                <p className="text-xs text-gray-500 mb-2">
-                                  {field.description}
-                                </p>
-                              )}
-                              {renderFieldInput(field)}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Submit Error */}
-                  {errors.submit && (
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-                      <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-red-700 mb-2">
-                            {errors.submit}
-                          </p>
-                          {/* Show field-specific errors */}
-                          {Object.entries(errors).filter(([k]) =>
-                                k !== "submit" && k !== "summary"
-                              ).length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-xs font-medium text-red-600">
-                                Field errors:
-                              </p>
-                              {Object.entries(errors)
-                                .filter(([k]) =>
-                                  k !== "submit" && k !== "summary"
-                                )
-                                .map(([fieldKey, errorMsg]) => (
-                                  <p
-                                    key={fieldKey}
-                                    className="text-xs text-red-600"
-                                  >
-                                    • <strong>{fieldKey}</strong>: {errorMsg}
-                                  </p>
-                                ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Fixed Footer */}
-              <div className="flex gap-3 p-4 sm:p-6 border-t border-gray-100 bg-white">
-                <button
-                  onClick={() => setStep("type-selection")}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-gray-700 transition-colors"
-                >
-                  Back
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-                >
-                  Create Issue
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </>
-          )}
-      </div>
-    );
-  };
-
   const renderSubmitting = () => (
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="text-center">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-blue-900 mb-2">
-          Creating Jira Issue...
+        <Loader2 className="w-12 h-12 text-[#0d6e7c] animate-spin mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-[#0d3b3e] mb-2">
+          Submitting...
         </h3>
-        <p className="text-sm text-gray-600">
-          Uploading screenshots and submitting to Jira
+        <p className="text-sm text-gray-500">
+          Creating your issue
         </p>
       </div>
     </div>
@@ -1931,23 +2320,23 @@ export function JiraFeedbackMenu({
   const renderSuccess = () => (
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="text-center">
-        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+        <div className="w-16 h-16 bg-[#0d7a5d]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <CheckCircle2 className="w-10 h-10 text-[#0d7a5d]" />
         </div>
-        <h3 className="text-xl font-semibold text-emerald-900 mb-2">
-          Issue Created!
+        <h3 className="text-xl font-medium text-[#0d3b3e] mb-2">
+          Done!
         </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Your feedback has been submitted to Jira
+        <p className="text-sm text-gray-500 mb-4">
+          Your issue has been created
         </p>
         {createdIssueUrl && (
           <a
             href={createdIssueUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0d3b3e] hover:bg-[#0d3b3e]/90 text-white rounded-lg font-medium transition-colors"
           >
-            View in Jira
+            View Issue
             <svg
               className="w-4 h-4"
               fill="none"
@@ -2001,33 +2390,64 @@ export function JiraFeedbackMenu({
         `}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-9 h-9 bg-[#0d3b3e] rounded-lg flex items-center justify-center">
               <svg
-                className="w-6 h-6 text-white"
+                className="w-5 h-5 text-white"
                 viewBox="0 0 24 24"
-                fill="currentColor"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
               >
-                <path d="M11.5 0L0 11.5L11.5 23L23 11.5L11.5 0ZM11.5 18.5L5.5 11.5L11.5 4.5L17.5 11.5L11.5 18.5Z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                />
               </svg>
             </div>
             <div>
-              <span className="font-semibold text-blue-900 text-lg">
-                Jira Feedback
+              <span className="font-medium text-[#0d3b3e] text-base">
+                Report Issue
               </span>
-              <p className="text-xs text-blue-600">
-                Report issues & request features
-              </p>
             </div>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-blue-200/50 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5 text-blue-700" />
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Settings button - show when using session credentials or on configure/error steps */}
+            {(hasCredentials || !backendConfigured) &&
+              step !== "configure" &&
+              step !== "loading" && (
+              <button
+                onClick={handleReconfigure}
+                className="p-2 hover:bg-[#eef3f3] rounded-lg transition-colors"
+                title="Configure Jira credentials"
+              >
+                <Settings className="w-5 h-5 text-[#0d3b3e]" />
+              </button>
+            )}
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-[#eef3f3] rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5 text-[#5b6b6b]" />
+            </button>
+          </div>
         </div>
+
+        {/* Progress Indicator */}
+        {["summary", "description", "required-fields", "review"].includes(
+          step,
+        ) && (
+          <div className="h-1 bg-gray-100">
+            <div
+              className="h-full bg-[#0d6e7c] transition-all duration-300 ease-out"
+              style={{
+                width: `${(getCurrentStepNumber() / getTotalSteps()) * 100}%`,
+              }}
+            />
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -2035,7 +2455,10 @@ export function JiraFeedbackMenu({
           {step === "configure" && renderConfigure()}
           {step === "error" && renderError()}
           {step === "type-selection" && renderTypeSelection()}
-          {step === "form" && renderForm()}
+          {step === "summary" && renderSummaryStep()}
+          {step === "description" && renderDescriptionStep()}
+          {step === "required-fields" && renderRequiredFieldsStep()}
+          {step === "review" && renderReviewStep()}
           {step === "submitting" && renderSubmitting()}
           {step === "success" && renderSuccess()}
         </div>
