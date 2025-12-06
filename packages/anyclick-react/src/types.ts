@@ -17,6 +17,7 @@ import type {
   ScreenshotData,
 } from "@ewjdev/anyclick-core";
 import { CompactModeConfig } from "./InspectDialog/InspectDialog";
+import type { QuickChatConfig } from "./QuickChat/types";
 
 // ============================================================================
 // Theme Configuration
@@ -360,6 +361,11 @@ export interface AnyclickProviderProps {
   /** Callback after successful submission */
   onSubmitSuccess?: (payload: AnyclickPayload) => void;
   /**
+   * Configuration for QuickChat AI assistant.
+   * Set to enable the lightweight AI chat in the context menu.
+   */
+  quickChatConfig?: QuickChatConfig;
+  /**
    * Whether to scope this provider to its children only.
    * When true, events will only be captured for elements within this provider's subtree.
    * When false (default), events are captured for the entire document.
@@ -473,6 +479,11 @@ export interface ContextMenuProps {
   position: { x: number; y: number };
   /** Menu positioning mode (default: 'inView') */
   positionMode?: MenuPositionMode;
+  /**
+   * Configuration for QuickChat AI assistant.
+   * When provided, shows the QuickChat interface in the context menu.
+   */
+  quickChatConfig?: QuickChatConfig;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
   /** Custom styles */
