@@ -73,7 +73,7 @@ ${context || "No element context provided."}
 Important: Keep your response under ${maxLength || 500} characters.`;
 
       const result = streamText({
-        model: openai(model || "gpt-4o-mini"),
+        model: openai(model || "gpt-5-nano"),
         system: effectiveSystemPrompt,
         prompt: message,
         maxTokens: Math.min(Math.ceil((maxLength || 500) / 3), 300),

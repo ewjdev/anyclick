@@ -31,7 +31,7 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
       header={<></>}
       quickChatConfig={{
         endpoint: "/api/anyclick/chat",
-        model: "gpt-4o-mini",
+        model: "gpt-5-nano",
         maxResponseLength: 500,
         showRedactionUI: true,
         showSuggestions: true,

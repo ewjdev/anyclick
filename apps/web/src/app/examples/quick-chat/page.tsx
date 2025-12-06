@@ -195,7 +195,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       adapter={adapter}
       quickChatConfig={{
         endpoint: '/api/anyclick/chat',
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-nano',
         maxResponseLength: 500,
         showRedactionUI: true,
         showSuggestions: true,
@@ -228,7 +228,7 @@ export async function POST(request: Request) {
   if (action === "suggest") {
     // Generate suggested prompts based on context
     const result = await generateText({
-      model: openai(model || "gpt-4o-mini"),
+      model: openai(model || "gpt-5-nano"),
       system: "Generate 3-4 short questions about this element...",
       prompt: \`Element context: \${context}\`,
       maxTokens: 150,
@@ -239,7 +239,7 @@ export async function POST(request: Request) {
   if (action === "chat") {
     // Stream the response
     const result = streamText({
-      model: openai(model || "gpt-4o-mini"),
+      model: openai(model || "gpt-5-nano"),
       system: \`Keep response under \${maxLength} chars. Context: \${context}\`,
       prompt: message,
       maxTokens: 300,
@@ -283,7 +283,7 @@ OPENAI_API_KEY=sk-...`}
               <tr className="border-b border-white/5">
                 <td className="py-3 font-mono text-cyan-400">model</td>
                 <td className="py-3">string</td>
-                <td className="py-3 font-mono text-xs">gpt-4o-mini</td>
+                <td className="py-3 font-mono text-xs">gpt-5-nano</td>
                 <td className="py-3">AI model for chat responses</td>
               </tr>
               <tr className="border-b border-white/5">

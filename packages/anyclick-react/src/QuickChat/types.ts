@@ -76,7 +76,7 @@ export interface QuickChatConfig {
   endpoint?: string;
   /** Model to use for the main chat (default: auto) */
   model?: string;
-  /** Model to use for pre-pass suggestions (default: gpt-4o-mini) */
+  /** Model to use for pre-pass suggestions (default: gpt-5-nano) */
   prePassModel?: string;
   /** Maximum response length in characters */
   maxResponseLength?: number;
@@ -147,8 +147,8 @@ export interface QuickChatState {
  */
 export const DEFAULT_QUICK_CHAT_CONFIG: Required<QuickChatConfig> = {
   endpoint: "/api/anyclick/chat",
-  model: "gpt-4o-mini",
-  prePassModel: "gpt-4o-mini",
+  model: "gpt-5-mini",
+  prePassModel: "gpt-5-nano",
   maxResponseLength: 500,
   showRedactionUI: true,
   showSuggestions: true,
