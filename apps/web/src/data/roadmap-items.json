@@ -76,6 +76,36 @@
       "updatedAt": "2024-12-05T00:00:00Z"
     },
     {
+      "id": "manual-auto-error-collection",
+      "source": "manual",
+      "type": "feature",
+      "title": "Auto Error Collection",
+      "description": "Automatically capture unhandled errors with DOM context and screenshots.",
+      "era": "short-term",
+      "status": "open",
+      "url": null,
+      "labels": ["error-handling"],
+      "tags": ["homepage:customer"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-05T00:00:00Z"
+    },
+    {
+      "id": "manual-element-specific-menus",
+      "source": "manual",
+      "type": "feature",
+      "title": "Element-Specific Menus",
+      "description": "Show different menu options based on the clicked element type or context.",
+      "era": "short-term",
+      "status": "open",
+      "url": null,
+      "labels": ["menu", "ux"],
+      "tags": ["homepage:ux"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-05T00:00:00Z"
+    },
+    {
       "id": "manual-error-dashboard",
       "source": "manual",
       "type": "feature",
@@ -121,19 +151,49 @@
       "updatedAt": "2024-12-05T00:00:00Z"
     },
     {
+      "id": "manual-playwright-test-gen",
+      "source": "manual",
+      "type": "feature",
+      "title": "Playwright Test Generation",
+      "description": "Generate Playwright test code from captured interactions and DOM context.",
+      "era": "mid-term",
+      "status": "open",
+      "url": null,
+      "labels": ["testing", "automation"],
+      "tags": ["homepage:developer"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-05T00:00:00Z"
+    },
+    {
+      "id": "manual-workflow-recording",
+      "source": "manual",
+      "type": "feature",
+      "title": "Workflow Recording",
+      "description": "Record sequences of user actions and clicks to capture complete user flows.",
+      "era": "mid-term",
+      "status": "open",
+      "url": null,
+      "labels": ["recording", "ux"],
+      "tags": ["homepage:pm"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-05T00:00:00Z"
+    },
+    {
       "id": "plan-no-buttons",
       "source": "plan",
       "type": "plan",
       "title": "No Buttons??",
-      "description": "What would the version of the home page look like with no buttons and create elements with context that would provide anyclick menu with actions akin to the buttons that exist today.",
+      "description": "",
       "era": "mid-term",
-      "status": "active",
-      "url": "@.cursor/plans/no-buttons.plan.md",
+      "status": "completed",
+      "url": "https://github.com/ewjdev/anyclick/blob/main/.cursor/plans/no-buttons.plan.md",
       "labels": [],
       "tags": [],
       "assignees": [],
       "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
+      "updatedAt": "2025-12-06T21:45:08.498Z"
     },
     {
       "id": "manual-integrations",
@@ -211,36 +271,6 @@
       "updatedAt": "2024-12-05T00:00:00Z"
     },
     {
-      "id": "manual-playwright-test-gen",
-      "source": "manual",
-      "type": "feature",
-      "title": "Playwright Test Generation",
-      "description": "Generate Playwright test code from captured interactions and DOM context.",
-      "era": "mid-term",
-      "status": "open",
-      "url": null,
-      "labels": ["testing", "automation"],
-      "tags": ["homepage:developer"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
-    },
-    {
-      "id": "manual-workflow-recording",
-      "source": "manual",
-      "type": "feature",
-      "title": "Workflow Recording",
-      "description": "Record sequences of user actions and clicks to capture complete user flows.",
-      "era": "mid-term",
-      "status": "open",
-      "url": null,
-      "labels": ["recording", "ux"],
-      "tags": ["homepage:pm"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
-    },
-    {
       "id": "manual-pain-point-analytics",
       "source": "manual",
       "type": "feature",
@@ -256,21 +286,6 @@
       "updatedAt": "2024-12-05T00:00:00Z"
     },
     {
-      "id": "manual-auto-error-collection",
-      "source": "manual",
-      "type": "feature",
-      "title": "Auto Error Collection",
-      "description": "Automatically capture unhandled errors with DOM context and screenshots.",
-      "era": "short-term",
-      "status": "open",
-      "url": null,
-      "labels": ["error-handling"],
-      "tags": ["homepage:customer"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
-    },
-    {
       "id": "manual-click-behavior-tracking",
       "source": "manual",
       "type": "feature",
@@ -281,21 +296,6 @@
       "url": null,
       "labels": ["analytics", "ux"],
       "tags": ["homepage:customer"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
-    },
-    {
-      "id": "manual-element-specific-menus",
-      "source": "manual",
-      "type": "feature",
-      "title": "Element-Specific Menus",
-      "description": "Show different menu options based on the clicked element type or context.",
-      "era": "short-term",
-      "status": "open",
-      "url": null,
-      "labels": ["menu", "ux"],
-      "tags": ["homepage:ux"],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -323,10 +323,22 @@
       "icon": "TestTube",
       "color": "emerald",
       "features": [
-        { "text": "Right-click feedback capture", "available": true },
-        { "text": "Screenshot capture", "available": true },
-        { "text": "GitHub Issues integration", "available": true },
-        { "text": "Sensitive data masking", "available": true }
+        {
+          "text": "Right-click feedback capture",
+          "available": true
+        },
+        {
+          "text": "Screenshot capture",
+          "available": true
+        },
+        {
+          "text": "GitHub Issues integration",
+          "available": true
+        },
+        {
+          "text": "Sensitive data masking",
+          "available": true
+        }
       ]
     },
     "developer": {
@@ -335,10 +347,22 @@
       "icon": "Terminal",
       "color": "amber",
       "features": [
-        { "text": "Cursor AI agent (local & cloud)", "available": true },
-        { "text": "GitHub Issues integration", "available": true },
-        { "text": "Context-aware DOM capture", "available": true },
-        { "text": "Full DOM context with ancestors", "available": true }
+        {
+          "text": "Cursor AI agent (local & cloud)",
+          "available": true
+        },
+        {
+          "text": "GitHub Issues integration",
+          "available": true
+        },
+        {
+          "text": "Context-aware DOM capture",
+          "available": true
+        },
+        {
+          "text": "Full DOM context with ancestors",
+          "available": true
+        }
       ]
     },
     "pm": {
@@ -347,10 +371,22 @@
       "icon": "Target",
       "color": "violet",
       "features": [
-        { "text": "Feature feedback type", "available": true },
-        { "text": "Screenshot capture", "available": true },
-        { "text": "Comment support", "available": true },
-        { "text": "Custom menu items", "available": true }
+        {
+          "text": "Feature feedback type",
+          "available": true
+        },
+        {
+          "text": "Screenshot capture",
+          "available": true
+        },
+        {
+          "text": "Comment support",
+          "available": true
+        },
+        {
+          "text": "Custom menu items",
+          "available": true
+        }
       ]
     },
     "customer": {
@@ -359,10 +395,22 @@
       "icon": "Users",
       "color": "cyan",
       "features": [
-        { "text": "Right-click feedback (easy to use)", "available": true },
-        { "text": "Screenshot capture", "available": true },
-        { "text": "Comment support", "available": true },
-        { "text": "Touch support (press-and-hold)", "available": true }
+        {
+          "text": "Right-click feedback (easy to use)",
+          "available": true
+        },
+        {
+          "text": "Screenshot capture",
+          "available": true
+        },
+        {
+          "text": "Comment support",
+          "available": true
+        },
+        {
+          "text": "Touch support (press-and-hold)",
+          "available": true
+        }
       ]
     },
     "ux": {
@@ -371,10 +419,22 @@
       "icon": "Palette",
       "color": "rose",
       "features": [
-        { "text": "Custom menu items", "available": true },
-        { "text": "Role-based menu filtering", "available": true },
-        { "text": "Custom menu styling", "available": true },
-        { "text": "Custom cursor/pointer", "available": true }
+        {
+          "text": "Custom menu items",
+          "available": true
+        },
+        {
+          "text": "Role-based menu filtering",
+          "available": true
+        },
+        {
+          "text": "Custom menu styling",
+          "available": true
+        },
+        {
+          "text": "Custom cursor/pointer",
+          "available": true
+        }
       ]
     },
     "designer": {
@@ -387,9 +447,18 @@
           "text": "Screenshot capture (element, container, viewport)",
           "available": true
         },
-        { "text": "Full DOM context", "available": true },
-        { "text": "Sensitive data masking", "available": true },
-        { "text": "Element highlighting", "available": true }
+        {
+          "text": "Full DOM context",
+          "available": true
+        },
+        {
+          "text": "Sensitive data masking",
+          "available": true
+        },
+        {
+          "text": "Element highlighting",
+          "available": true
+        }
       ]
     }
   },

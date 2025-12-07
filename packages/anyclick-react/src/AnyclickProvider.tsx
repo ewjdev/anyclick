@@ -45,6 +45,8 @@ const defaultMenuItems: ContextMenuItem[] = [
   { label: "I like this!", showComment: false, type: "like" },
 ];
 
+const OFFSCREEN_POSITION = { x: -9999, y: -9999 };
+
 /**
  * AnyclickProvider component - wraps your app to enable feedback capture.
  *
@@ -93,7 +95,7 @@ export function AnyclickProvider({
 }: AnyclickProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [menuPosition, setMenuPosition] = useState(OFFSCREEN_POSITION);
   const [targetElement, setTargetElement] = useState<Element | null>(null);
   const [containerElement, setContainerElement] = useState<Element | null>(
     null,
@@ -344,6 +346,7 @@ export function AnyclickProvider({
       } finally {
         setIsSubmitting(false);
         setMenuVisible(false);
+        setMenuPosition(OFFSCREEN_POSITION);
         setTargetElement(null);
         setContainerElement(null);
       }
@@ -370,6 +373,7 @@ export function AnyclickProvider({
   // Close menu
   const closeMenu = useCallback(() => {
     setMenuVisible(false);
+    setMenuPosition(OFFSCREEN_POSITION);
     setTargetElement(null);
     setContainerElement(null);
   }, []);

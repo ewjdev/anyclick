@@ -12,6 +12,7 @@ import {
   Terminal,
   Users,
 } from "lucide-react";
+import { Ticket } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -75,6 +76,15 @@ const examples = [
     icon: GitBranch,
     color: "emerald",
     tags: ["GitHub", "Issues", "Screenshots", "Markdown"],
+  },
+  {
+    title: "Jira Integration",
+    description:
+      "Create Jira issues with rich ADF descriptions and automatic screenshot attachments.",
+    href: "/examples/jira-integration",
+    icon: Ticket,
+    color: "blue",
+    tags: ["Jira", "Issues", "ADF", "Attachments"],
   },
   {
     title: "Cursor Local",

@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [

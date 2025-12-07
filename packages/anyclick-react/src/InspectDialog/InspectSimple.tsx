@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   type ElementInspectInfo,
   captureScreenshot,
   getElementInspectInfo,
 } from "@ewjdev/anyclick-core";
-import { Copy, Download, ExternalLink, X } from "lucide-react";
+import { Camera, Code, Copy, ExternalLink, FileText, X } from "lucide-react";
 import {
   clearHighlights,
   findContainerParent,
@@ -120,7 +120,7 @@ export const DEFAULT_COMPACT_CONFIG: CompactModeConfig = {
   },
 };
 
-export interface InspectDialogProps {
+export interface InspectSimpleProps {
   visible: boolean;
   targetElement: Element | null;
   onClose: () => void;
@@ -152,7 +152,21 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
-export function InspectDialog({
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return isMobile;
+}
+
+export function InspectSimple({
   visible,
   targetElement,
   onClose,
@@ -160,13 +174,22 @@ export function InspectDialog({
   style,
   className,
   highlightColors,
-}: InspectDialogProps) {
+}: InspectSimpleProps) {
   const [info, setInfo] = useState<ElementInspectInfo | null>(null);
   const [sourceLocation, setSourceLocation] = useState<SourceLocation | null>(
     null,
   );
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  // Auto-dismiss status message after 5 seconds
+  useEffect(() => {
+    if (!status) return;
+    const timer = setTimeout(() => setStatus(null), 5000);
+    return () => clearTimeout(timer);
+  }, [status]);
 
   useEffect(() => {
     if (!visible || !targetElement) return;
@@ -193,6 +216,27 @@ export function InspectDialog({
     };
   }, [visible, targetElement, highlightColors]);
 
+  // Handle outside click
+  useEffect(() => {
+    if (!visible) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Delay adding the listener to avoid immediate close
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [visible, onClose]);
+
   const identityLabel = useMemo(() => {
     if (!info) return "Select an element";
     const classes = info.classNames[0] ? `.${info.classNames[0]}` : "";
@@ -201,15 +245,25 @@ export function InspectDialog({
   }, [info]);
 
   const handleCopySelector = async () => {
-    if (!info?.selector) return;
+    if (!info?.selector) {
+      setStatus("No selector available");
+      return;
+    }
     const ok = await copy(info.selector);
-    setStatus(ok ? "Selector copied" : "Copy failed");
+    setStatus(
+      ok ? "✓ Selector copied to clipboard" : "Failed to copy selector",
+    );
   };
 
   const handleCopyText = async () => {
-    if (!info?.innerText) return;
+    if (!info?.innerText) {
+      setStatus("No text content to copy");
+      return;
+    }
     const ok = await copy(info.innerText);
-    setStatus(ok ? "Contents copied" : "Copy failed");
+    setStatus(
+      ok ? "✓ Text content copied to clipboard" : "Failed to copy text",
+    );
   };
 
   const handleSaveScreenshot = async () => {
@@ -220,16 +274,19 @@ export function InspectDialog({
     setSaving(false);
     if (result.capture?.dataUrl) {
       downloadDataUrl(result.capture.dataUrl, "anyclick-inspect.png");
-      setStatus("Screenshot saved");
+      setStatus("✓ Screenshot saved to downloads");
     } else {
-      setStatus(result.error?.message || "Screenshot failed");
+      setStatus(result.error?.message || "Screenshot capture failed");
     }
   };
 
   const handleCopyOuterHTML = async () => {
-    if (!info?.outerHTML) return;
+    if (!info?.outerHTML) {
+      setStatus("No HTML to copy");
+      return;
+    }
     const ok = await copy(info.outerHTML);
-    setStatus(ok ? "HTML copied" : "Copy failed");
+    setStatus(ok ? "✓ HTML markup copied to clipboard" : "Failed to copy HTML");
   };
 
   const handleOpenIDE = () => {
@@ -239,15 +296,31 @@ export function InspectDialog({
 
   if (!visible || !targetElement) return null;
 
-  return (
-    <div
-      className={`anyclick-tiny-inspect ${className ?? ""}`}
-      style={{
+  const dialogStyles: React.CSSProperties = isMobile
+    ? {
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        width: "100%",
+        maxWidth: "100%",
+        background: "#0f172a",
+        color: "#e2e8f0",
+        borderTop: "1px solid #1e293b",
+        borderRadius: "16px 16px 0 0",
+        boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
+        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+        fontSize: 13,
+        overflow: "hidden",
+        ...style,
+      }
+    : {
         position: "fixed",
         right: 16,
         bottom: 16,
         zIndex: 9999,
-        width: 360,
+        width: 320,
         maxWidth: "90vw",
         background: "#0f172a",
         color: "#e2e8f0",
@@ -258,218 +331,217 @@ export function InspectDialog({
         fontSize: 13,
         overflow: "hidden",
         ...style,
-      }}
-    >
+      };
+
+  return (
+    <>
+      {/* Backdrop overlay */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 12px",
-          background: "#0b1220",
-          borderBottom: "1px solid #1e293b",
-          gap: 8,
+          position: "fixed",
+          inset: 0,
+          zIndex: 9998,
+          background: isMobile ? "rgba(0,0,0,0.5)" : "transparent",
+          pointerEvents: isMobile ? "auto" : "none",
         }}
+        onClick={onClose}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
+        role="presentation"
+      />
+
+      <div
+        ref={dialogRef}
+        className={`anyclick-tiny-inspect ${className ?? ""}`}
+        style={dialogStyles}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {/* Header with close button */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: isMobile ? "12px 16px" : "8px 10px",
+            background: "#0b1220",
+            borderBottom: "1px solid #1e293b",
+          }}
+        >
+          {/* Mobile drawer handle */}
+          {isMobile && (
+            <div
+              style={{
+                position: "absolute",
+                top: 6,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 36,
+                height: 4,
+                borderRadius: 2,
+                background: "#475569",
+              }}
+            />
+          )}
+
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontWeight: 600, letterSpacing: "0.02em" }}>
-              Inspect
-            </span>
             <span
               style={{
-                padding: "2px 6px",
+                padding: "3px 8px",
                 borderRadius: 6,
                 background: "#1e293b",
-                color: "#cbd5e1",
+                color: "#e2e8f0",
                 fontSize: 12,
+                fontWeight: 600,
+                fontFamily: "monospace",
               }}
             >
               {identityLabel}
             </span>
+            {sourceLocation && (
+              <button
+                type="button"
+                onClick={handleOpenIDE}
+                title={formatSourceLocation(sourceLocation)}
+                style={iconBtnStyle}
+              >
+                <ExternalLink size={14} />
+              </button>
+            )}
           </div>
-          {info?.selector ? (
+
+          <button
+            type="button"
+            onClick={onClose}
+            style={iconBtnStyle}
+            aria-label="Close inspector"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Compact content */}
+        <div
+          style={{
+            padding: isMobile ? "12px 16px 20px" : "10px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {/* Selector row */}
+          {info?.selector && (
             <code
               style={{
                 fontSize: 11,
                 color: "#94a3b8",
                 background: "#111827",
-                padding: "4px 6px",
+                padding: "6px 8px",
                 borderRadius: 6,
+                wordBreak: "break-all",
+                display: "block",
               }}
             >
               {info.selector}
             </code>
-          ) : null}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {sourceLocation ? (
-            <button
-              type="button"
-              onClick={handleOpenIDE}
-              title={formatSourceLocation(sourceLocation)}
-              style={buttonStyle("ghost")}
-            >
-              <ExternalLink size={14} />
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={onClose}
-            style={buttonStyle("ghost")}
-            aria-label="Close inspector"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      </div>
+          )}
 
-      <div
-        style={{
-          padding: 12,
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        <div style={cardStyle}>
-          <div style={rowStyle}>
-            <span style={labelStyle}>Selector</span>
+          {/* Status feedback message - above buttons */}
+          {status && (
+            <div
+              style={{
+                fontSize: 12,
+                color: status.startsWith("✓")
+                  ? "#4ade80"
+                  : status.toLowerCase().includes("failed") ||
+                      status.toLowerCase().includes("error")
+                    ? "#f87171"
+                    : "#94a3b8",
+                padding: "4px 0",
+                fontWeight: 500,
+              }}
+            >
+              {status}
+            </div>
+          )}
+
+          {/* Actions - icon-only row */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
             <button
               type="button"
               onClick={handleCopySelector}
-              style={buttonStyle("ghost")}
+              style={iconActionStyle}
+              title="Copy CSS selector"
+              aria-label="Copy CSS selector"
             >
-              <Copy size={14} />
+              <Copy size={15} />
             </button>
-          </div>
-          <div
-            style={{ color: "#cbd5e1", fontSize: 12, wordBreak: "break-all" }}
-          >
-            {info?.selector ?? "—"}
-          </div>
-        </div>
-
-        <div style={cardStyle}>
-          <div style={rowStyle}>
-            <span style={labelStyle}>Contents</span>
             <button
               type="button"
               onClick={handleCopyText}
-              style={buttonStyle("ghost")}
+              style={iconActionStyle}
+              title="Copy text content"
+              aria-label="Copy text content"
             >
-              <Copy size={14} />
+              <FileText size={15} />
             </button>
-          </div>
-          <div
-            style={{
-              color: "#cbd5e1",
-              fontSize: 12,
-              maxHeight: 120,
-              overflow: "auto",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
-          >
-            {info?.innerText || "(empty)"}
-          </div>
-        </div>
-
-        <div style={cardStyle}>
-          <div style={rowStyle}>
-            <span style={labelStyle}>Actions</span>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             <button
               type="button"
               onClick={handleCopyOuterHTML}
-              style={buttonStyle("solid")}
+              style={iconActionStyle}
+              title="Copy HTML markup"
+              aria-label="Copy HTML markup"
             >
-              <Copy size={14} />
-              HTML
+              <Code size={15} />
             </button>
             <button
               type="button"
               onClick={handleSaveScreenshot}
-              style={buttonStyle("solid")}
+              style={{
+                ...iconActionStyle,
+                ...(saving ? { opacity: 0.5, cursor: "wait" } : {}),
+              }}
               disabled={saving}
+              title="Save screenshot"
+              aria-label="Save screenshot"
             >
-              <Download size={14} />
-              {saving ? "Saving…" : "Save screenshot"}
+              <Camera size={15} />
             </button>
           </div>
         </div>
-
-        {status ? (
-          <div
-            style={{
-              fontSize: 12,
-              color: "#cbd5e1",
-              background: "#0b1220",
-              borderRadius: 8,
-              padding: "6px 8px",
-              border: "1px solid #1e293b",
-            }}
-          >
-            {status}
-          </div>
-        ) : null}
       </div>
-    </div>
+    </>
   );
 }
 
-function buttonStyle(variant: "ghost" | "solid"): React.CSSProperties {
-  const base: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    borderRadius: 8,
-    border: "1px solid transparent",
-    padding: "6px 10px",
-    fontSize: 12,
-    fontWeight: 600,
-    color: "#e2e8f0",
-    cursor: "pointer",
-    background: "transparent",
-  };
-
-  if (variant === "solid") {
-    return {
-      ...base,
-      background: "#2563eb",
-      borderColor: "#1d4ed8",
-      boxShadow: "0 6px 16px rgba(37, 99, 235, 0.35)",
-    };
-  }
-
-  return {
-    ...base,
-    borderColor: "#1e293b",
-    background: "#0b1220",
-  };
-}
-
-const cardStyle: React.CSSProperties = {
-  border: "1px solid #1e293b",
-  borderRadius: 10,
-  padding: 10,
-  background: "#0b1220",
-  display: "flex",
-  flexDirection: "column",
-  gap: 8,
-};
-
-const rowStyle: React.CSSProperties = {
-  display: "flex",
+const iconBtnStyle: React.CSSProperties = {
+  display: "inline-flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: 8,
+  justifyContent: "center",
+  width: 28,
+  height: 28,
+  borderRadius: 6,
+  border: "1px solid #1e293b",
+  background: "#0b1220",
+  color: "#94a3b8",
+  cursor: "pointer",
+  padding: 0,
 };
 
-const labelStyle: React.CSSProperties = {
-  fontSize: 12,
+const iconActionStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 32,
+  height: 32,
+  borderRadius: 8,
+  border: "1px solid #1e293b",
+  background: "#0b1220",
   color: "#94a3b8",
-  textTransform: "uppercase",
-  letterSpacing: "0.04em",
+  cursor: "pointer",
+  padding: 0,
+  transition: "background 0.15s, color 0.15s, border-color 0.15s",
 };
