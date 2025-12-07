@@ -20,7 +20,7 @@ import {
 import { CodeBlock } from "@/components/CodePreview";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { JiraFeedbackMenu } from "./JiraFeedbackMenu";
+import { JiraFeedbackMenu } from "@ewjdev/anyclick-jira/react";
 
 // Create HTTP adapter for Jira submissions
 const jiraAdapter = createHttpAdapter({
@@ -604,33 +604,34 @@ JIRA_PROJECT_KEY=PROJ`}
         </CodeBlock>
 
         <h3 className="text-xl font-semibold mb-3 mt-6">
-          4. Multi-Step Form Component
+          4. Using the JiraFeedbackMenu Component
         </h3>
         <p className="text-gray-400 mb-4">
-          Create a custom form component that collects all required Jira fields:
+          Import and use the pre-built JiraFeedbackMenu component from the
+          package:
         </p>
         <CodeBlock>
-          {`// Step 1: Select issue type (Bug or Feature)
-// Step 2: Fill in required fields (Summary, Description, Priority, etc.)
-// Step 3: Review and submit
-// Step 4: Show success/error feedback
+          {`import { JiraFeedbackMenu } from "@ewjdev/anyclick-jira/react";
 
-const fields = [
-  {
-    id: "summary",
-    name: "Summary",
-    required: true,
-    type: "text",
-  },
-  {
-    id: "priority",
-    name: "Priority",
-    required: true,
-    type: "select",
-    options: ["Highest", "High", "Medium", "Low"],
-  },
-  // ... more fields
-];`}
+// Render the menu when needed
+{customMenuVisible && (
+  <JiraFeedbackMenu
+    targetElement={targetElement}
+    containerElement={containerElement}
+    position={menuPosition}
+    onClose={() => setCustomMenuVisible(false)}
+    onSubmit={handleJiraSubmit}
+    // Optional: override the default API endpoint
+    // apiEndpoint="/api/my-jira-endpoint"
+  />
+)}
+
+// Or wrap with a provider for global config
+import { JiraFeedbackProvider } from "@ewjdev/anyclick-jira/react";
+
+<JiraFeedbackProvider config={{ apiEndpoint: "/api/ac/jira" }}>
+  <App />
+</JiraFeedbackProvider>`}
         </CodeBlock>
       </div>
 
