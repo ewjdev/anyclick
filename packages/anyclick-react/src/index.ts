@@ -375,6 +375,48 @@ export type {
 } from "./AnyclickLogo";
 
 // ============================================================================
+// QuickChat
+// ============================================================================
+
+/**
+ * Lightweight AI chat component for the context menu.
+ * Provides quick answers about elements with streaming responses.
+ */
+export { QuickChat } from "./QuickChat";
+
+/**
+ * Hook for managing QuickChat state and logic.
+ */
+export { useQuickChat } from "./QuickChat";
+
+/**
+ * QuickChat component styles.
+ */
+export { quickChatStyles, quickChatKeyframes } from "./QuickChat";
+
+/**
+ * Default QuickChat configuration.
+ */
+export { DEFAULT_QUICK_CHAT_CONFIG } from "./QuickChat";
+
+export type {
+  /** QuickChat component props */
+  QuickChatProps,
+  /** QuickChat configuration options */
+  QuickChatConfig,
+  /** Chat message structure */
+  ChatMessage,
+  /** Context chunk for redaction UI */
+  ContextChunk,
+  /** Quick action for AI responses */
+  QuickAction,
+  /** Suggested prompt from pre-pass */
+  SuggestedPrompt,
+  /** QuickChat hook state */
+  QuickChatState,
+} from "./QuickChat";
+
+// ============================================================================
 // IDE Integration
 // ============================================================================
 

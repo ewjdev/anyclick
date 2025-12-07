@@ -1,19 +1,20 @@
+import {
+  ArrowRight,
+  Box,
+  Gauge,
+  GitBranch,
+  Layers,
+  MessageSquare,
+  MousePointer2,
+  Palette,
+  Shield,
+  Sparkles,
+  Terminal,
+  Users,
+} from "lucide-react";
+import { Ticket } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Box,
-  Palette,
-  GitBranch,
-  Terminal,
-  ArrowRight,
-  Sparkles,
-  Shield,
-  MousePointer2,
-  Layers,
-  Users,
-  Gauge,
-  Ticket,
-} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Examples",
@@ -30,6 +31,15 @@ const examples = [
     icon: Box,
     color: "violet",
     tags: ["React", "Provider", "Default Menu"],
+  },
+  {
+    title: "Quick Chat",
+    description:
+      "AI-powered quick answers about any element. Get styling tips, accessibility insights, and more from the context menu.",
+    href: "/examples/quick-chat",
+    icon: MessageSquare,
+    color: "violet",
+    tags: ["AI", "Chat", "Context", "Streaming"],
   },
   {
     title: "Role-based Presets",

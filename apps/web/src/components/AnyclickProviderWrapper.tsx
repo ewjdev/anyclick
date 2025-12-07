@@ -27,6 +27,15 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
       menuItems={chromePreset.menuItems}
       metadata={chromePreset.metadata}
       header={<></>}
+      quickChatConfig={{
+        endpoint: "/api/anyclick/chat",
+        model: "gpt-5-nano",
+        maxResponseLength: 500,
+        showRedactionUI: true,
+        showSuggestions: true,
+        placeholder: "Ask about this element...",
+        title: "Quick Ask",
+      }}
       theme={{
         highlightConfig: {
           enabled: true,
