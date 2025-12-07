@@ -49,15 +49,6 @@ Scope here does **not** block the error ingestion stack.
 
 ## Later
 
-<<<<<<< HEAD
-- **Integrations**: Slack/Linear connectors, SSO options, CD/CI release mapping
-  for source-map lookups.
-- **Analytics**: Trend views, cohorting by release/environment, regression
-  detection, and optional RUM sampling knobs...
-- **Dashboard Polish**: Saved views, shared links with redaction, dark/light
-  themes, and multi-tenant separation.
-
-=======
 - **Integrations**: Slack/Jira/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.
 - **Analytics**: Trend views, cohorting by release/environment, regression detection, and optional RUM sampling knobs...
 - **Dashboard Polish**: Saved views, shared links with redaction, dark/light themes, and multi-tenant separation.
@@ -66,5 +57,4 @@ Scope here does **not** block the error ingestion stack.
 - **Pain Point Analytics**: Aggregate and analyze feedback to identify common user pain points.
 - **Click Behavior Tracking**: Track click patterns and user behavior for UX insights.
 - **Visual Diff/Comparison**: Compare screenshots to detect visual regressions and differences.
->>>>>>> main
 <!-- ROADMAP:AUTO-END -->

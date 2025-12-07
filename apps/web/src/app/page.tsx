@@ -116,7 +116,8 @@ function getRoles(): Record<string, RoleConfig> {
   const isRole = (value: unknown): value is RoleConfig => {
     if (!value || typeof value !== "object") return false;
     const role = value as Partial<RoleConfig>;
-    const featuresValid = Array.isArray(role.features) &&
+    const featuresValid =
+      Array.isArray(role.features) &&
       role.features.every(
         (f) =>
           f && typeof f.text === "string" && typeof f.available === "boolean",
@@ -198,15 +199,15 @@ export default function Home() {
       <section className="relative pt-24 pb-32 px-6">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
+          {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>Now with screenshot capture & AI agent integration</span>
-          </div>
+          </div> */}
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
             <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              UI feedback
+              UX / DevX done right
             </span>
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -216,9 +217,10 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Right-click any element in your app to capture feedback with full
-            DOM context, screenshots, and automatic integration with GitHub
-            Issues or AI coding agents.
+            Right-click any element in your app to get the right context,
+            anyclick will format it for consumers and adapters will
+            automagically route it to the appropriate system. Issues or AI
+            agents.
           </p>
 
           {/* CTA Buttons */}
