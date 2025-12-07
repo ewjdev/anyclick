@@ -6,6 +6,10 @@ Scope here does **not** block the error ingestion stack.
 
 ## Recently Completed
 
+- ✅ **Chrome Extension**: Standalone browser extension with DOM capture,
+  screenshots, custom context menu, DevTools panel integration, and Inspector
+  popup window (similar to Redux DevTools). See
+  [packages/anyclick-extension](../packages/anyclick-extension/README.md)
 - ✅ **Jira Integration**: Full Jira Cloud support with issue creation,
   screenshot attachments, ADF descriptions, custom fields (Epic Link, Team), and
   session-based credentials. See
@@ -49,8 +53,8 @@ Scope here does **not** block the error ingestion stack.
 
 ## Later
 
-- **Integrations**: Slack/Jira/Linear connectors, SSO options, CD/CI release
-  mapping for source-map lookups.
+- **Integrations**: Slack/Linear connectors, SSO options, CD/CI release mapping
+  for source-map lookups.
 - **Analytics**: Trend views, cohorting by release/environment, regression
   detection, and optional RUM sampling knobs...
 - **Dashboard Polish**: Saved views, shared links with redaction, dark/light
