@@ -25,6 +25,12 @@ let isProcessingQueue = false;
 /** Connected DevTools panel ports, keyed by tab ID */
 const devtoolsPanels = new Map<number, chrome.runtime.Port>();
 
+/** Connected Inspector window ports, keyed by tab ID */
+const inspectorWindows = new Map<number, chrome.runtime.Port>();
+
+/** Inspector window IDs, keyed by tab ID */
+const inspectorWindowIds = new Map<number, number>();
+
 /** Last inspected element for each tab */
 const lastInspectedElement = new Map<
   number,
@@ -32,7 +38,7 @@ const lastInspectedElement = new Map<
 >();
 
 /**
- * Handle DevTools panel connections
+ * Handle DevTools panel and Inspector window connections
  */
 chrome.runtime.onConnect.addListener((port) => {
   console.log("[Anyclick Background] Port connection received:", {
@@ -40,16 +46,21 @@ chrome.runtime.onConnect.addListener((port) => {
     sender: port.sender,
   });
 
-  if (port.name !== "devtools-panel") {
-    console.log("[Anyclick Background] Ignoring non-devtools port:", port.name);
-    return;
+  if (port.name === "devtools-panel") {
+    handleDevToolsPanelConnection(port);
+  } else if (port.name === "inspector-window") {
+    handleInspectorWindowConnection(port);
+  } else {
+    console.log("[Anyclick Background] Ignoring unknown port:", port.name);
   }
+});
 
-  // Get the tab ID from the port sender
-  // DevTools panels connect without a tab, but we can track by inspectedWindow
+/**
+ * Handle DevTools panel port connection
+ */
+function handleDevToolsPanelConnection(port: chrome.runtime.Port): void {
   let tabId: number | null = null;
 
-  // Listen for messages from the panel to identify the tab
   port.onMessage.addListener((message) => {
     console.log("[Anyclick Background] Message from DevTools panel:", message);
 
@@ -99,13 +110,96 @@ chrome.runtime.onConnect.addListener((port) => {
       );
     }
   });
-
-  // For now, we'll associate the panel with the active tab when it connects
-  // The panel will send a PANEL_INIT message with the correct tabId
-});
+}
 
 /**
- * Broadcast element update to DevTools panel for a specific tab
+ * Handle Inspector window port connection
+ */
+function handleInspectorWindowConnection(port: chrome.runtime.Port): void {
+  let tabId: number | null = null;
+
+  port.onMessage.addListener(async (message) => {
+    console.log(
+      "[Anyclick Background] Message from Inspector window:",
+      message,
+    );
+
+    if (
+      message.type === "INSPECTOR_INIT" &&
+      typeof message.tabId === "number"
+    ) {
+      const connectedTabId: number = message.tabId;
+      tabId = connectedTabId;
+      inspectorWindows.set(connectedTabId, port);
+      console.log(
+        `[Anyclick Background] Inspector window connected for tab ${connectedTabId}`,
+      );
+
+      // Send last inspected element if available
+      const lastElement = lastInspectedElement.get(connectedTabId);
+      if (lastElement) {
+        const updateMsg = createMessage({
+          type: "DEVTOOLS_ELEMENT_UPDATE" as const,
+          element: lastElement.element,
+          page: lastElement.page,
+        });
+        port.postMessage(updateMsg);
+      }
+
+      // Send page info
+      try {
+        const tab = await chrome.tabs.get(connectedTabId);
+        port.postMessage({
+          type: "INSPECTOR_PAGE_INFO",
+          url: tab.url,
+          title: tab.title,
+        });
+      } catch (error) {
+        console.warn("[Anyclick Background] Failed to get tab info:", error);
+      }
+    } else if (
+      message.type === "INSPECTOR_REFRESH" &&
+      typeof message.tabId === "number"
+    ) {
+      // Request refresh from content script
+      try {
+        await chrome.tabs.sendMessage(message.tabId, {
+          type: "TRIGGER_REFRESH_ELEMENT",
+        });
+      } catch (error) {
+        console.warn("[Anyclick Background] Failed to trigger refresh:", error);
+      }
+    } else if (
+      message.type === "INSPECTOR_CAPTURE" &&
+      typeof message.tabId === "number"
+    ) {
+      // Request capture from content script
+      try {
+        await chrome.tabs.sendMessage(message.tabId, {
+          type: "TRIGGER_CAPTURE_ELEMENT",
+        });
+      } catch (error) {
+        console.warn("[Anyclick Background] Failed to trigger capture:", error);
+      }
+    }
+  });
+
+  port.onDisconnect.addListener(() => {
+    console.log("[Anyclick Background] Inspector window port disconnected", {
+      tabId,
+    });
+    if (tabId !== null) {
+      inspectorWindows.delete(tabId);
+      inspectorWindowIds.delete(tabId);
+      console.log(
+        `[Anyclick Background] Inspector window disconnected for tab ${tabId}`,
+      );
+    }
+  });
+}
+
+/**
+ * Broadcast element update to DevTools panel and Inspector window for a specific tab
  */
 function broadcastToDevToolsPanel(
   tabId: number,
@@ -117,32 +211,117 @@ function broadcastToDevToolsPanel(
     hasElement: !!element,
     selector: element?.selector,
     connectedPanels: Array.from(devtoolsPanels.keys()),
+    connectedInspectors: Array.from(inspectorWindows.keys()),
   });
 
-  const port = devtoolsPanels.get(tabId);
-  if (!port) {
-    console.warn(
-      `[Anyclick Background] No DevTools panel connected for tab ${tabId}. Connected tabs:`,
-      Array.from(devtoolsPanels.keys()),
-    );
-    return;
+  const message = createMessage({
+    type: "DEVTOOLS_ELEMENT_UPDATE" as const,
+    element,
+    page,
+  });
+
+  // Send to DevTools panel
+  const panelPort = devtoolsPanels.get(tabId);
+  if (panelPort) {
+    try {
+      console.log("[Anyclick Background] Posting message to panel:", message);
+      panelPort.postMessage(message);
+      console.log("[Anyclick Background] Message posted to panel successfully");
+    } catch (error) {
+      console.error(
+        "[Anyclick Background] Failed to send to DevTools panel:",
+        error,
+      );
+      devtoolsPanels.delete(tabId);
+    }
   }
 
+  // Send to Inspector window
+  const inspectorPort = inspectorWindows.get(tabId);
+  if (inspectorPort) {
+    try {
+      console.log(
+        "[Anyclick Background] Posting message to inspector:",
+        message,
+      );
+      inspectorPort.postMessage(message);
+      console.log(
+        "[Anyclick Background] Message posted to inspector successfully",
+      );
+    } catch (error) {
+      console.error(
+        "[Anyclick Background] Failed to send to Inspector window:",
+        error,
+      );
+      inspectorWindows.delete(tabId);
+    }
+  }
+
+  if (!panelPort && !inspectorPort) {
+    console.warn(
+      `[Anyclick Background] No DevTools panel or Inspector window connected for tab ${tabId}`,
+    );
+  }
+}
+
+/**
+ * Open the Anyclick Inspector window for a specific tab.
+ * If already open, focus it instead.
+ */
+async function openInspectorWindow(tabId: number): Promise<boolean> {
+  console.log("[Anyclick Background] openInspectorWindow called", { tabId });
+
+  // Check if inspector window already exists for this tab
+  const existingWindowId = inspectorWindowIds.get(tabId);
+  if (existingWindowId) {
+    try {
+      // Try to focus the existing window
+      await chrome.windows.update(existingWindowId, { focused: true });
+      console.log("[Anyclick Background] Focused existing inspector window", {
+        tabId,
+        windowId: existingWindowId,
+      });
+      return true;
+    } catch (error) {
+      // Window might have been closed, remove from tracking
+      console.log(
+        "[Anyclick Background] Existing inspector window not found, creating new one",
+      );
+      inspectorWindowIds.delete(tabId);
+    }
+  }
+
+  // Create new inspector window
   try {
-    const message = createMessage({
-      type: "DEVTOOLS_ELEMENT_UPDATE" as const,
-      element,
-      page,
+    const inspectorUrl = chrome.runtime.getURL(`inspector.html?tabId=${tabId}`);
+    console.log("[Anyclick Background] Creating inspector window", {
+      tabId,
+      url: inspectorUrl,
     });
-    console.log("[Anyclick Background] Posting message to panel:", message);
-    port.postMessage(message);
-    console.log("[Anyclick Background] Message posted successfully");
+
+    const window = await chrome.windows.create({
+      url: inspectorUrl,
+      type: "popup",
+      width: 400,
+      height: 600,
+      focused: true,
+    });
+
+    if (window.id) {
+      inspectorWindowIds.set(tabId, window.id);
+      console.log("[Anyclick Background] Inspector window created", {
+        tabId,
+        windowId: window.id,
+      });
+    }
+
+    return true;
   } catch (error) {
     console.error(
-      "[Anyclick Background] Failed to send to DevTools panel:",
+      "[Anyclick Background] Failed to create inspector window:",
       error,
     );
-    devtoolsPanels.delete(tabId);
+    return false;
   }
 }
 
@@ -327,6 +506,7 @@ async function handleInspectElement(
   message: ExtensionMessage & {
     element: ElementContext;
     position: { x: number; y: number };
+    openDevtools?: boolean;
   },
   tabId: number,
 ): Promise<ExtensionMessage> {
@@ -335,9 +515,10 @@ async function handleInspectElement(
     hasElement: !!message.element,
     selector: message.element?.selector,
     position: message.position,
+    openDevtools: message.openDevtools,
   });
 
-  // Store for later panel connections
+  // Store for later panel/inspector connections
   lastInspectedElement.set(tabId, {
     element: message.element,
   });
@@ -348,17 +529,43 @@ async function handleInspectElement(
     lastInspectedElement.size,
   );
 
-  // Broadcast to connected DevTools panel
+  // Check if any viewer (panel or inspector) is already connected
+  const panelConnected = devtoolsPanels.has(tabId);
+  const inspectorConnected = inspectorWindows.has(tabId);
+  const anyViewerConnected = panelConnected || inspectorConnected;
+
+  // If openDevtools is requested and no viewer is connected, open inspector window
+  if (message.openDevtools && !anyViewerConnected) {
+    console.log(
+      "[Anyclick Background] No viewer connected, opening inspector window",
+    );
+    await openInspectorWindow(tabId);
+  } else if (message.openDevtools && inspectorConnected) {
+    // Focus existing inspector window
+    const windowId = inspectorWindowIds.get(tabId);
+    if (windowId) {
+      try {
+        await chrome.windows.update(windowId, { focused: true });
+      } catch (error) {
+        // Window might be closed, will be handled by broadcast
+      }
+    }
+  }
+
+  // Broadcast to connected DevTools panel and/or Inspector window
   broadcastToDevToolsPanel(tabId, message.element);
 
   console.log("[Anyclick Background] Element inspection complete", {
     tabId,
     selector: message.element.selector,
+    panelConnected,
+    inspectorConnected,
   });
 
   return createMessage({
     type: "CAPTURE_RESPONSE" as const,
     success: true,
+    panelConnected: panelConnected || inspectorConnected,
   });
 }
 

@@ -199,6 +199,8 @@ export interface CaptureResponseMessage extends BaseMessage {
   success: boolean;
   payload?: CapturePayload;
   error?: string;
+  /** Whether the DevTools panel was connected when handling an inspect */
+  panelConnected?: boolean;
 }
 
 /**
@@ -289,6 +291,8 @@ export interface InspectElementMessage extends BaseMessage {
   type: "INSPECT_ELEMENT";
   element: ElementContext;
   position: { x: number; y: number };
+  /** Request background to open/focus the Anyclick DevTools panel */
+  openDevtools?: boolean;
 }
 
 /**

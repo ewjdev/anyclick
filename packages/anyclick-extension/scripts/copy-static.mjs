@@ -20,6 +20,7 @@ const staticFiles = [
   "popup.css",
   "devtools.html",
   "panel.html",
+  "inspector.html",
 ];
 
 for (const file of staticFiles) {

@@ -26,6 +26,12 @@ const selectorCache = new WeakMap<Element, string>();
 /** Currently hovered/targeted element from context menu */
 let targetElement: Element | null = null;
 
+/** Element that was right-clicked (preserved for menu actions) */
+let rightClickedElement: Element | null = null;
+
+/** Whether to preserve highlight after menu closes (e.g., for inspect) */
+let preserveHighlight = false;
+
 /** Last recorded mouse position */
 let lastMouseX = 0;
 let lastMouseY = 0;
@@ -63,6 +69,7 @@ document.addEventListener(
   "contextmenu",
   (e) => {
     targetElement = e.target as Element;
+    rightClickedElement = e.target as Element; // Preserve for menu actions
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 
@@ -130,25 +137,31 @@ function handleMenuSelect(type: string, comment?: string): void {
  * Handle menu close
  */
 function handleMenuClose(): void {
-  clearHighlight();
+  if (!preserveHighlight) {
+    clearHighlight();
+  }
+  preserveHighlight = false;
 }
 
 /**
  * Handle inspect element action - opens DevTools on the element
  */
 function handleInspectElement(): void {
+  // Use the preserved right-clicked element, not the current hover target
+  const elementToInspect = rightClickedElement;
+
   console.log("[Anyclick Content] handleInspectElement called", {
-    hasTargetElement: !!targetElement,
-    targetTag: targetElement?.tagName,
+    hasTargetElement: !!elementToInspect,
+    targetTag: elementToInspect?.tagName,
   });
 
-  if (!targetElement) {
+  if (!elementToInspect) {
     console.warn("[Anyclick Content] No target element for inspection");
     return;
   }
 
   // Build element context for DevTools panel
-  const elementContext = buildElementContext(targetElement);
+  const elementContext = buildElementContext(elementToInspect);
   console.log("[Anyclick Content] Built element context", {
     selector: elementContext.selector,
     tag: elementContext.tag,
@@ -160,18 +173,31 @@ function handleInspectElement(): void {
     type: "INSPECT_ELEMENT" as const,
     element: elementContext,
     position: { x: lastMouseX, y: lastMouseY },
+    openDevtools: true,
   });
-  console.log("[Anyclick Content] Sending INSPECT_ELEMENT message", message);
+  console.log(
+    "[Anyclick Content] Sending INSPECT_ELEMENT message (open DevTools panel)",
+    message,
+  );
+
+  // Preserve highlight after menu closes so user can see inspected element
+  preserveHighlight = true;
 
   sendMessage(message)
     .then((response) => {
       console.log("[Anyclick Content] INSPECT_ELEMENT response", response);
+      if ("panelConnected" in response && response.panelConnected === false) {
+        const isMac = navigator.platform.toUpperCase().includes("MAC");
+        const shortcut = isMac ? "⌘⌥I" : "F12";
+        showToast(
+          `Press ${shortcut} → open Anyclick panel to view selection`,
+          "info",
+        );
+      }
     })
     .catch((error) => {
       console.error("[Anyclick Content] INSPECT_ELEMENT error", error);
     });
-
-  clearHighlight();
 }
 
 /**
@@ -197,6 +223,23 @@ chrome.runtime.onMessage.addListener(
       } else {
         sendResponse({ element: null });
       }
+    } else if (message.type === "TRIGGER_REFRESH_ELEMENT") {
+      // Triggered by Inspector window refresh button
+      if (rightClickedElement) {
+        const elementContext = buildElementContext(rightClickedElement);
+        sendMessage(
+          createMessage({
+            type: "INSPECT_ELEMENT" as const,
+            element: elementContext,
+            position: { x: lastMouseX, y: lastMouseY },
+          }),
+        ).catch(console.error);
+      }
+      sendResponse({ received: true });
+    } else if (message.type === "TRIGGER_CAPTURE_ELEMENT") {
+      // Triggered by Inspector window capture button
+      handleCapture().catch(console.error);
+      sendResponse({ received: true });
     }
     return false;
   },
@@ -261,6 +304,25 @@ function clearHighlight(): void {
     highlightOverlay = null;
   }
 }
+
+/**
+ * Clear highlight when clicking outside the highlighted element
+ */
+document.addEventListener(
+  "click",
+  (e) => {
+    // Don't clear if clicking on our own UI elements
+    if ((e.target as Element).closest?.("[data-anyclick-menu]")) return;
+    if ((e.target as Element).closest?.("[data-anyclick-highlight]")) return;
+    if ((e.target as Element).closest?.("[data-anyclick-toast]")) return;
+
+    // Clear persistent highlight on any other click
+    if (highlightOverlay) {
+      clearHighlight();
+    }
+  },
+  { capture: true },
+);
 
 // ========== Capture Flow ==========
 

@@ -65,6 +65,19 @@ export default defineConfig([
     noExternal: [/.*/],
     globalName: "AnyclickPanel",
   },
+  // Inspector window script (standalone popup)
+  {
+    entry: { inspector: "src/inspector.ts" },
+    format: ["iife"],
+    outDir: "dist",
+    outExtension: () => ({ js: ".js" }),
+    clean: false,
+    minify: true,
+    sourcemap: false,
+    splitting: false,
+    noExternal: [/.*/],
+    globalName: "AnyclickInspector",
+  },
   // Types export (for consumers who want to work with payloads)
   {
     entry: { types: "src/index.ts" },
