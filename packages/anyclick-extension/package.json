@@ -1,0 +1,55 @@
+{
+  "name": "@ewjdev/anyclick-extension",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Chrome extension for Anyclick - capture DOM context, screenshots, and metadata with high performance",
+  "keywords": [
+    "anyclick",
+    "chrome-extension",
+    "browser-extension",
+    "dom-capture",
+    "screenshot",
+    "feedback"
+  ],
+  "license": "MIT",
+  "author": "ewjdev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-extension"
+  },
+  "homepage": "https://anyclick.ewj.dev/docs/extension",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "sideEffects": false,
+  "main": "dist/types.js",
+  "module": "dist/types.mjs",
+  "types": "dist/types.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "require": "./dist/types.js",
+      "import": "./dist/types.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && node scripts/copy-static.mjs",
+    "clean": "rimraf dist",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
+
