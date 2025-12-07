@@ -29,30 +29,27 @@ Scope here does **not** block the error ingestion stack.
   filtering, selector generation.
 
 <!-- ROADMAP:AUTO-START -->
-
 ## Short-term (next up)
 
-- **Notifications Package**: Toast → Banner → Inline → Indicator, with
-  NotificationContainer mount point.
-- **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme
-  hooks shared with AnyclickProvider.
-- **Noise Controls**: Coalescing identical errors, per-severity rate limits,
-  dismissal persistence, opt-in feedback prompt...
-- **Configuration Options**: Timeouts, placement, portal target, mobile-safe
-  spacing, z-index and overlap rules.
+- **Notifications Package**: Toast → Banner → Inline → Indicator, with NotificationContainer mount point.
+- **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme hooks shared with AnyclickProvider.
+- **Noise Controls**: Coalescing identical errors, per-severity rate limits, dismissal persistence, opt-in feedback prompt...
+- **Configuration Options**: Timeouts, placement, portal target, mobile-safe spacing, z-index and overlap rules.
+- **Auto Error Collection**: Automatically capture unhandled errors with DOM context and screenshots.
+- **Element-Specific Menus**: Show different menu options based on the clicked element type or context.
 
 ## Mid-term
 
-- ✅ **No Buttons??** [plan](.cursor/plans/no-buttons.plan.md) `Plan`
-- **Error Dashboard**: Self-hostable dashboard for viewing grouped errors,
-  filters (project, release, env, tag, severity, d...
-- **Authentication**: Project-level API keys + dashboard session auth
-  (passwordless/link-based), project scoping, audit lo...
-- **Alerting**: Webhook destinations with signing + retry/backoff,
-  threshold-based triggers (count, rate, new finger...
+- ✅ **No Buttons??** [plan](https://github.com/ewjdev/anyclick/blob/main/.cursor/plans/no-buttons.plan.md) `Plan`
+- **Error Dashboard**: Self-hostable dashboard for viewing grouped errors, filters (project, release, env, tag, severity, d...
+- **Authentication**: Project-level API keys + dashboard session auth (passwordless/link-based), project scoping, audit lo...
+- **Alerting**: Webhook destinations with signing + retry/backoff, threshold-based triggers (count, rate, new finger...
+- **Playwright Test Generation**: Generate Playwright test code from captured interactions and DOM context.
+- **Workflow Recording**: Record sequences of user actions and clicks to capture complete user flows.
 
 ## Later
 
+<<<<<<< HEAD
 - **Integrations**: Slack/Linear connectors, SSO options, CD/CI release mapping
   for source-map lookups.
 - **Analytics**: Trend views, cohorting by release/environment, regression
@@ -60,4 +57,14 @@ Scope here does **not** block the error ingestion stack.
 - **Dashboard Polish**: Saved views, shared links with redaction, dark/light
   themes, and multi-tenant separation.
 
+=======
+- **Integrations**: Slack/Jira/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.
+- **Analytics**: Trend views, cohorting by release/environment, regression detection, and optional RUM sampling knobs...
+- **Dashboard Polish**: Saved views, shared links with redaction, dark/light themes, and multi-tenant separation.
+- **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context.
+- **Slack Integration**: Post feedback and bug reports to Slack channels with rich formatting.
+- **Pain Point Analytics**: Aggregate and analyze feedback to identify common user pain points.
+- **Click Behavior Tracking**: Track click patterns and user behavior for UX insights.
+- **Visual Diff/Comparison**: Compare screenshots to detect visual regressions and differences.
+>>>>>>> main
 <!-- ROADMAP:AUTO-END -->
