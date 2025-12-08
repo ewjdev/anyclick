@@ -485,6 +485,35 @@ chrome.runtime.onMessage.addListener(
       url: sender.tab?.url?.slice(0, 50),
     });
 
+    // Allow popup to send REFINE_PROMPT for the test button (no tab context)
+    if (!sender.tab?.id && message.type === "REFINE_PROMPT") {
+      void handleRefinePrompt(
+        message as ExtensionMessage & {
+          selectedText: string;
+          context: string;
+          systemPrompt?: string;
+          refineEndpoint?: string;
+        },
+      )
+        .then((response) => {
+          sendResponse(response);
+        })
+        .catch((error) => {
+          console.error(
+            "[Anyclick Background] Error handling popup refine:",
+            error,
+          );
+          sendResponse(
+            createMessage({
+              type: "CAPTURE_RESPONSE",
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+            }),
+          );
+        });
+      return true;
+    }
+
     // Validate sender is from a content script
     if (!sender.tab?.id) {
       console.warn(
@@ -564,6 +593,17 @@ async function handleMessage(
           position: { x: number; y: number };
         },
         tabId,
+      );
+
+    case "REFINE_PROMPT":
+      console.log("[Anyclick Background] Routing to handleRefinePrompt");
+      return handleRefinePrompt(
+        message as ExtensionMessage & {
+          selectedText: string;
+          context: string;
+          systemPrompt?: string;
+          refineEndpoint?: string;
+        },
       );
 
     default:
@@ -771,6 +811,117 @@ async function handleSubmitRequest(payload: CapturePayload) {
     await updateCaptureStatus(false, errorMsg);
     return createMessage({
       type: "SUBMIT_RESPONSE" as const,
+      success: false,
+      error: errorMsg,
+    });
+  }
+}
+
+// ========== Prompt Refinement ==========
+
+/**
+ * Handle prompt refinement request from content script
+ * This runs in the background script to bypass CORS restrictions
+ */
+async function handleRefinePrompt(message: {
+  selectedText: string;
+  context: string;
+  systemPrompt?: string;
+  refineEndpoint?: string;
+}): Promise<ExtensionMessage> {
+  console.log("[Anyclick Background] handleRefinePrompt called with:", {
+    selectedTextLength: message.selectedText?.length,
+    contextLength: message.context?.length,
+    hasSystemPrompt: !!message.systemPrompt,
+    refineEndpoint: message.refineEndpoint,
+  });
+
+  try {
+    const { selectedText, context, systemPrompt, refineEndpoint } = message;
+
+    // Use the configured refine endpoint, or default to localhost
+    const apiUrl = refineEndpoint || "http://localhost:3000/api/anyclick/chat";
+
+    console.log("[Anyclick Background] Making fetch request to:", apiUrl);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.log("[Anyclick Background] Request timeout, aborting...");
+      controller.abort();
+    }, 15000);
+
+    try {
+      const requestBody = {
+        action: "refine",
+        selectedText,
+        context,
+        systemPrompt,
+      };
+
+      console.log("[Anyclick Background] Request body:", {
+        action: requestBody.action,
+        selectedTextLength: requestBody.selectedText?.length,
+        contextLength: requestBody.context?.length,
+        hasSystemPrompt: !!requestBody.systemPrompt,
+      });
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+
+      console.log("[Anyclick Background] Fetch response received:", {
+        ok: response.ok,
+        status: response.status,
+        statusText: response.statusText,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "Unknown error");
+        console.error("[Anyclick Background] API error response:", errorText);
+        throw new Error(
+          `API request failed: ${response.status} - ${errorText}`,
+        );
+      }
+
+      const data = await response.json();
+
+      console.log("[Anyclick Background] API response data:", {
+        hasRefinedPrompt: !!data.refinedPrompt,
+        refinedPromptLength: data.refinedPrompt?.length,
+        keys: Object.keys(data),
+      });
+
+      if (!data.refinedPrompt) {
+        throw new Error("No refined prompt in response");
+      }
+
+      console.log("[Anyclick Background] Refinement successful");
+
+      return createMessage({
+        type: "CAPTURE_RESPONSE" as const,
+        success: true,
+        payload: {
+          refinedPrompt: data.refinedPrompt,
+        } as unknown as CapturePayload,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("[Anyclick Background] Prompt refinement failed:", {
+      message: errorMsg,
+      stack: errorStack,
+      error,
+    });
+    return createMessage({
+      type: "CAPTURE_RESPONSE" as const,
       success: false,
       error: errorMsg,
     });

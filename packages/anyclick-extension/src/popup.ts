@@ -1,4 +1,9 @@
-import { type CaptureStatus, DEFAULTS, STORAGE_KEYS } from "./types";
+import {
+  type CaptureStatus,
+  DEFAULTS,
+  DEFAULT_T3CHAT_SYSTEM_PROMPT,
+  STORAGE_KEYS,
+} from "./types";
 
 // ========== DOM Elements ==========
 
@@ -28,6 +33,27 @@ const t3chatEnabled = document.getElementById(
 const t3chatBaseUrl = document.getElementById(
   "t3chatBaseUrl",
 ) as HTMLInputElement;
+const t3chatAutoRefine = document.getElementById(
+  "t3chatAutoRefine",
+) as HTMLInputElement;
+const t3chatSystemPrompt = document.getElementById(
+  "t3chatSystemPrompt",
+) as HTMLTextAreaElement;
+const t3chatRefineEndpoint = document.getElementById(
+  "t3chatRefineEndpoint",
+) as HTMLInputElement;
+const resetSystemPromptBtn = document.getElementById(
+  "resetSystemPrompt",
+) as HTMLButtonElement;
+const systemPromptCharCount = document.getElementById(
+  "systemPromptCharCount",
+) as HTMLSpanElement;
+const testRefineEndpointBtn = document.getElementById(
+  "testRefineEndpoint",
+) as HTMLButtonElement;
+const testResultEl = document.getElementById(
+  "testResult",
+) as HTMLParagraphElement;
 
 // ========== Initialization ==========
 
@@ -49,6 +75,9 @@ async function loadSettings(): Promise<void> {
         STORAGE_KEYS.UPLOADTHING_API_KEY,
         STORAGE_KEYS.T3CHAT_ENABLED,
         STORAGE_KEYS.T3CHAT_BASE_URL,
+        STORAGE_KEYS.T3CHAT_AUTO_REFINE,
+        STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT,
+        STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT,
       ],
       (result) => {
         // Set toggle state
@@ -74,6 +103,17 @@ async function loadSettings(): Promise<void> {
         t3chatBaseUrl.value =
           result[STORAGE_KEYS.T3CHAT_BASE_URL] ?? DEFAULTS.T3CHAT_BASE_URL;
 
+        // T3Chat prompt refinement settings
+        t3chatAutoRefine.checked =
+          result[STORAGE_KEYS.T3CHAT_AUTO_REFINE] ??
+          DEFAULTS.T3CHAT_AUTO_REFINE;
+        t3chatSystemPrompt.value =
+          result[STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT] || "";
+        t3chatRefineEndpoint.value =
+          result[STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT] ||
+          DEFAULTS.T3CHAT_REFINE_ENDPOINT;
+        updateSystemPromptCharCount();
+
         // Set status display
         updateStatusDisplay(
           result[STORAGE_KEYS.LAST_CAPTURE],
@@ -91,6 +131,19 @@ async function loadSettings(): Promise<void> {
  */
 function updateToggleLabel(enabled: boolean): void {
   toggleLabel.textContent = enabled ? "Enabled" : "Disabled";
+}
+
+/**
+ * Update system prompt character count display
+ */
+function updateSystemPromptCharCount(): void {
+  const count = t3chatSystemPrompt.value.length;
+  systemPromptCharCount.textContent = `${count} / 1000`;
+  if (count > 1000) {
+    systemPromptCharCount.classList.add("over-limit");
+  } else {
+    systemPromptCharCount.classList.remove("over-limit");
+  }
 }
 
 /**
@@ -163,6 +216,8 @@ saveBtn.addEventListener("click", async () => {
   const utEndpoint = uploadthingEndpoint.value.trim();
   const utToken = uploadthingToken.value.trim();
   const t3Url = t3chatBaseUrl.value.trim();
+  const systemPrompt = t3chatSystemPrompt.value.trim();
+  const refineEndpoint = t3chatRefineEndpoint.value.trim();
 
   // Validate endpoint URLs
   if (endpoint && !isValidUrl(endpoint)) {
@@ -175,6 +230,16 @@ saveBtn.addEventListener("click", async () => {
   }
   if (t3Url && !isValidUrl(t3Url)) {
     showToast("Invalid t3.chat URL", true);
+    return;
+  }
+  if (refineEndpoint && !isValidUrl(refineEndpoint)) {
+    showToast("Invalid refine endpoint URL", true);
+    return;
+  }
+
+  // Validate system prompt length
+  if (systemPrompt.length > 1000) {
+    showToast("System prompt is too long (max 1000 chars)", true);
     return;
   }
 
@@ -194,6 +259,11 @@ saveBtn.addEventListener("click", async () => {
           [STORAGE_KEYS.UPLOADTHING_API_KEY]: utToken,
           [STORAGE_KEYS.T3CHAT_ENABLED]: t3chatEnabled.checked,
           [STORAGE_KEYS.T3CHAT_BASE_URL]: t3Url || DEFAULTS.T3CHAT_BASE_URL,
+          // T3Chat prompt refinement settings
+          [STORAGE_KEYS.T3CHAT_AUTO_REFINE]: t3chatAutoRefine.checked,
+          [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: systemPrompt,
+          [STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT]:
+            refineEndpoint || DEFAULTS.T3CHAT_REFINE_ENDPOINT,
         },
         resolve,
       );
@@ -206,6 +276,69 @@ saveBtn.addEventListener("click", async () => {
   } finally {
     saveBtn.disabled = false;
     saveBtn.textContent = "Save Settings";
+  }
+});
+
+/**
+ * Handle system prompt textarea input for character count
+ */
+t3chatSystemPrompt.addEventListener("input", () => {
+  updateSystemPromptCharCount();
+});
+
+/**
+ * Handle reset system prompt button click
+ */
+resetSystemPromptBtn.addEventListener("click", () => {
+  t3chatSystemPrompt.value = DEFAULT_T3CHAT_SYSTEM_PROMPT;
+  updateSystemPromptCharCount();
+  showToast("System prompt reset to default");
+});
+
+/**
+ * Handle test refine endpoint button click
+ * Tests the connection to the refine API endpoint
+ */
+testRefineEndpointBtn.addEventListener("click", async () => {
+  const endpoint = t3chatRefineEndpoint.value.trim();
+  if (!endpoint) {
+    testResultEl.textContent = "Please enter an endpoint URL";
+    testResultEl.style.color = "#ef4444";
+    return;
+  }
+
+  testRefineEndpointBtn.disabled = true;
+  testRefineEndpointBtn.textContent = "Testing...";
+  testResultEl.textContent = "Testing connection...";
+  testResultEl.style.color = "#888";
+
+  try {
+    // Send a test request via the background script
+    const response = await chrome.runtime.sendMessage({
+      type: "REFINE_PROMPT",
+      selectedText: "test",
+      context: "Test connection",
+      systemPrompt: "Just respond with 'OK'",
+      refineEndpoint: endpoint,
+      timestamp: new Date().toISOString(),
+    });
+
+    console.log("[Anyclick Popup] Test response:", response);
+
+    if (response?.success) {
+      testResultEl.textContent = "Connection successful!";
+      testResultEl.style.color = "#22c55e";
+    } else {
+      testResultEl.textContent = `Failed: ${response?.error || "Unknown error"}`;
+      testResultEl.style.color = "#ef4444";
+    }
+  } catch (error) {
+    console.error("[Anyclick Popup] Test failed:", error);
+    testResultEl.textContent = `Error: ${error instanceof Error ? error.message : "Unknown error"}`;
+    testResultEl.style.color = "#ef4444";
+  } finally {
+    testRefineEndpointBtn.disabled = false;
+    testRefineEndpointBtn.textContent = "Test";
   }
 });
 

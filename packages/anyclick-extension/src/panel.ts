@@ -4,6 +4,7 @@
  * Displays element information and allows capture from the DevTools panel.
  */
 import type { ElementContext, PageContext } from "./types";
+import { DEFAULTS, DEFAULT_T3CHAT_SYSTEM_PROMPT, STORAGE_KEYS } from "./types";
 
 // ========== Types ==========
 
@@ -28,6 +29,24 @@ const statusTextEl = document.getElementById("status-text")!;
 const pageUrlEl = document.getElementById("page-url")!;
 const refreshBtn = document.getElementById("refresh-btn")!;
 const captureBtn = document.getElementById("capture-btn")!;
+
+// T3Chat settings elements
+const t3chatSettingsSection = document.getElementById(
+  "t3chat-settings-section",
+)!;
+const t3chatSettingsHeader = document.getElementById("t3chat-settings-header")!;
+const panelT3chatAutoRefine = document.getElementById(
+  "panel-t3chat-auto-refine",
+) as HTMLInputElement;
+const panelT3chatSystemPrompt = document.getElementById(
+  "panel-t3chat-system-prompt",
+) as HTMLTextAreaElement;
+const panelResetSystemPrompt = document.getElementById(
+  "panel-reset-system-prompt",
+)!;
+const panelSystemPromptCharCount = document.getElementById(
+  "panel-system-prompt-char-count",
+)!;
 
 // ========== Icons ==========
 
@@ -506,6 +525,91 @@ captureBtn.addEventListener("click", () => {
   }, 2000);
 });
 
+// ========== T3Chat Settings ==========
+
+/**
+ * Load t3.chat settings from storage
+ */
+function loadT3ChatSettings(): void {
+  chrome.storage.local.get(
+    [STORAGE_KEYS.T3CHAT_AUTO_REFINE, STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT],
+    (result) => {
+      panelT3chatAutoRefine.checked =
+        result[STORAGE_KEYS.T3CHAT_AUTO_REFINE] ?? DEFAULTS.T3CHAT_AUTO_REFINE;
+      panelT3chatSystemPrompt.value =
+        result[STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT] || "";
+      updatePanelSystemPromptCharCount();
+    },
+  );
+}
+
+/**
+ * Save t3.chat settings to storage
+ */
+function saveT3ChatSettings(): void {
+  const systemPrompt = panelT3chatSystemPrompt.value.trim();
+  chrome.storage.local.set({
+    [STORAGE_KEYS.T3CHAT_AUTO_REFINE]: panelT3chatAutoRefine.checked,
+    [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: systemPrompt,
+  });
+}
+
+/**
+ * Update the system prompt character count display
+ */
+function updatePanelSystemPromptCharCount(): void {
+  const count = panelT3chatSystemPrompt.value.length;
+  panelSystemPromptCharCount.textContent = `${count} / 1000`;
+  if (count > 1000) {
+    panelSystemPromptCharCount.classList.add("over-limit");
+  } else {
+    panelSystemPromptCharCount.classList.remove("over-limit");
+  }
+}
+
+// T3Chat settings section toggle
+t3chatSettingsHeader.addEventListener("click", () => {
+  t3chatSettingsSection.classList.toggle("collapsed");
+});
+
+// Auto-refine toggle handler
+panelT3chatAutoRefine.addEventListener("change", () => {
+  saveT3ChatSettings();
+});
+
+// System prompt textarea handler
+panelT3chatSystemPrompt.addEventListener("input", () => {
+  updatePanelSystemPromptCharCount();
+});
+
+// Save system prompt on blur (after editing)
+panelT3chatSystemPrompt.addEventListener("blur", () => {
+  saveT3ChatSettings();
+});
+
+// Reset button handler
+panelResetSystemPrompt.addEventListener("click", () => {
+  panelT3chatSystemPrompt.value = DEFAULT_T3CHAT_SYSTEM_PROMPT;
+  updatePanelSystemPromptCharCount();
+  saveT3ChatSettings();
+});
+
+// Listen for storage changes to sync with popup
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") return;
+
+  if (changes[STORAGE_KEYS.T3CHAT_AUTO_REFINE]) {
+    panelT3chatAutoRefine.checked =
+      changes[STORAGE_KEYS.T3CHAT_AUTO_REFINE].newValue ??
+      DEFAULTS.T3CHAT_AUTO_REFINE;
+  }
+  if (changes[STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]) {
+    panelT3chatSystemPrompt.value =
+      changes[STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT].newValue || "";
+    updatePanelSystemPromptCharCount();
+  }
+});
+
 // ========== Lifecycle ==========
 
 console.log("[Anyclick Panel] Script loading...");
@@ -533,4 +637,5 @@ console.log(
 
 connectToBackground();
 renderEmptyState();
+loadT3ChatSettings();
 console.log("[Anyclick Panel] Initialization complete");
