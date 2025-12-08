@@ -1,169 +1,212 @@
 # @ewjdev/anyclick-extension
 
-Chrome MV3 extension for Anyclick - capture DOM context, screenshots, and metadata with high performance.
+Browser extension for Anyclick - adds right-click context menu integration with t3.chat and UploadThing to any webpage.
 
 ## Features
 
-- **Custom Context Menu** - Right-click shows a beautiful custom menu (fully replaces native menu)
-- **DevTools Panel** - Dedicated "Anyclick" panel in DevTools syncs with inspected elements
-- **Instant Toast (<100ms)** - DOM captured synchronously; toast shows immediately
-- **Background Queue** - Payloads are queued in `chrome.storage.local` and processed by the service worker with retries
-- **Deferred Screenshots** - Screenshots happen in the background; payload still submits if screenshot fails
-- **Lean DOM Capture** - Selector cache, trimmed text/HTML, and ancestor limits keep payloads small
-- **HTTP Submission** - Background worker submits with retry/backoff
-- **Minimal Footprint** - Lean content script with no external dependencies (vanilla JS menu)
+- **Text Selection → t3.chat**: Select text on any page, right-click, and send it to t3.chat for AI-powered answers
+- **Image Upload → UploadThing**: Right-click on images to upload them directly to UploadThing
+- **Cross-browser Support**: Works on Chrome, Edge, and Firefox (Manifest V3)
+- **Configurable**: Store your preferences and API keys securely in extension storage
 
 ## Installation
 
 ### From Source
 
-1. Build the extension:
+1. Clone the repository:
 
 ```bash
-cd packages/anyclick-extension
-yarn install
-yarn build
+git clone https://github.com/ewjdev/anyclick.git
+cd anyclick/packages/anyclick-extension
 ```
 
-2. Load in Chrome:
-   - Navigate to `chrome://extensions/`
-   - Enable "Developer mode" (top right toggle)
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Build the extension:
+
+```bash
+npm run build:extension
+```
+
+4. Load in Chrome:
+   - Go to `chrome://extensions`
+   - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select the `dist/` folder
+   - Select the `packages/anyclick-extension` folder
 
-### Configuration
+### From Store (Coming Soon)
 
-1. Click the Anyclick extension icon in Chrome toolbar
-2. Enter your endpoint URL (e.g., `https://your-app.com/api/feedback`)
-3. Optionally add an auth token for protected endpoints
-4. Click "Save Settings"
+The extension will be available on:
+- Chrome Web Store
+- Firefox Add-ons
+- Edge Add-ons
 
 ## Usage
 
-### Custom Context Menu
+### t3.chat Integration
 
-1. Right-click any element on a page - the custom Anyclick menu appears (replaces native menu)
-2. Choose an action:
-   - **Capture Element** - Instantly capture DOM context and queue for submission
-   - **Inspect in DevTools** - Send element details to the Anyclick DevTools panel
-   - **Send Feedback** - Submenu with Issue, Feature, or Like options (with optional comment)
-3. A toast confirms the action; the payload is queued in the background
-4. Press `Esc` to close the menu or click outside
+1. Select text on any webpage
+2. Right-click to open the context menu
+3. Click "Ask t3.chat"
+4. The selected text opens in t3.chat with your query pre-filled
 
-### DevTools Panel
+### UploadThing Integration
 
-1. Open Chrome DevTools (F12 or right-click → Inspect)
-2. Navigate to the **Anyclick** tab in DevTools
-3. Right-click an element and select "Inspect in DevTools" to sync element details
-4. The panel displays:
-   - Element tag, ID, and classes
-   - CSS selector
-   - Bounding box dimensions
-   - Data attributes
-   - Ancestor hierarchy
-5. Click **Capture** in the panel to capture the inspected element
+1. Configure your UploadThing endpoint in the extension options
+2. Right-click on any image
+3. Click "Upload to UploadThing"
+4. The image URL is copied to your clipboard
 
-### Fallback
+## Configuration
 
-The extension also adds a native Chrome context menu item "Capture with Anyclick" as fallback.
-
-### Notes
-
-- If the page is a restricted URL (e.g., `chrome://`), the content script won't load and capture will be skipped
-- The background worker processes the queue: adds a screenshot (if possible) and submits with retries
-
-## Payload Format
+Click the extension icon to open settings:
 
 ```typescript
-interface CapturePayload {
-  type: "extension-capture";
-  element: {
-    selector: string;
-    tag: string;
-    id?: string;
-    classes: string[];
-    innerText: string;
-    outerHTML: string;
-    boundingRect: { top, left, width, height };
-    dataAttributes: Record<string, string>;
-    ancestors: Array<{ tag, id?, classes, selector }>;
+interface ExtensionConfig {
+  enabled: boolean; // Enable/disable the extension
+  t3chat: {
+    enabled: boolean; // Enable t3.chat menu item
+    baseUrl: string; // Custom t3.chat URL
   };
-  page: {
-    url: string;
-    title: string;
-    referrer: string;
-    screen: { width, height };
-    viewport: { width, height };
-    userAgent: string;
-    timestamp: string;
+  uploadthing: {
+    enabled: boolean; // Enable UploadThing menu item
+    endpoint?: string; // Your upload API endpoint
+    apiKey?: string; // UploadThing API key (for direct uploads)
   };
-  action: {
-    actionType: "contextmenu";
-    clientX: number;
-    clientY: number;
-    pageX: number;
-    pageY: number;
-    modifiers: { ctrl, shift, alt, meta };
-    scrollX: number;
-    scrollY: number;
-    timestamp: string;
-  };
-  screenshots?: {
-    viewport?: {
-      dataUrl: string;
-      width: number;
-      height: number;
-      sizeBytes: number;
-    };
-    capturedAt: string;
-  };
-  metadata?: Record<string, unknown>;
 }
 ```
 
-## Performance
-
-- **Perceived latency**: Toast shown in <100ms (DOM capture + queue add)
-- **DOM capture**: Typically <50ms with selector cache and trimmed HTML
-- **Queue add**: ~<10ms (storage write)
-- **Screenshot**: ~200-400ms (async, non-blocking)
-- **Submission**: ~100-300ms (async, non-blocking)
-- **Payload limits**:
-  - innerText: 200 chars
-  - outerHTML: 500 chars (outerHTML skipped entirely if >10KB)
-  - ancestors: 3 levels
-  - total payload: 500KB max
-
 ## Development
 
+### Project Structure
+
+```
+packages/anyclick-extension/
+├── src/
+│   ├── background/          # Service worker
+│   │   └── background.ts
+│   ├── content/             # Content scripts
+│   │   ├── inject.ts
+│   │   └── adapters/
+│   │       ├── t3chat.ts
+│   │       └── uploadthing.ts
+│   ├── types.ts             # Type definitions
+│   └── index.ts             # Package exports
+├── manifest.json            # Extension manifest
+├── package.json
+└── README.md
+```
+
+### Scripts
+
 ```bash
-# Watch mode for development
-yarn dev
+# Build library exports
+npm run build
 
-# Type check
-yarn typecheck
+# Build extension bundle
+npm run build:extension
 
-# Clean build artifacts
-yarn clean
+# Development watch mode
+npm run dev
+
+# Clean build files
+npm run clean
+```
+
+### Using Extension Adapters in Your Code
+
+The extension exports reusable adapters that work in content script context:
+
+```typescript
+import {
+  sendToT3Chat,
+  sendSelectionToT3Chat,
+  hasSelection,
+} from "@ewjdev/anyclick-extension";
+
+// Send text to t3.chat
+sendToT3Chat("How do I fix this error?", { baseUrl: "https://t3.chat" });
+
+// Send selected text
+if (hasSelection()) {
+  sendSelectionToT3Chat();
+}
+```
+
+```typescript
+import {
+  uploadFile,
+  uploadImageFromUrl,
+  isImageElement,
+  getImageSource,
+} from "@ewjdev/anyclick-extension";
+
+// Check if element is an image
+if (isImageElement(element)) {
+  const src = getImageSource(element);
+  if (src) {
+    const result = await uploadImageFromUrl(src, {
+      endpoint: "/api/uploadthing",
+    });
+    console.log("Uploaded:", result.url);
+  }
+}
 ```
 
 ## Permissions
 
-- `activeTab` - Capture current tab content
-- `scripting` - Inject content script
-- `storage` - Save settings locally (settings + queue)
-- `contextMenus` - Add right-click menu item
-- `alarms` - Periodically process the background queue
-- `<all_urls>` - Capture on any website
+The extension requires these permissions:
 
-## How the async queue works
+- `contextMenus` - Add items to right-click menu
+- `storage` - Save configuration
+- `activeTab` - Access current tab for uploads
+- `<all_urls>` - Work on any website
 
-- Content script captures DOM + metadata synchronously, shows a toast, and sends the payload to the background.
-- Background adds the item to a persisted queue (`chrome.storage.local`).
-- Queue processor runs on startup, on new items, and every ~5s via alarms.
-- Screenshots are taken in the background; if they fail, the payload still submits without a screenshot.
-- Failed submissions back off exponentially and persist across extension restarts.
+## Privacy
+
+- Your API keys are stored locally in your browser
+- No data is sent to third parties except:
+  - Your selected text to t3.chat (when you choose)
+  - Images to UploadThing (when you choose)
+- No analytics or tracking
+
+## TypeScript
+
+```typescript
+import type {
+  ExtensionConfig,
+  ExtensionMessage,
+  ExtensionResponse,
+  MessageType,
+} from "@ewjdev/anyclick-extension";
+
+import {
+  DEFAULT_EXTENSION_CONFIG,
+  CONTEXT_MENU_IDS,
+} from "@ewjdev/anyclick-extension";
+```
+
+## Browser Compatibility
+
+| Browser | Minimum Version | Status |
+|---------|----------------|--------|
+| Chrome  | 102+           | ✅ Supported |
+| Edge    | 102+           | ✅ Supported |
+| Firefox | 109+           | ✅ Supported |
+| Safari  | -              | 🚧 Coming Soon |
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Make your changes
+4. Test the extension locally
+5. Submit a pull request
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT

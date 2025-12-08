@@ -331,15 +331,38 @@ async function openInspectorWindow(tabId: number): Promise<boolean> {
  * Create context menu on extension install/update
  */
 chrome.runtime.onInstalled.addListener(() => {
+  // Main capture menu item
   chrome.contextMenus.create({
     id: "anyclick-capture",
     title: "Capture with Anyclick",
     contexts: ["all"],
   });
 
+  // t3.chat menu item - appears when text is selected
+  chrome.contextMenus.create({
+    id: "anyclick-t3chat",
+    title: "Ask t3.chat",
+    contexts: ["selection"],
+  });
+
+  // UploadThing menu item - appears on images
+  chrome.contextMenus.create({
+    id: "anyclick-upload-image",
+    title: "Upload image to UploadThing",
+    contexts: ["image"],
+  });
+
   // Initialize default settings if not set
   chrome.storage.local.get(
-    [STORAGE_KEYS.ENABLED, STORAGE_KEYS.ENDPOINT, STORAGE_KEYS.TOKEN],
+    [
+      STORAGE_KEYS.ENABLED,
+      STORAGE_KEYS.ENDPOINT,
+      STORAGE_KEYS.TOKEN,
+      STORAGE_KEYS.T3CHAT_ENABLED,
+      STORAGE_KEYS.T3CHAT_BASE_URL,
+      STORAGE_KEYS.UPLOADTHING_ENABLED,
+      STORAGE_KEYS.UPLOADTHING_ENDPOINT,
+    ],
     (result) => {
       const updates: Record<string, unknown> = {};
       if (result[STORAGE_KEYS.ENABLED] === undefined) {
@@ -350,6 +373,22 @@ chrome.runtime.onInstalled.addListener(() => {
       }
       if (result[STORAGE_KEYS.TOKEN] === undefined) {
         updates[STORAGE_KEYS.TOKEN] = DEFAULTS.TOKEN;
+      }
+      // T3Chat settings
+      if (result[STORAGE_KEYS.T3CHAT_ENABLED] === undefined) {
+        updates[STORAGE_KEYS.T3CHAT_ENABLED] = DEFAULTS.T3CHAT_ENABLED;
+      }
+      if (result[STORAGE_KEYS.T3CHAT_BASE_URL] === undefined) {
+        updates[STORAGE_KEYS.T3CHAT_BASE_URL] = DEFAULTS.T3CHAT_BASE_URL;
+      }
+      // UploadThing settings
+      if (result[STORAGE_KEYS.UPLOADTHING_ENABLED] === undefined) {
+        updates[STORAGE_KEYS.UPLOADTHING_ENABLED] =
+          DEFAULTS.UPLOADTHING_ENABLED;
+      }
+      if (result[STORAGE_KEYS.UPLOADTHING_ENDPOINT] === undefined) {
+        updates[STORAGE_KEYS.UPLOADTHING_ENDPOINT] =
+          DEFAULTS.UPLOADTHING_ENDPOINT;
       }
       if (Object.keys(updates).length > 0) {
         chrome.storage.local.set(updates);
@@ -367,11 +406,49 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 /**
- * Handle context menu click - trigger content script capture
+ * Handle context menu click - trigger content script capture or t3.chat
  */
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== "anyclick-capture" || !tab?.id) return;
-  const tabId = tab.id;
+  const tabId = tab?.id;
+
+  // Handle t3.chat menu click
+  if (info.menuItemId === "anyclick-t3chat") {
+    const selectedText = info.selectionText?.trim() ?? "";
+    if (selectedText) {
+      // Get base URL from settings
+      chrome.storage.local.get([STORAGE_KEYS.T3CHAT_BASE_URL], (result) => {
+        const baseUrl =
+          result[STORAGE_KEYS.T3CHAT_BASE_URL] || DEFAULTS.T3CHAT_BASE_URL;
+        const url = `${baseUrl}/?q=${encodeURIComponent(selectedText)}`;
+        chrome.tabs.create({ url });
+      });
+    }
+    return;
+  }
+
+  // Handle UploadThing image upload
+  if (info.menuItemId === "anyclick-upload-image") {
+    if (!info.srcUrl || !tabId) return;
+
+    // Get UploadThing settings and send to content script
+    chrome.storage.local.get(
+      [STORAGE_KEYS.UPLOADTHING_ENDPOINT, STORAGE_KEYS.UPLOADTHING_API_KEY],
+      (result) => {
+        chrome.tabs.sendMessage(tabId, {
+          type: "UPLOAD_IMAGE",
+          payload: {
+            src: info.srcUrl,
+            endpoint: result[STORAGE_KEYS.UPLOADTHING_ENDPOINT],
+            apiKey: result[STORAGE_KEYS.UPLOADTHING_API_KEY],
+          },
+        });
+      },
+    );
+    return;
+  }
+
+  // Handle main capture menu
+  if (info.menuItemId !== "anyclick-capture" || !tabId) return;
   if (typeof tabId !== "number") return;
 
   // Send message to content script to initiate capture (best-effort)

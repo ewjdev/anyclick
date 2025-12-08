@@ -8,6 +8,12 @@ export const STORAGE_KEYS = {
   LAST_CAPTURE: "anyclick_last_capture",
   LAST_STATUS: "anyclick_last_status",
   QUEUE: "anyclick_queue",
+  // T3Chat and UploadThing settings
+  T3CHAT_ENABLED: "anyclick_t3chat_enabled",
+  T3CHAT_BASE_URL: "anyclick_t3chat_base_url",
+  UPLOADTHING_ENABLED: "anyclick_uploadthing_enabled",
+  UPLOADTHING_ENDPOINT: "anyclick_uploadthing_endpoint",
+  UPLOADTHING_API_KEY: "anyclick_uploadthing_api_key",
 } as const;
 
 /**
@@ -17,6 +23,13 @@ export const DEFAULTS = {
   ENABLED: true,
   ENDPOINT: "",
   TOKEN: "",
+  // T3Chat defaults
+  T3CHAT_ENABLED: true,
+  T3CHAT_BASE_URL: "https://t3.chat",
+  // UploadThing defaults
+  UPLOADTHING_ENABLED: false,
+  UPLOADTHING_ENDPOINT: "",
+  UPLOADTHING_API_KEY: "",
 } as const;
 
 /**
@@ -171,7 +184,13 @@ export type MessageType =
   | "INSPECT_ELEMENT"
   | "DEVTOOLS_ELEMENT_UPDATE"
   | "TOGGLE_CUSTOM_MENU"
-  | "GET_ELEMENT_AT_POINT";
+  | "GET_ELEMENT_AT_POINT"
+  // T3Chat and UploadThing message types
+  | "GET_CONFIG"
+  | "SET_CONFIG"
+  | "SEND_TO_T3CHAT"
+  | "UPLOAD_IMAGE"
+  | "UPLOAD_SCREENSHOT";
 
 /**
  * Base message structure
@@ -378,3 +397,59 @@ export const PERF_LIMITS = {
   /** Max outerHTML size in bytes before skipping */
   MAX_OUTER_HTML_BYTES: 10000,
 } as const;
+
+// ========== T3Chat & UploadThing Types ==========
+
+/**
+ * Extension configuration for t3chat and uploadthing features
+ */
+export interface ExtensionConfig {
+  /** Whether the extension is enabled */
+  enabled: boolean;
+  /** t3.chat configuration */
+  t3chat: {
+    enabled: boolean;
+    baseUrl: string;
+  };
+  /** UploadThing configuration */
+  uploadthing: {
+    enabled: boolean;
+    endpoint?: string;
+    apiKey?: string;
+  };
+}
+
+/**
+ * Default extension configuration
+ */
+export const DEFAULT_EXTENSION_CONFIG: ExtensionConfig = {
+  enabled: true,
+  t3chat: {
+    enabled: true,
+    baseUrl: "https://t3.chat",
+  },
+  uploadthing: {
+    enabled: false,
+    endpoint: undefined,
+    apiKey: undefined,
+  },
+};
+
+/**
+ * Context menu item IDs
+ */
+export const CONTEXT_MENU_IDS = {
+  ANYCLICK_CAPTURE: "anyclick-capture",
+  SEND_TO_T3CHAT: "anyclick-send-to-t3chat",
+  UPLOAD_IMAGE: "anyclick-upload-image",
+  UPLOAD_SCREENSHOT: "anyclick-upload-screenshot",
+} as const;
+
+/**
+ * Response structure for extension messages
+ */
+export interface ExtensionResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}

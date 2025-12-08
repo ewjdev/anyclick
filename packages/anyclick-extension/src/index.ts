@@ -1,27 +1,53 @@
 /**
- * @ewjdev/anyclick-extension
+ * Anyclick Browser Extension
  *
- * Chrome MV3 extension for high-performance DOM capture, screenshots, and metadata.
- * This file exports types for programmatic use by consuming applications.
+ * Provides right-click context menu integration with t3.chat and UploadThing
+ * for any webpage.
+ *
+ * @packageDocumentation
+ * @module @ewjdev/anyclick-extension
+ * @since 1.0.0
  */
 
-// Export all types for consumers who want to work with extension payloads
+// Types
 export type {
+  ExtensionConfig,
+  ExtensionMessage,
+  ExtensionResponse,
   ExtensionSettings,
+  CapturePayload,
   CaptureStatus,
-  ActionMetadata,
-  BoundingRect,
-  AncestorInfo,
   ElementContext,
   PageContext,
+  ActionMetadata,
   ScreenshotData,
-  CapturePayload,
+  QueuedPayload,
   MessageType,
-  BaseMessage,
-  ExtensionMessage,
 } from "./types";
 
-// Export constants
-export { STORAGE_KEYS, DEFAULTS, PERF_LIMITS } from "./types";
+export {
+  CONTEXT_MENU_IDS,
+  DEFAULT_EXTENSION_CONFIG,
+  STORAGE_KEYS,
+  DEFAULTS,
+  PERF_LIMITS,
+  createMessage,
+} from "./types";
 
+// Content script adapters
+export {
+  hasSelection,
+  sendSelectionToT3Chat,
+  sendToT3Chat,
+  type T3ChatExtensionConfig,
+} from "./content/adapters/t3chat";
 
+export {
+  getImageSource,
+  isImageElement,
+  uploadDataUrl,
+  uploadFile,
+  uploadImageFromUrl,
+  type UploadResult,
+  type UploadThingExtensionConfig,
+} from "./content/adapters/uploadthing";

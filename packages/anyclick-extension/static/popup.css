@@ -16,7 +16,9 @@ body {
   background: #0f0f0f;
   color: #e0e0e0;
   width: 320px;
-  min-height: 400px;
+  min-height: 500px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .container {
@@ -93,10 +95,74 @@ body {
   color: #888;
 }
 
+.toggle.small {
+  width: 32px;
+  height: 18px;
+}
+
+.toggle.small .slider::before {
+  height: 12px;
+  width: 12px;
+}
+
+.toggle.small input:checked + .slider::before {
+  transform: translateX(14px);
+}
+
 .settings {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.integrations {
+  padding-top: 12px;
+  border-top: 1px solid #2a2a2a;
+}
+
+.integration-group {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.integration-group:last-child {
+  margin-bottom: 0;
+}
+
+.integration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.integration-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0e0;
+}
+
+.integration-group .field {
+  margin-bottom: 8px;
+}
+
+.integration-group .field:last-child {
+  margin-bottom: 0;
+}
+
+.integration-group .field input {
+  background: #0f0f0f;
 }
 
 .field {

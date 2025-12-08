@@ -1,5 +1,6 @@
 import {
   type MenuCallbacks,
+  buildMenuItems,
   closeMenu,
   isMenuVisible,
   showMenu,
@@ -111,7 +112,18 @@ function showCustomMenu(position: { x: number; y: number }): void {
     onInspect: handleInspectElement,
   };
 
-  showMenu(position, callbacks);
+  // Build dynamic menu items based on context
+  const hasTextSelection = !!window.getSelection()?.toString().trim();
+  const isImageTarget =
+    targetElement instanceof HTMLImageElement ||
+    targetElement?.tagName?.toLowerCase() === "img";
+
+  const menuItems = buildMenuItems({
+    hasTextSelection,
+    isImageTarget,
+  });
+
+  showMenu(position, callbacks, menuItems);
 
   // Highlight the target element
   if (targetElement) {
@@ -126,11 +138,67 @@ function handleMenuSelect(type: string, comment?: string): void {
   if (type === "capture") {
     // Direct capture
     handleCapture().catch(console.error);
+  } else if (type === "t3chat") {
+    // Send selected text to t3.chat
+    handleSendToT3Chat();
+  } else if (type === "upload-image") {
+    // Upload image to UploadThing
+    handleUploadImageFromTarget();
   } else {
     // Feedback capture with type
     handleFeedbackCapture(type, comment).catch(console.error);
   }
   clearHighlight();
+}
+
+/**
+ * Send selected text to t3.chat
+ */
+function handleSendToT3Chat(): void {
+  const selectedText = window.getSelection()?.toString().trim() ?? "";
+  if (!selectedText) {
+    showToast("No text selected", "warning");
+    return;
+  }
+
+  // Get base URL from storage and open t3.chat
+  chrome.storage.local.get(["anyclick_t3chat_base_url"], (result) => {
+    const baseUrl = result.anyclick_t3chat_base_url || "https://t3.chat";
+    const url = `${baseUrl}/?q=${encodeURIComponent(selectedText)}`;
+    window.open(url, "_blank");
+  });
+}
+
+/**
+ * Upload targeted image to UploadThing
+ */
+function handleUploadImageFromTarget(): void {
+  if (!rightClickedElement) {
+    showToast("No image selected", "error");
+    return;
+  }
+
+  const imgSrc =
+    rightClickedElement instanceof HTMLImageElement
+      ? rightClickedElement.src
+      : rightClickedElement.getAttribute("src");
+
+  if (!imgSrc) {
+    showToast("Could not get image source", "error");
+    return;
+  }
+
+  // Get upload settings and upload
+  chrome.storage.local.get(
+    ["anyclick_uploadthing_endpoint", "anyclick_uploadthing_api_key"],
+    (result) => {
+      handleUploadImage(
+        imgSrc,
+        result.anyclick_uploadthing_endpoint,
+        result.anyclick_uploadthing_api_key,
+      ).catch(console.error);
+    },
+  );
 }
 
 /**
@@ -205,7 +273,7 @@ function handleInspectElement(): void {
  */
 chrome.runtime.onMessage.addListener(
   (
-    message: { type: string; timestamp?: string },
+    message: { type: string; timestamp?: string; payload?: unknown },
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
   ) => {
@@ -240,6 +308,22 @@ chrome.runtime.onMessage.addListener(
       // Triggered by Inspector window capture button
       handleCapture().catch(console.error);
       sendResponse({ received: true });
+    } else if (message.type === "UPLOAD_IMAGE") {
+      // Handle UploadThing image upload
+      const payload = message.payload as {
+        src: string;
+        endpoint?: string;
+        apiKey?: string;
+      };
+      handleUploadImage(payload.src, payload.endpoint, payload.apiKey)
+        .then((result) => sendResponse(result))
+        .catch((error) => {
+          sendResponse({
+            success: false,
+            error: error instanceof Error ? error.message : "Upload failed",
+          });
+        });
+      return true; // Async response
     }
     return false;
   },
@@ -323,6 +407,72 @@ document.addEventListener(
   },
   { capture: true },
 );
+
+// ========== UploadThing Integration ==========
+
+/**
+ * Upload an image from URL to UploadThing
+ */
+async function handleUploadImage(
+  src: string,
+  endpoint?: string,
+  apiKey?: string,
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  if (!endpoint) {
+    showToast(
+      "No upload endpoint configured. Set it in extension settings.",
+      "warning",
+    );
+    return { success: false, error: "No upload endpoint configured" };
+  }
+
+  try {
+    showToast("Uploading image...", "info");
+
+    // Fetch the image
+    const response = await fetch(src);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+    const filename = `image-${Date.now()}.${blob.type.split("/")[1] || "png"}`;
+
+    // Create form data
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+
+    // Upload
+    const headers: Record<string, string> = {};
+    if (apiKey) {
+      headers["x-uploadthing-api-key"] = apiKey;
+    }
+
+    const uploadResponse = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error(`Upload failed: ${uploadResponse.status}`);
+    }
+
+    const result = await uploadResponse.json();
+
+    // Copy URL to clipboard
+    if (result.url) {
+      await navigator.clipboard.writeText(result.url);
+      showToast("Image uploaded! URL copied to clipboard.", "success");
+    }
+
+    return { success: true, url: result.url };
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Upload failed";
+    showToast(errorMsg, "error");
+    return { success: false, error: errorMsg };
+  }
+}
 
 // ========== Capture Flow ==========
 

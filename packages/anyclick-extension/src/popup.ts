@@ -1,14 +1,33 @@
-import { STORAGE_KEYS, DEFAULTS, type CaptureStatus } from "./types";
+import { type CaptureStatus, DEFAULTS, STORAGE_KEYS } from "./types";
 
 // ========== DOM Elements ==========
 
-const enableToggle = document.getElementById("enableToggle") as HTMLInputElement;
+const enableToggle = document.getElementById(
+  "enableToggle",
+) as HTMLInputElement;
 const toggleLabel = document.getElementById("toggleLabel") as HTMLSpanElement;
 const endpointInput = document.getElementById("endpoint") as HTMLInputElement;
 const tokenInput = document.getElementById("token") as HTMLInputElement;
 const lastCaptureEl = document.getElementById("lastCapture") as HTMLSpanElement;
 const lastStatusEl = document.getElementById("lastStatus") as HTMLSpanElement;
 const saveBtn = document.getElementById("saveBtn") as HTMLButtonElement;
+
+// Integration elements
+const uploadthingEnabled = document.getElementById(
+  "uploadthingEnabled",
+) as HTMLInputElement;
+const uploadthingEndpoint = document.getElementById(
+  "uploadthingEndpoint",
+) as HTMLInputElement;
+const uploadthingToken = document.getElementById(
+  "uploadthingToken",
+) as HTMLInputElement;
+const t3chatEnabled = document.getElementById(
+  "t3chatEnabled",
+) as HTMLInputElement;
+const t3chatBaseUrl = document.getElementById(
+  "t3chatBaseUrl",
+) as HTMLInputElement;
 
 // ========== Initialization ==========
 
@@ -24,6 +43,12 @@ async function loadSettings(): Promise<void> {
         STORAGE_KEYS.TOKEN,
         STORAGE_KEYS.LAST_CAPTURE,
         STORAGE_KEYS.LAST_STATUS,
+        // Integration settings
+        STORAGE_KEYS.UPLOADTHING_ENABLED,
+        STORAGE_KEYS.UPLOADTHING_ENDPOINT,
+        STORAGE_KEYS.UPLOADTHING_API_KEY,
+        STORAGE_KEYS.T3CHAT_ENABLED,
+        STORAGE_KEYS.T3CHAT_BASE_URL,
       ],
       (result) => {
         // Set toggle state
@@ -32,8 +57,22 @@ async function loadSettings(): Promise<void> {
         updateToggleLabel(enabled);
 
         // Set input values
-        endpointInput.value = result[STORAGE_KEYS.ENDPOINT] ?? DEFAULTS.ENDPOINT;
+        endpointInput.value =
+          result[STORAGE_KEYS.ENDPOINT] ?? DEFAULTS.ENDPOINT;
         tokenInput.value = result[STORAGE_KEYS.TOKEN] ?? DEFAULTS.TOKEN;
+
+        // Set integration values
+        uploadthingEnabled.checked =
+          result[STORAGE_KEYS.UPLOADTHING_ENABLED] ??
+          DEFAULTS.UPLOADTHING_ENABLED;
+        uploadthingEndpoint.value =
+          result[STORAGE_KEYS.UPLOADTHING_ENDPOINT] ??
+          DEFAULTS.UPLOADTHING_ENDPOINT;
+        uploadthingToken.value = result[STORAGE_KEYS.UPLOADTHING_API_KEY] ?? "";
+        t3chatEnabled.checked =
+          result[STORAGE_KEYS.T3CHAT_ENABLED] ?? DEFAULTS.T3CHAT_ENABLED;
+        t3chatBaseUrl.value =
+          result[STORAGE_KEYS.T3CHAT_BASE_URL] ?? DEFAULTS.T3CHAT_BASE_URL;
 
         // Set status display
         updateStatusDisplay(
@@ -74,7 +113,8 @@ function updateStatusDisplay(
     try {
       const status: CaptureStatus = JSON.parse(lastStatusJson);
       lastStatusEl.textContent = status.message;
-      lastStatusEl.className = "status-value " + (status.success ? "success" : "error");
+      lastStatusEl.className =
+        "status-value " + (status.success ? "success" : "error");
     } catch {
       lastStatusEl.textContent = "Ready";
       lastStatusEl.className = "status-value";
@@ -120,10 +160,21 @@ enableToggle.addEventListener("change", () => {
 saveBtn.addEventListener("click", async () => {
   const endpoint = endpointInput.value.trim();
   const token = tokenInput.value.trim();
+  const utEndpoint = uploadthingEndpoint.value.trim();
+  const utToken = uploadthingToken.value.trim();
+  const t3Url = t3chatBaseUrl.value.trim();
 
-  // Validate endpoint URL
+  // Validate endpoint URLs
   if (endpoint && !isValidUrl(endpoint)) {
-    showToast("Invalid endpoint URL", true);
+    showToast("Invalid capture endpoint URL", true);
+    return;
+  }
+  if (utEndpoint && !isValidUrl(utEndpoint)) {
+    showToast("Invalid UploadThing endpoint URL", true);
+    return;
+  }
+  if (t3Url && !isValidUrl(t3Url)) {
+    showToast("Invalid t3.chat URL", true);
     return;
   }
 
@@ -137,6 +188,12 @@ saveBtn.addEventListener("click", async () => {
         {
           [STORAGE_KEYS.ENDPOINT]: endpoint,
           [STORAGE_KEYS.TOKEN]: token,
+          // Integration settings
+          [STORAGE_KEYS.UPLOADTHING_ENABLED]: uploadthingEnabled.checked,
+          [STORAGE_KEYS.UPLOADTHING_ENDPOINT]: utEndpoint,
+          [STORAGE_KEYS.UPLOADTHING_API_KEY]: utToken,
+          [STORAGE_KEYS.T3CHAT_ENABLED]: t3chatEnabled.checked,
+          [STORAGE_KEYS.T3CHAT_BASE_URL]: t3Url || DEFAULTS.T3CHAT_BASE_URL,
         },
         resolve,
       );
@@ -210,5 +267,3 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 // ========== Initialize ==========
 
 loadSettings().catch(console.error);
-
-

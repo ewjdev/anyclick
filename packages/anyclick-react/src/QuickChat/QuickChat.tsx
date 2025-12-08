@@ -22,6 +22,7 @@ import {
   ChevronLeft,
   ChevronUp,
   Copy,
+  ExternalLink,
   Pin,
   PinOff,
   RefreshCw,
@@ -224,6 +225,17 @@ export function QuickChat({
   const handleSend = useCallback(() => {
     sendMessage();
   }, [sendMessage]);
+
+  // Handle send to t3.chat
+  const handleSendToT3Chat = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const query = input.trim();
+    const baseUrl = mergedConfig.t3chat?.baseUrl ?? "https://t3.chat";
+    const url = query
+      ? `${baseUrl}/?q=${encodeURIComponent(query)}`
+      : baseUrl;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }, [input, mergedConfig.t3chat?.baseUrl]);
 
   // Handle copy to clipboard
   const handleCopy = useCallback((text: string) => {
@@ -499,32 +511,50 @@ export function QuickChat({
             ...(inputFocused ? quickChatStyles.inputFocused : {}),
           }}
         />
-        <button
-          type="button"
-          onClick={handleSend}
-          disabled={isSending || !input.trim()}
-          style={{
-            ...quickChatStyles.sendButton,
-            ...(isSending || !input.trim()
-              ? quickChatStyles.sendButtonDisabled
-              : {}),
-          }}
-        >
-          {isSending ? (
-            <div
+        <div style={{ display: "flex", gap: "4px" }}>
+          {/* t3.chat button */}
+          {mergedConfig.t3chat?.enabled !== false && (
+            <button
+              type="button"
+              onClick={handleSendToT3Chat}
+              disabled={!input.trim()}
+              title={mergedConfig.t3chat?.label ?? "Ask t3.chat"}
               style={{
-                width: "14px",
-                height: "14px",
-                border: "2px solid transparent",
-                borderTopColor: "#fff",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
+                ...quickChatStyles.sendButton,
+                backgroundColor: "#7c3aed",
+                ...(!input.trim() ? quickChatStyles.sendButtonDisabled : {}),
               }}
-            />
-          ) : (
-            <Send size={14} />
+            >
+              <ExternalLink size={14} />
+            </button>
           )}
-        </button>
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={isSending || !input.trim()}
+            style={{
+              ...quickChatStyles.sendButton,
+              ...(isSending || !input.trim()
+                ? quickChatStyles.sendButtonDisabled
+                : {}),
+            }}
+          >
+            {isSending ? (
+              <div
+                style={{
+                  width: "14px",
+                  height: "14px",
+                  border: "2px solid transparent",
+                  borderTopColor: "#fff",
+                  borderRadius: "50%",
+                  animation: "spin 0.8s linear infinite",
+                }}
+              />
+            ) : (
+              <Send size={14} />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

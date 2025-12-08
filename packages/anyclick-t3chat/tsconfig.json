@@ -14,8 +14,7 @@
     "rootDir": "src",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "types": ["chrome"]
+    "noEmit": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

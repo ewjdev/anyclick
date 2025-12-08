@@ -36,6 +36,8 @@ const LIKE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16
 const CHEVRON_RIGHT = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>`;
 const CHEVRON_LEFT = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`;
 const CLOSE_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+const T3CHAT_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/></svg>`;
+const UPLOAD_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>`;
 
 export const DEFAULT_MENU_ITEMS: ExtensionMenuItem[] = [
   { type: "capture", label: "Capture Element", icon: CAPTURE_ICON },
@@ -60,6 +62,72 @@ export const DEFAULT_MENU_ITEMS: ExtensionMenuItem[] = [
     ],
   },
 ];
+
+// Export icons for dynamic menu building
+export const MENU_ICONS = {
+  CAPTURE: CAPTURE_ICON,
+  INSPECT: INSPECT_ICON,
+  BUG: BUG_ICON,
+  FEATURE: FEATURE_ICON,
+  LIKE: LIKE_ICON,
+  T3CHAT: T3CHAT_ICON,
+  UPLOAD: UPLOAD_ICON,
+} as const;
+
+/**
+ * Build menu items dynamically based on context
+ */
+export function buildMenuItems(options: {
+  hasTextSelection?: boolean;
+  isImageTarget?: boolean;
+}): ExtensionMenuItem[] {
+  const items: ExtensionMenuItem[] = [];
+
+  // Add t3.chat option when text is selected (at the top for prominence)
+  if (options.hasTextSelection) {
+    items.push({
+      type: "t3chat",
+      label: "Ask t3.chat",
+      icon: T3CHAT_ICON,
+    });
+  }
+
+  // Add upload option when right-clicking an image
+  if (options.isImageTarget) {
+    items.push({
+      type: "upload-image",
+      label: "Upload to UploadThing",
+      icon: UPLOAD_ICON,
+    });
+  }
+
+  // Add standard items
+  items.push(
+    { type: "capture", label: "Capture Element", icon: CAPTURE_ICON },
+    { type: "inspect", label: "Inspect in DevTools", icon: INSPECT_ICON },
+    {
+      type: "feedback",
+      label: "Send Feedback",
+      children: [
+        {
+          type: "issue",
+          label: "Report Issue",
+          icon: BUG_ICON,
+          showComment: true,
+        },
+        {
+          type: "feature",
+          label: "Request Feature",
+          icon: FEATURE_ICON,
+          showComment: true,
+        },
+        { type: "like", label: "I Like This", icon: LIKE_ICON },
+      ],
+    },
+  );
+
+  return items;
+}
 
 // ========== Styles (matching anyclick-react) ==========
 

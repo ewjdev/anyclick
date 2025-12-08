@@ -187,6 +187,53 @@ export { listPresets } from "./presets";
  */
 export { presetDefaults } from "./presets";
 
+/**
+ * Creates a menu item for sending selected text to t3.chat.
+ * @param options - Optional customization (label, baseUrl)
+ * @returns A ContextMenuItem configured for t3.chat
+ * @example
+ * ```tsx
+ * const menuItems = [
+ *   { label: "Bug", type: "bug", showComment: true },
+ *   createT3ChatMenuItem(),
+ * ];
+ * ```
+ */
+export { createT3ChatMenuItem } from "./presets";
+
+/**
+ * Gets the currently selected text on the page.
+ * @returns The selected text, or empty string if nothing is selected
+ */
+export { getSelectedText } from "./presets";
+
+/**
+ * Checks if there is currently any text selected on the page.
+ * @returns true if text is selected
+ */
+export { hasTextSelection } from "./presets";
+
+/**
+ * Detects if an element is or contains an image.
+ * @param element - The element to check
+ * @returns Object with isImage flag and optional image source
+ */
+export { detectImageElement } from "./presets";
+
+/**
+ * Creates a menu item for uploading images to UploadThing.
+ * @param options - Configuration options
+ * @returns A ContextMenuItem configured for image uploads
+ */
+export { createUploadThingMenuItem } from "./presets";
+
+/**
+ * Creates a menu item for uploading screenshots to UploadThing.
+ * @param options - Configuration options
+ * @returns A ContextMenuItem configured for screenshot uploads
+ */
+export { createUploadScreenshotMenuItem } from "./presets";
+
 export type {
   /** Available preset roles */
   PresetRole,
@@ -414,6 +461,8 @@ export type {
   SuggestedPrompt,
   /** QuickChat hook state */
   QuickChatState,
+  /** t3.chat integration configuration */
+  T3ChatIntegrationConfig,
 } from "./QuickChat";
 
 // ============================================================================
