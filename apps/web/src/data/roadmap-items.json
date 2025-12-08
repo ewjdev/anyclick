@@ -1,6 +1,21 @@
 {
   "items": [
     {
+      "id": "manual-quick-chat",
+      "source": "manual",
+      "type": "feature",
+      "title": "Quick Chat (AI Assistant)",
+      "description": "Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnable drawer mode.",
+      "era": "short-term",
+      "status": "in-progress",
+      "url": null,
+      "labels": ["ai", "ux", "chat"],
+      "tags": ["homepage:developer", "homepage:qa"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-06T00:00:00Z"
+    },
+    {
       "id": "manual-notifications-package",
       "source": "manual",
       "type": "feature",

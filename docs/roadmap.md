@@ -31,6 +31,7 @@ Scope here does **not** block the error ingestion stack.
 <!-- ROADMAP:AUTO-START -->
 ## Short-term (next up)
 
+- 🚧 **Quick Chat (AI Assistant)**: Inline AI chat in context menu with type-to-chat, element context extraction, suggested prompts, and pinnable drawer mode. `In Progress`
 - **Notifications Package**: Toast → Banner → Inline → Indicator, with NotificationContainer mount point.
 - **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme hooks shared with AnyclickProvider.
 - **Noise Controls**: Coalescing identical errors, per-severity rate limits, dismissal persistence, opt-in feedback prompt...
