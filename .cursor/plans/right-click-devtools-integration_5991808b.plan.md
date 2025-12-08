@@ -1,0 +1,28 @@
+---
+name: right-click-devtools-integration
+overview: Add a custom right-click experience that overtakes the native menu, reusing the Anyclick React menu when feasible, and sync the selected element with a DevTools panel.
+todos:
+  - id: reuse-menu
+    content: Spike feasibility of bundling anyclick-react ContextMenu
+    status: completed
+  - id: content-overlay
+    content: Intercept contextmenu and show overlay at pointer
+    status: completed
+  - id: devtools-panel
+    content: Add devtools page/panel and message bridge
+    status: completed
+  - id: background-sync
+    content: Align background/types with overlay + panel
+    status: completed
+  - id: testing
+    content: Manual verify overlay, queue, devtools sync
+    status: completed
+---
+
+# Right-Click Context + DevTools Sync
+
+- Reuse or fork menu UI: Assess whether `packages/anyclick-react/src/ContextMenu.tsx` and its light dependencies can be bundled into the extension content script; if size/perf is prohibitive, sketch a minimal non-React menu with similar layout.
+- Content overlay wiring: In `packages/anyclick-extension/src/content.ts`, intercept `contextmenu`, prevent the native menu, mount the menu overlay at the pointer, and route selection into the existing `handleCapture` flow (or a refactored capture helper) while keeping the current hover/target detection and toast UX.
+- Devtools panel bridge: Add a `devtools.html/js` entry in `packages/anyclick-extension/static/manifest.json` and a small panel script that opens a DevTools panel, receives selected-node metadata from the content script via `chrome.runtime.connect`, and renders/syncs the node details (selector, attrs, box, screenshot status).
+- Background/message updates: Update `packages/anyclick-extension/src/background.ts` (and types) so the new overlay-triggered captures and DevTools panel share the queue + screenshot pipeline; keep or demote the legacy Chrome context menu entry as fallback.
+- Testing: Manual checks in Chrome—overlay replaces native menu, capture still queues, DevTools panel shows the clicked node data, and restricted pages gracefully skip.

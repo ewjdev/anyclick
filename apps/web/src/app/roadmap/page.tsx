@@ -1,5 +1,6 @@
 "use client";
 
+import { AnyclickLogo } from "@/components/AnyclickLogo";
 import releasesData from "@/data/releases.json";
 import roadmapItemsData from "@/data/roadmap-items.json";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -176,15 +177,15 @@ function ReleaseMarker({
     ${isInteractive ? "cursor-pointer hover:scale-125" : ""}
     ${release.type === "major" ? glowClasses.major : ""}
     ${
-    release.type === "minor" && isInteractive
-      ? "hover:" + glowClasses.minor
-      : ""
-  }
+      release.type === "minor" && isInteractive
+        ? "hover:" + glowClasses.minor
+        : ""
+    }
     ${
-    isSelected
-      ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
-      : ""
-  }
+      isSelected
+        ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
+        : ""
+    }
   `;
 
   // When used as indicator inside a button, render as a div
@@ -268,10 +269,10 @@ function UpcomingMarker({
     ${eraColors[feature.era]}
     ${glowColors[feature.era]}
     ${
-    isSelected
-      ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
-      : ""
-  }
+      isSelected
+        ? "ring-2 ring-white ring-offset-2 ring-offset-[#0a0a0f] scale-125"
+        : ""
+    }
     border-2 border-dashed border-white/30
     ${!asIndicator ? "cursor-pointer hover:scale-125" : ""}
   `;
@@ -287,9 +288,10 @@ function UpcomingMarker({
           <span
             className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
             style={{
-              backgroundColor: feature.era === "next-major"
-                ? "rgb(139, 92, 246)"
-                : "rgb(251, 191, 36)",
+              backgroundColor:
+                feature.era === "next-major"
+                  ? "rgb(139, 92, 246)"
+                  : "rgb(251, 191, 36)",
             }}
           />
         </div>
@@ -312,9 +314,10 @@ function UpcomingMarker({
         <span
           className="absolute inset-0 rounded-full animate-ping-slow opacity-30"
           style={{
-            backgroundColor: feature.era === "next-major"
-              ? "rgb(139, 92, 246)"
-              : "rgb(251, 191, 36)",
+            backgroundColor:
+              feature.era === "next-major"
+                ? "rgb(139, 92, 246)"
+                : "rgb(251, 191, 36)",
           }}
         />
       </button>
@@ -369,10 +372,10 @@ function ReleaseDialog({
         className={`
           fixed top-1/2 -translate-y-1/2 z-50 w-full max-w-md
           ${
-          position === "left"
-            ? "left-8 animate-slide-in-left"
-            : "right-8 animate-slide-in-right"
-        }
+            position === "left"
+              ? "left-8 animate-slide-in-left"
+              : "right-8 animate-slide-in-right"
+          }
         `}
       >
         <div className="bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
@@ -386,33 +389,31 @@ function ReleaseDialog({
               <X className="w-4 h-4 text-gray-400" />
             </button>
 
-            {isRelease
-              ? (
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      eraConfig[release.era].bgColor
-                    } ${eraConfig[release.era].color}`}
-                  >
-                    {(release as Release).type.toUpperCase()}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    v{(release as Release).version}
-                  </span>
-                </div>
-              )
-              : (
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      eraConfig[release.era].bgColor
-                    } ${eraConfig[release.era].color}`}
-                  >
-                    {eraConfig[release.era].label.toUpperCase()}
-                  </span>
-                  <span className="text-xs text-gray-500">Coming Soon</span>
-                </div>
-              )}
+            {isRelease ? (
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    eraConfig[release.era].bgColor
+                  } ${eraConfig[release.era].color}`}
+                >
+                  {(release as Release).type.toUpperCase()}
+                </span>
+                <span className="text-xs text-gray-500">
+                  v{(release as Release).version}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 mb-2">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    eraConfig[release.era].bgColor
+                  } ${eraConfig[release.era].color}`}
+                >
+                  {eraConfig[release.era].label.toUpperCase()}
+                </span>
+                <span className="text-xs text-gray-500">Coming Soon</span>
+              </div>
+            )}
 
             <h3 className="text-xl font-bold text-white pr-8">
               {isRelease
@@ -599,35 +600,31 @@ function ReleaseDrawer({
             <div className="px-5 pb-4 border-b border-white/5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  {isRelease
-                    ? (
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            eraConfig[release.era].bgColor
-                          } ${eraConfig[release.era].color}`}
-                        >
-                          {(release as Release).type.toUpperCase()}
-                        </span>
-                        <span className="text-sm text-gray-400 font-mono">
-                          v{(release as Release).version}
-                        </span>
-                      </div>
-                    )
-                    : (
-                      <div className="flex items-center gap-2 mb-2">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            eraConfig[release.era].bgColor
-                          } ${eraConfig[release.era].color}`}
-                        >
-                          {eraConfig[release.era].label.toUpperCase()}
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          Coming Soon
-                        </span>
-                      </div>
-                    )}
+                  {isRelease ? (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          eraConfig[release.era].bgColor
+                        } ${eraConfig[release.era].color}`}
+                      >
+                        {(release as Release).type.toUpperCase()}
+                      </span>
+                      <span className="text-sm text-gray-400 font-mono">
+                        v{(release as Release).version}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          eraConfig[release.era].bgColor
+                        } ${eraConfig[release.era].color}`}
+                      >
+                        {eraConfig[release.era].label.toUpperCase()}
+                      </span>
+                      <span className="text-sm text-gray-400">Coming Soon</span>
+                    </div>
+                  )}
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {isRelease
                       ? (release as Release).summary
@@ -816,29 +813,25 @@ function RoadmapItemCard({
             <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-white/5 text-gray-400">
               {item.source}
             </span>
-            {item.status === "closed" || item.status === "completed"
-              ? (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-emerald-500/20 text-emerald-400">
-                  Done
-                </span>
-              )
-              : null}
+            {item.status === "closed" || item.status === "completed" ? (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider bg-emerald-500/20 text-emerald-400">
+                Done
+              </span>
+            ) : null}
           </div>
           <h4 className="font-semibold text-white group-hover:text-cyan-400 transition-colors">
-            {item.url
-              ? (
-                <Link
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline"
-                >
-                  {item.title}
-                </Link>
-              )
-              : (
-                item.title
-              )}
+            {item.url ? (
+              <Link
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                {item.title}
+              </Link>
+            ) : (
+              item.title
+            )}
           </h4>
           <p className="text-xs text-gray-500 mt-1 line-clamp-2">
             {item.description}
@@ -946,9 +939,7 @@ export default function RoadmapPage() {
       <header className="border-b border-white/5 backdrop-blur-xl bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
-              <Rocket className="w-5 h-5 text-white" />
-            </div>
+            <AnyclickLogo size="lg" />
             <div>
               <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-medium">
                 anyclick
@@ -1033,9 +1024,10 @@ export default function RoadmapPage() {
                         key={era}
                         className="flex-1 flex items-center justify-center gap-3 relative"
                         style={{
-                          borderRight: eraIndex < 3
-                            ? "1px dashed rgba(255,255,255,0.1)"
-                            : "none",
+                          borderRight:
+                            eraIndex < 3
+                              ? "1px dashed rgba(255,255,255,0.1)"
+                              : "none",
                         }}
                       >
                         {/* "Today" indicator */}
@@ -1141,10 +1133,10 @@ export default function RoadmapPage() {
                             era === "today"
                               ? "bg-cyan-500/20 ring-2 ring-cyan-400/50"
                               : era === "past"
-                              ? "bg-gray-500/20"
-                              : era === "near-future"
-                              ? "bg-amber-500/20"
-                              : "bg-violet-500/20"
+                                ? "bg-gray-500/20"
+                                : era === "near-future"
+                                  ? "bg-amber-500/20"
+                                  : "bg-violet-500/20"
                           }`}
                         >
                           <div
@@ -1152,10 +1144,10 @@ export default function RoadmapPage() {
                               era === "today"
                                 ? "bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.6)]"
                                 : era === "past"
-                                ? "bg-gray-500"
-                                : era === "near-future"
-                                ? "bg-amber-400"
-                                : "bg-violet-400"
+                                  ? "bg-gray-500"
+                                  : era === "near-future"
+                                    ? "bg-amber-400"
+                                    : "bg-violet-400"
                             }`}
                           />
                           {era === "today" && (
@@ -1185,16 +1177,17 @@ export default function RoadmapPage() {
                             key={release.id}
                             onClick={() =>
                               release.type !== "patch" &&
-                              handleReleaseClick(release)}
+                              handleReleaseClick(release)
+                            }
                             disabled={release.type === "patch"}
                             className={`
                               flex items-center gap-4 w-full text-left p-4 rounded-xl
                               transition-all duration-200 animate-fade-in-up
                               ${
-                              release.type === "patch"
-                                ? "bg-white/[0.02] opacity-60"
-                                : "bg-white/[0.03] active:bg-white/[0.08] active:scale-[0.98]"
-                            }
+                                release.type === "patch"
+                                  ? "bg-white/[0.02] opacity-60"
+                                  : "bg-white/[0.03] active:bg-white/[0.08] active:scale-[0.98]"
+                              }
                               border border-white/5
                             `}
                             style={{ animationDelay: `${index * 50}ms` }}
@@ -1315,7 +1308,7 @@ export default function RoadmapPage() {
 
             {/* Short-term items */}
             {roadmapData.items.filter((i) => i.era === "short-term").length >
-                0 && (
+              0 && (
               <div className="mb-8">
                 <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4">
                   Short-term (Next Up)
@@ -1336,7 +1329,7 @@ export default function RoadmapPage() {
 
             {/* Mid-term items */}
             {roadmapData.items.filter((i) => i.era === "mid-term").length >
-                0 && (
+              0 && (
               <div className="mb-8">
                 <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-4">
                   Mid-term
@@ -1383,9 +1376,9 @@ export default function RoadmapPage() {
         <ReleaseDialog
           release={selectedRelease}
           onClose={handleClose}
-          position={selectedRelease
-            ? getDialogPosition(selectedRelease)
-            : "right"}
+          position={
+            selectedRelease ? getDialogPosition(selectedRelease) : "right"
+          }
         />
       )}
 
@@ -1396,137 +1389,138 @@ export default function RoadmapPage() {
       {/* Custom animations */}
       <style jsx global>
         {`
-        @keyframes fade-in {
-          from {
+          @keyframes fade-in {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+
+          @keyframes fade-in-scale {
+            from {
+              opacity: 0;
+              transform: scale(0.5);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes slide-in-left {
+            from {
+              opacity: 0;
+              transform: translate(-100%, -50%);
+            }
+            to {
+              opacity: 1;
+              transform: translate(0, -50%);
+            }
+          }
+
+          @keyframes slide-in-right {
+            from {
+              opacity: 0;
+              transform: translate(100%, -50%);
+            }
+            to {
+              opacity: 1;
+              transform: translate(0, -50%);
+            }
+          }
+
+          @keyframes slide-up {
+            from {
+              opacity: 0;
+              transform: translateY(100%);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes ping-slow {
+            75%,
+            100% {
+              transform: scale(2);
+              opacity: 0;
+            }
+          }
+
+          @keyframes pulse-slow {
+            0%,
+            100% {
+              opacity: 0.3;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+
+          .animate-fade-in {
+            animation: fade-in 0.3s ease-out forwards;
+          }
+
+          .animate-fade-in-scale {
+            animation: fade-in-scale 0.4s ease-out forwards;
             opacity: 0;
           }
-          to {
-            opacity: 1;
-          }
-        }
 
-        @keyframes fade-in-scale {
-          from {
-            opacity: 0;
-            transform: scale(0.5);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slide-in-left {
-          from {
-            opacity: 0;
-            transform: translate(-100%, -50%);
-          }
-          to {
-            opacity: 1;
-            transform: translate(0, -50%);
-          }
-        }
-
-        @keyframes slide-in-right {
-          from {
-            opacity: 0;
-            transform: translate(100%, -50%);
-          }
-          to {
-            opacity: 1;
-            transform: translate(0, -50%);
-          }
-        }
-
-        @keyframes slide-up {
-          from {
-            opacity: 0;
-            transform: translateY(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes ping-slow {
-          75%,
-          100% {
-            transform: scale(2);
+          .animate-fade-in-up {
+            animation: fade-in-up 0.4s ease-out forwards;
             opacity: 0;
           }
-        }
 
-        @keyframes pulse-slow {
-          0%,
-          100% {
-            opacity: 0.3;
+          .animate-slide-in-left {
+            animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
-          50% {
-            opacity: 0.5;
+
+          .animate-slide-in-right {
+            animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1)
+              forwards;
           }
-        }
 
-        .animate-fade-in {
-          animation: fade-in 0.3s ease-out forwards;
-        }
+          .animate-slide-up {
+            animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          }
 
-        .animate-fade-in-scale {
-          animation: fade-in-scale 0.4s ease-out forwards;
-          opacity: 0;
-        }
+          .animate-ping-slow {
+            animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+          }
 
-        .animate-fade-in-up {
-          animation: fade-in-up 0.4s ease-out forwards;
-          opacity: 0;
-        }
-
-        .animate-slide-in-left {
-          animation: slide-in-left 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .animate-slide-in-right {
-          animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .animate-slide-up {
-          animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .animate-ping-slow {
-          animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .animate-fade-in,
-          .animate-fade-in-scale,
-          .animate-fade-in-up,
-          .animate-slide-in-left,
-          .animate-slide-in-right,
-          .animate-slide-up,
-          .animate-ping-slow,
           .animate-pulse-slow {
-            animation: none !important;
-            opacity: 1 !important;
-            transform: none !important;
+            animation: pulse-slow 4s ease-in-out infinite;
           }
-        }
-      `}
+
+          @media (prefers-reduced-motion: reduce) {
+            .animate-fade-in,
+            .animate-fade-in-scale,
+            .animate-fade-in-up,
+            .animate-slide-in-left,
+            .animate-slide-in-right,
+            .animate-slide-up,
+            .animate-ping-slow,
+            .animate-pulse-slow {
+              animation: none !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+          }
+        `}
       </style>
     </div>
   );

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anyclick</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">Anyclick</h1>
+      <div class="toggle-container">
+        <label class="toggle">
+          <input type="checkbox" id="enableToggle" checked />
+          <span class="slider"></span>
+        </label>
+        <span class="toggle-label" id="toggleLabel">Enabled</span>
+      </div>
+    </header>
+
+    <section class="settings">
+      <h2 class="section-title">Capture Settings</h2>
+      <div class="field">
+        <label for="endpoint">Endpoint URL</label>
+        <input type="url" id="endpoint" placeholder="https://your-api.com/feedback" />
+      </div>
+      <div class="field">
+        <label for="token">Auth Token (optional)</label>
+        <input type="password" id="token" placeholder="Bearer token..." />
+      </div>
+    </section>
+
+    <section class="settings integrations">
+      <h2 class="section-title">Integrations</h2>
+
+      <div class="integration-group">
+        <div class="integration-header">
+          <span class="integration-name">UploadThing</span>
+          <label class="toggle small">
+            <input type="checkbox" id="uploadthingEnabled" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="field">
+          <label for="uploadthingEndpoint">Upload Endpoint</label>
+          <input type="url" id="uploadthingEndpoint" placeholder="https://your-app.com/api/uploadthing" />
+        </div>
+        <div class="field">
+          <label for="uploadthingToken">API Token (optional)</label>
+          <input type="password" id="uploadthingToken" placeholder="ut_..." />
+        </div>
+      </div>
+
+      <div class="integration-group">
+        <div class="integration-header">
+          <span class="integration-name">t3.chat</span>
+          <label class="toggle small">
+            <input type="checkbox" id="t3chatEnabled" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="field">
+          <label for="t3chatBaseUrl">Base URL</label>
+          <input type="url" id="t3chatBaseUrl" placeholder="https://t3.chat" value="https://t3.chat" />
+        </div>
+      </div>
+    </section>
+
+    <section class="status" id="statusSection">
+      <div class="status-item">
+        <span class="status-label">Last capture:</span>
+        <span class="status-value" id="lastCapture">None</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Status:</span>
+        <span class="status-value" id="lastStatus">Ready</span>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <button class="save-btn" id="saveBtn">Save Settings</button>
+      <a href="https://anyclick.ewj.dev/docs/extension" target="_blank" class="help-link">Help</a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

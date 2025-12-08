@@ -1,0 +1,64 @@
+{
+  "name": "@ewjdev/anyclick-extension",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Browser extension for Anyclick - right-click context menu with t3.chat and UploadThing integration",
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "firefox-extension",
+    "context-menu",
+    "t3chat",
+    "uploadthing",
+    "anyclick"
+  ],
+  "license": "MIT",
+  "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-extension"
+  },
+  "homepage": "https://anyclick.ewj.dev/docs/extension",
+  "bugs": {
+    "url": "https://github.com/ewjdev/anyclick/issues"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && node scripts/copy-static.mjs",
+    "build:types": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
+    "clean": "rimraf dist",
+    "dev": "tsup --watch"
+  },
+  "dependencies": {
+    "@ewjdev/anyclick-core": "^1.4.0",
+    "@ewjdev/anyclick-t3chat": "^1.0.0",
+    "@ewjdev/anyclick-uploadthing": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3",
+    "rimraf": "^6.0.1"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

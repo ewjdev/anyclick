@@ -69,6 +69,18 @@ export interface ChatMessage {
 }
 
 /**
+ * Configuration for t3.chat integration.
+ */
+export interface T3ChatIntegrationConfig {
+  /** Whether to show the "Send to t3.chat" button */
+  enabled?: boolean;
+  /** Base URL for t3.chat (default: https://t3.chat) */
+  baseUrl?: string;
+  /** Label for the button (default: "Ask t3.chat") */
+  label?: string;
+}
+
+/**
  * Configuration for the QuickChat component.
  */
 export interface QuickChatConfig {
@@ -90,6 +102,8 @@ export interface QuickChatConfig {
   placeholder?: string;
   /** Header title */
   title?: string;
+  /** t3.chat integration settings */
+  t3chat?: T3ChatIntegrationConfig;
 }
 
 /**
@@ -143,6 +157,15 @@ export interface QuickChatState {
 }
 
 /**
+ * Default t3.chat configuration values.
+ */
+export const DEFAULT_T3CHAT_CONFIG: Required<T3ChatIntegrationConfig> = {
+  enabled: true,
+  baseUrl: "https://t3.chat",
+  label: "Ask t3.chat",
+};
+
+/**
  * Default configuration values.
  */
 export const DEFAULT_QUICK_CHAT_CONFIG: Required<QuickChatConfig> = {
@@ -156,4 +179,5 @@ export const DEFAULT_QUICK_CHAT_CONFIG: Required<QuickChatConfig> = {
     "You are a helpful assistant that provides quick, concise answers about web elements and UI. Keep responses brief and actionable.",
   placeholder: "Ask about this element...",
   title: "Quick Ask",
+  t3chat: DEFAULT_T3CHAT_CONFIG,
 };

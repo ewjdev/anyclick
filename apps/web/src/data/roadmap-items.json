@@ -196,11 +196,26 @@
       "updatedAt": "2025-12-06T21:45:08.498Z"
     },
     {
+      "id": "manual-chrome-extension",
+      "source": "manual",
+      "type": "feature",
+      "title": "Chrome Extension",
+      "description": "Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and Inspector popup window (like Redux DevTools).",
+      "era": "short-term",
+      "status": "completed",
+      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension",
+      "labels": ["extension", "devtools"],
+      "tags": ["homepage:developer", "homepage:qa"],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-07T00:00:00Z"
+    },
+    {
       "id": "manual-integrations",
       "source": "manual",
       "type": "feature",
       "title": "Integrations",
-      "description": "Slack/Jira/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.",
+      "description": "Slack/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.",
       "era": "later",
       "status": "open",
       "url": null,
@@ -208,7 +223,7 @@
       "tags": [],
       "assignees": [],
       "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
+      "updatedAt": "2024-12-07T00:00:00Z"
     },
     {
       "id": "manual-analytics",
@@ -246,14 +261,14 @@
       "type": "feature",
       "title": "Jira Integration",
       "description": "Create Jira tickets directly from anyclick context menu with screenshot and DOM context.",
-      "era": "later",
-      "status": "open",
-      "url": null,
+      "era": "short-term",
+      "status": "completed",
+      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira",
       "labels": ["integrations"],
       "tags": ["homepage:qa", "homepage:developer"],
       "assignees": [],
       "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
+      "updatedAt": "2024-12-07T00:00:00Z"
     },
     {
       "id": "manual-slack-integration",
@@ -462,6 +477,6 @@
       ]
     }
   },
-  "lastSynced": "2024-12-06T00:00:00Z",
+  "lastSynced": "2024-12-07T00:00:00Z",
   "version": "1.2.0"
 }

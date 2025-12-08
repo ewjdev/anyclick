@@ -156,6 +156,22 @@ const presetDefaults: Record<PresetRole, PresetConfig> = {
         type: "search_google",
       },
       {
+        label: "Ask t3.chat",
+        onClick: ({ closeMenu }) => {
+          closeMenu();
+          if (typeof window === "undefined") return false;
+          const selection = window.getSelection()?.toString().trim();
+          const query = selection && selection.length > 0 ? selection : "";
+          const url = query
+            ? `https://t3.chat/?q=${encodeURIComponent(query)}`
+            : "https://t3.chat";
+          window.open(url, "_blank", "noopener,noreferrer");
+          return false;
+        },
+        showComment: false,
+        type: "ask_t3chat",
+      },
+      {
         label: "Share…",
         onClick: async ({ closeMenu }) => {
           closeMenu();
@@ -504,3 +520,359 @@ export function listPresets(): PresetConfig[] {
 }
 
 export { presetDefaults };
+
+/**
+ * Creates a menu item for sending selected text or a query to t3.chat.
+ *
+ * Can be added to any custom menu configuration. Uses the current text
+ * selection if available, otherwise opens t3.chat without a pre-filled query.
+ *
+ * @param options - Optional customization for the menu item
+ * @returns A ContextMenuItem configured for t3.chat
+ *
+ * @example
+ * ```tsx
+ * import { createT3ChatMenuItem } from "@ewjdev/anyclick-react";
+ *
+ * const menuItems = [
+ *   { label: "Bug", type: "bug", showComment: true },
+ *   createT3ChatMenuItem(),
+ * ];
+ * ```
+ *
+ * @since 1.5.0
+ */
+export function createT3ChatMenuItem(
+  options: {
+    /** Custom label for the menu item */
+    label?: string;
+    /** Base URL for t3.chat */
+    baseUrl?: string;
+  } = {}
+): ContextMenuItem {
+  const { label = "Ask t3.chat", baseUrl = "https://t3.chat" } = options;
+
+  return {
+    label,
+    onClick: ({ closeMenu }) => {
+      closeMenu();
+      if (typeof window === "undefined") return false;
+      const selection = window.getSelection()?.toString().trim();
+      const query = selection && selection.length > 0 ? selection : "";
+      const url = query
+        ? `${baseUrl}/?q=${encodeURIComponent(query)}`
+        : baseUrl;
+      window.open(url, "_blank", "noopener,noreferrer");
+      return false;
+    },
+    showComment: false,
+    type: "ask_t3chat",
+  };
+}
+
+/**
+ * Gets the currently selected text on the page.
+ *
+ * Useful for checking if text is selected before showing certain menu items.
+ *
+ * @returns The selected text, or empty string if nothing is selected
+ *
+ * @example
+ * ```tsx
+ * const selection = getSelectedText();
+ * if (selection) {
+ *   console.log("Selected:", selection);
+ * }
+ * ```
+ *
+ * @since 1.5.0
+ */
+export function getSelectedText(): string {
+  if (typeof window === "undefined") return "";
+  return window.getSelection()?.toString().trim() ?? "";
+}
+
+/**
+ * Checks if there is currently any text selected on the page.
+ *
+ * @returns true if text is selected
+ *
+ * @since 1.5.0
+ */
+export function hasTextSelection(): boolean {
+  return getSelectedText().length > 0;
+}
+
+/**
+ * Detects if an element is or contains an image that can be uploaded.
+ *
+ * Checks for:
+ * - `<img>` elements
+ * - `<picture>` elements
+ * - `<canvas>` elements
+ * - `<svg>` elements
+ * - CSS background images
+ *
+ * @param element - The element to check
+ * @returns Object with isImage flag and optional image source
+ *
+ * @since 1.5.0
+ */
+export function detectImageElement(element: Element | null): {
+  isImage: boolean;
+  src?: string;
+  type?: "img" | "picture" | "svg" | "canvas" | "background";
+} {
+  if (!element) return { isImage: false };
+
+  // Check if element itself is an image
+  if (element.tagName === "IMG") {
+    const img = element as HTMLImageElement;
+    return {
+      isImage: true,
+      src: img.src || img.currentSrc,
+      type: "img",
+    };
+  }
+
+  // Check if element is a picture element
+  if (element.tagName === "PICTURE") {
+    const img = element.querySelector("img");
+    return {
+      isImage: true,
+      src: img?.src || img?.currentSrc,
+      type: "picture",
+    };
+  }
+
+  // Check if element is an SVG
+  if (element.tagName === "SVG" || element.tagName === "svg") {
+    return {
+      isImage: true,
+      type: "svg",
+    };
+  }
+
+  // Check if element is a canvas
+  if (element.tagName === "CANVAS") {
+    return {
+      isImage: true,
+      type: "canvas",
+    };
+  }
+
+  // Check for CSS background image
+  if (typeof window !== "undefined") {
+    const computedStyle = window.getComputedStyle(element);
+    const backgroundImage = computedStyle.backgroundImage;
+
+    if (backgroundImage && backgroundImage !== "none") {
+      const urlMatch = backgroundImage.match(/url\(["']?(.+?)["']?\)/);
+      if (urlMatch) {
+        return {
+          isImage: true,
+          src: urlMatch[1],
+          type: "background",
+        };
+      }
+    }
+  }
+
+  // Check if any child is an image
+  const imgChild = element.querySelector("img");
+  if (imgChild) {
+    return {
+      isImage: true,
+      src: imgChild.src || imgChild.currentSrc,
+      type: "img",
+    };
+  }
+
+  return { isImage: false };
+}
+
+/**
+ * Creates a menu item for uploading images to UploadThing.
+ *
+ * The menu item will upload the target element if it's an image,
+ * or a screenshot of the element otherwise.
+ *
+ * Requires an UploadThing adapter to be configured. The onClick handler
+ * receives the target element and can use detectImageElement to determine
+ * if it's an image.
+ *
+ * @param options - Configuration options
+ * @returns A ContextMenuItem configured for UploadThing
+ *
+ * @example
+ * ```tsx
+ * import { createUploadThingMenuItem } from "@ewjdev/anyclick-react";
+ *
+ * const menuItems = [
+ *   createUploadThingMenuItem({
+ *     endpoint: "/api/uploadthing",
+ *     onUploadComplete: (result) => {
+ *       console.log("Uploaded:", result.url);
+ *     },
+ *   }),
+ * ];
+ * ```
+ *
+ * @since 1.5.0
+ */
+export function createUploadThingMenuItem(
+  options: {
+    /** Custom label for the menu item */
+    label?: string;
+    /** API endpoint for uploading */
+    endpoint?: string;
+    /** Callback when upload completes */
+    onUploadComplete?: (result: { url?: string; error?: string }) => void;
+    /** Callback when upload fails */
+    onUploadError?: (error: Error) => void;
+  } = {}
+): ContextMenuItem {
+  const {
+    label = "Upload to UploadThing",
+    endpoint = "/api/uploadthing",
+    onUploadComplete,
+    onUploadError,
+  } = options;
+
+  return {
+    label,
+    onClick: async ({ closeMenu, targetElement }) => {
+      if (!targetElement) {
+        onUploadError?.(new Error("No target element"));
+        return false;
+      }
+
+      try {
+        const imageInfo = detectImageElement(targetElement);
+
+        // If it's an image with a source, fetch and upload it
+        if (imageInfo.isImage && imageInfo.src) {
+          const response = await fetch(imageInfo.src);
+          const blob = await response.blob();
+
+          const formData = new FormData();
+          const filename = `image-${Date.now()}.${blob.type.split("/")[1] || "png"}`;
+          formData.append("file", blob, filename);
+
+          const uploadResponse = await fetch(endpoint, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.status}`);
+          }
+
+          const result = await uploadResponse.json();
+          onUploadComplete?.(result);
+        } else if (imageInfo.isImage && imageInfo.type === "canvas") {
+          // Handle canvas elements
+          const canvas = targetElement as HTMLCanvasElement;
+          const dataUrl = canvas.toDataURL("image/png");
+          const response = await fetch(dataUrl);
+          const blob = await response.blob();
+
+          const formData = new FormData();
+          formData.append("file", blob, `canvas-${Date.now()}.png`);
+
+          const uploadResponse = await fetch(endpoint, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.status}`);
+          }
+
+          const result = await uploadResponse.json();
+          onUploadComplete?.(result);
+        } else {
+          // For non-image elements, you would need to capture a screenshot
+          // This requires the screenshot capture functionality
+          onUploadError?.(
+            new Error(
+              "Element is not an image. Screenshot upload requires anyclick-core."
+            )
+          );
+        }
+      } catch (error) {
+        onUploadError?.(
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+
+      closeMenu();
+      return false;
+    },
+    showComment: false,
+    type: "upload_image",
+  };
+}
+
+/**
+ * Creates a menu item for uploading screenshots to UploadThing.
+ *
+ * This captures a screenshot of the target element and uploads it.
+ * Requires the screenshot preview to be enabled for best results.
+ *
+ * @param options - Configuration options
+ * @returns A ContextMenuItem configured for screenshot uploads
+ *
+ * @example
+ * ```tsx
+ * import { createUploadScreenshotMenuItem } from "@ewjdev/anyclick-react";
+ *
+ * const menuItems = [
+ *   createUploadScreenshotMenuItem({
+ *     endpoint: "/api/uploadthing",
+ *     onUploadComplete: (result) => {
+ *       navigator.clipboard.writeText(result.url);
+ *     },
+ *   }),
+ * ];
+ * ```
+ *
+ * @since 1.5.0
+ */
+export function createUploadScreenshotMenuItem(
+  options: {
+    /** Custom label for the menu item */
+    label?: string;
+    /** API endpoint for uploading */
+    endpoint?: string;
+    /** Callback when upload completes */
+    onUploadComplete?: (result: { url?: string; error?: string }) => void;
+    /** Callback when upload fails */
+    onUploadError?: (error: Error) => void;
+  } = {}
+): ContextMenuItem {
+  const {
+    label = "Upload Screenshot",
+    endpoint = "/api/uploadthing",
+    onUploadComplete,
+    onUploadError,
+  } = options;
+
+  return {
+    label,
+    badge: { label: "Coming soon", tone: "info" },
+    status: "comingSoon",
+    onClick: async ({ closeMenu }) => {
+      // This would integrate with the screenshot capture flow
+      // For now, show as coming soon since it requires deep integration
+      // with the screenshot preview component
+      onUploadError?.(
+        new Error("Screenshot upload will be available in a future release")
+      );
+      closeMenu();
+      return false;
+    },
+    showComment: false,
+    type: "upload_screenshot",
+  };
+}

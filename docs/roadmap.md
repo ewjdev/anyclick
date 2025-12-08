@@ -6,6 +6,10 @@ Scope here does **not** block the error ingestion stack.
 
 ## Recently Completed
 
+- ✅ **Chrome Extension**: Standalone browser extension with DOM capture,
+  screenshots, custom context menu, DevTools panel integration, and Inspector
+  popup window (similar to Redux DevTools). See
+  [packages/anyclick-extension](../packages/anyclick-extension/README.md)
 - ✅ **Jira Integration**: Full Jira Cloud support with issue creation,
   screenshot attachments, ADF descriptions, custom fields (Epic Link, Team), and
   session-based credentials. See

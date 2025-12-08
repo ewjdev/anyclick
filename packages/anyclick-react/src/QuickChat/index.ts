@@ -15,5 +15,6 @@ export type {
   QuickChatProps,
   QuickChatState,
   SuggestedPrompt,
+  T3ChatIntegrationConfig,
 } from "./types";
 export { DEFAULT_QUICK_CHAT_CONFIG } from "./types";

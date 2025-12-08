@@ -1,22 +1,22 @@
 "use client";
 
+import { AnyclickLogo } from "@/components/AnyclickLogo";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import {
+  Box,
+  Gauge,
+  GitBranch,
+  Menu,
+  MousePointer2,
+  Palette,
+  Shield,
+  Sparkles,
+  Terminal,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import {
-  MousePointerClick,
-  MousePointer2,
-  Sparkles,
-  Box,
-  Palette,
-  GitBranch,
-  Terminal,
-  Menu,
-  X,
-  Shield,
-  Gauge,
-} from "lucide-react";
-import { useState } from "react";
 
 const navigation = [
   { name: "Examples Gallery", href: "/examples", icon: Sparkles },
@@ -77,9 +77,7 @@ export default function ExamplesLayout({
                 )}
               </button>
               <Link href="/" className="flex items-center gap-3 group">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-                  <MousePointerClick className="w-4 h-4 text-white" />
-                </div>
+                <AnyclickLogo size="md" />
                 <span className="font-semibold">anyclick</span>
               </Link>
               <span className="text-gray-500">/</span>

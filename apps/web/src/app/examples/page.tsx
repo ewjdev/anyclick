@@ -10,6 +10,7 @@ import {
   Shield,
   Sparkles,
   Terminal,
+  Upload,
   Users,
 } from "lucide-react";
 import { Ticket } from "lucide-react";
@@ -40,6 +41,24 @@ const examples = [
     icon: MessageSquare,
     color: "violet",
     tags: ["AI", "Chat", "Context", "Streaming"],
+  },
+  {
+    title: "t3.chat Integration",
+    description:
+      "Send selected text to t3.chat for AI-powered answers. Perfect for quick research and code questions.",
+    href: "/examples/t3chat-integration",
+    icon: MessageSquare,
+    color: "purple",
+    tags: ["t3.chat", "AI", "Text Selection", "External"],
+  },
+  {
+    title: "UploadThing Integration",
+    description:
+      "Right-click on images to upload them directly to UploadThing. Share screenshots and diagrams instantly.",
+    href: "/examples/uploadthing-integration",
+    icon: Upload,
+    color: "red",
+    tags: ["UploadThing", "Images", "Screenshots", "Upload"],
   },
   {
     title: "Role-based Presets",

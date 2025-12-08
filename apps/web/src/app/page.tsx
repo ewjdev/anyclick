@@ -1,3 +1,4 @@
+import { AnyclickLogo } from "@/components/AnyclickLogo";
 import {
   CodeBlock,
   HeroCodeBlock,
@@ -116,7 +117,8 @@ function getRoles(): Record<string, RoleConfig> {
   const isRole = (value: unknown): value is RoleConfig => {
     if (!value || typeof value !== "object") return false;
     const role = value as Partial<RoleConfig>;
-    const featuresValid = Array.isArray(role.features) &&
+    const featuresValid =
+      Array.isArray(role.features) &&
       role.features.every(
         (f) =>
           f && typeof f.text === "string" && typeof f.available === "boolean",
@@ -155,10 +157,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
-                <MousePointerClick className="w-5 h-5 text-white" />
-              </div>
-              <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur transition-opacity" />
+              <AnyclickLogo size="lg" />
+              <div className="absolute -inset-1 rounded-full bg-emerald-500/20 opacity-0 group-hover:opacity-30 blur transition-opacity" />
             </div>
             <span className="text-xl font-semibold tracking-tight">
               anyclick
@@ -198,15 +198,15 @@ export default function Home() {
       <section className="relative pt-24 pb-32 px-6">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
+          {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>Now with screenshot capture & AI agent integration</span>
-          </div>
+          </div> */}
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
             <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              UI feedback
+              UX / DevX done right
             </span>
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -216,9 +216,10 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Right-click any element in your app to capture feedback with full
-            DOM context, screenshots, and automatic integration with GitHub
-            Issues or AI coding agents.
+            Right-click any element in your app to get the right context,
+            anyclick will format it for consumers and adapters will
+            automagically route it to the appropriate system. Issues or AI
+            agents.
           </p>
 
           {/* CTA Buttons */}
@@ -704,9 +705,7 @@ export default function Layout({ children }) {
       <footer className="py-12 px-6 border-t border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-              <MousePointerClick className="w-4 h-4 text-white" />
-            </div>
+            <AnyclickLogo size="md" />
             <span className="font-semibold">anyclick</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
