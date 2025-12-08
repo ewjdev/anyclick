@@ -1,6 +1,47 @@
 {
   "items": [
     {
+      "id": "manual-chrome-extension",
+      "source": "manual",
+      "type": "feature",
+      "title": "Chrome Extension",
+      "description": "Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and Inspector popup window (like Redux DevTools).",
+      "era": "short-term",
+      "status": "completed",
+      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension",
+      "labels": [
+        "extension",
+        "devtools"
+      ],
+      "tags": [
+        "homepage:developer",
+        "homepage:qa"
+      ],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-07T00:00:00Z"
+    },
+    {
+      "id": "manual-jira-integration",
+      "source": "manual",
+      "type": "feature",
+      "title": "Jira Integration",
+      "description": "Create Jira tickets directly from anyclick context menu with screenshot and DOM context.",
+      "era": "short-term",
+      "status": "completed",
+      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira",
+      "labels": [
+        "integrations"
+      ],
+      "tags": [
+        "homepage:qa",
+        "homepage:developer"
+      ],
+      "assignees": [],
+      "todos": [],
+      "updatedAt": "2024-12-07T00:00:00Z"
+    },
+    {
       "id": "manual-quick-chat",
       "source": "manual",
       "type": "feature",
@@ -9,8 +50,15 @@
       "era": "short-term",
       "status": "in-progress",
       "url": null,
-      "labels": ["ai", "ux", "chat"],
-      "tags": ["homepage:developer", "homepage:qa"],
+      "labels": [
+        "ai",
+        "ux",
+        "chat"
+      ],
+      "tags": [
+        "homepage:developer",
+        "homepage:qa"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-06T00:00:00Z"
@@ -24,7 +72,10 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["notifications", "ux"],
+      "labels": [
+        "notifications",
+        "ux"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -39,7 +90,10 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["a11y", "ux"],
+      "labels": [
+        "a11y",
+        "ux"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -54,7 +108,9 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["error-handling"],
+      "labels": [
+        "error-handling"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -69,7 +125,9 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["config"],
+      "labels": [
+        "config"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -84,8 +142,12 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["error-handling"],
-      "tags": ["homepage:customer"],
+      "labels": [
+        "error-handling"
+      ],
+      "tags": [
+        "homepage:customer"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -99,8 +161,13 @@
       "era": "short-term",
       "status": "open",
       "url": null,
-      "labels": ["menu", "ux"],
-      "tags": ["homepage:ux"],
+      "labels": [
+        "menu",
+        "ux"
+      ],
+      "tags": [
+        "homepage:ux"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -114,7 +181,10 @@
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["dashboard", "error-handling"],
+      "labels": [
+        "dashboard",
+        "error-handling"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -129,7 +199,10 @@
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["auth", "dashboard"],
+      "labels": [
+        "auth",
+        "dashboard"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -144,7 +217,10 @@
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["alerting", "webhooks"],
+      "labels": [
+        "alerting",
+        "webhooks"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -159,8 +235,13 @@
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["testing", "automation"],
-      "tags": ["homepage:developer"],
+      "labels": [
+        "testing",
+        "automation"
+      ],
+      "tags": [
+        "homepage:developer"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -174,8 +255,13 @@
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["recording", "ux"],
-      "tags": ["homepage:pm"],
+      "labels": [
+        "recording",
+        "ux"
+      ],
+      "tags": [
+        "homepage:pm"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -193,22 +279,7 @@
       "tags": [],
       "assignees": [],
       "todos": [],
-      "updatedAt": "2025-12-06T21:45:08.498Z"
-    },
-    {
-      "id": "manual-chrome-extension",
-      "source": "manual",
-      "type": "feature",
-      "title": "Chrome Extension",
-      "description": "Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and Inspector popup window (like Redux DevTools).",
-      "era": "short-term",
-      "status": "completed",
-      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension",
-      "labels": ["extension", "devtools"],
-      "tags": ["homepage:developer", "homepage:qa"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-07T00:00:00Z"
+      "updatedAt": "2025-12-08T23:46:30.186Z"
     },
     {
       "id": "manual-integrations",
@@ -219,7 +290,9 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["integrations"],
+      "labels": [
+        "integrations"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -234,7 +307,9 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["analytics"],
+      "labels": [
+        "analytics"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
@@ -249,26 +324,14 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["dashboard", "ux"],
+      "labels": [
+        "dashboard",
+        "ux"
+      ],
       "tags": [],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
-    },
-    {
-      "id": "manual-jira-integration",
-      "source": "manual",
-      "type": "feature",
-      "title": "Jira Integration",
-      "description": "Create Jira tickets directly from anyclick context menu with screenshot and DOM context.",
-      "era": "short-term",
-      "status": "completed",
-      "url": "https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira",
-      "labels": ["integrations"],
-      "tags": ["homepage:qa", "homepage:developer"],
-      "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-07T00:00:00Z"
     },
     {
       "id": "manual-slack-integration",
@@ -279,8 +342,12 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["integrations"],
-      "tags": ["homepage:qa"],
+      "labels": [
+        "integrations"
+      ],
+      "tags": [
+        "homepage:qa"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -294,8 +361,12 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["analytics"],
-      "tags": ["homepage:pm"],
+      "labels": [
+        "analytics"
+      ],
+      "tags": [
+        "homepage:pm"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -309,8 +380,13 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["analytics", "ux"],
-      "tags": ["homepage:customer"],
+      "labels": [
+        "analytics",
+        "ux"
+      ],
+      "tags": [
+        "homepage:customer"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -324,8 +400,13 @@
       "era": "later",
       "status": "open",
       "url": null,
-      "labels": ["visual", "testing"],
-      "tags": ["homepage:designer"],
+      "labels": [
+        "visual",
+        "testing"
+      ],
+      "tags": [
+        "homepage:designer"
+      ],
       "assignees": [],
       "todos": [],
       "updatedAt": "2024-12-05T00:00:00Z"
@@ -477,6 +558,6 @@
       ]
     }
   },
-  "lastSynced": "2024-12-07T00:00:00Z",
-  "version": "1.2.0"
+  "lastSynced": "2025-12-08T23:46:30.187Z",
+  "version": "1.1.0"
 }
