@@ -54,6 +54,9 @@ const testRefineEndpointBtn = document.getElementById(
 const testResultEl = document.getElementById(
   "testResult",
 ) as HTMLParagraphElement;
+const customMenuOverride = document.getElementById(
+  "customMenuOverride",
+) as HTMLInputElement;
 
 // ========== Initialization ==========
 
@@ -78,12 +81,14 @@ async function loadSettings(): Promise<void> {
         STORAGE_KEYS.T3CHAT_AUTO_REFINE,
         STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT,
         STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT,
+        STORAGE_KEYS.CUSTOM_MENU_OVERRIDE,
       ],
       (result) => {
         // Set toggle state
         const enabled = result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
         enableToggle.checked = enabled;
         updateToggleLabel(enabled);
+        updateSettingsDisabledState(enabled);
 
         // Set input values
         endpointInput.value =
@@ -114,6 +119,11 @@ async function loadSettings(): Promise<void> {
           DEFAULTS.T3CHAT_REFINE_ENDPOINT;
         updateSystemPromptCharCount();
 
+        // Set custom menu override toggle
+        customMenuOverride.checked =
+          result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+          DEFAULTS.CUSTOM_MENU_OVERRIDE;
+
         // Set status display
         updateStatusDisplay(
           result[STORAGE_KEYS.LAST_CAPTURE],
@@ -131,6 +141,40 @@ async function loadSettings(): Promise<void> {
  */
 function updateToggleLabel(enabled: boolean): void {
   toggleLabel.textContent = enabled ? "Enabled" : "Disabled";
+}
+
+/**
+ * Get all form elements that should be disabled when extension is disabled
+ */
+function getAllSettingsElements(): Array<
+  HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement
+> {
+  return [
+    endpointInput,
+    tokenInput,
+    customMenuOverride,
+    uploadthingEnabled,
+    uploadthingEndpoint,
+    uploadthingToken,
+    t3chatEnabled,
+    t3chatBaseUrl,
+    t3chatAutoRefine,
+    t3chatRefineEndpoint,
+    t3chatSystemPrompt,
+    testRefineEndpointBtn,
+    resetSystemPromptBtn,
+    saveBtn,
+  ];
+}
+
+/**
+ * Update disabled state of all settings based on main toggle
+ */
+function updateSettingsDisabledState(enabled: boolean): void {
+  const elements = getAllSettingsElements();
+  elements.forEach((element) => {
+    element.disabled = !enabled;
+  });
 }
 
 /**
@@ -204,6 +248,7 @@ function formatRelativeTime(date: Date): string {
 enableToggle.addEventListener("change", () => {
   const enabled = enableToggle.checked;
   updateToggleLabel(enabled);
+  updateSettingsDisabledState(enabled);
   chrome.storage.local.set({ [STORAGE_KEYS.ENABLED]: enabled });
 });
 
@@ -264,6 +309,8 @@ saveBtn.addEventListener("click", async () => {
           [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: systemPrompt,
           [STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT]:
             refineEndpoint || DEFAULTS.T3CHAT_REFINE_ENDPOINT,
+          // Context menu override setting
+          [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: customMenuOverride.checked,
         },
         resolve,
       );

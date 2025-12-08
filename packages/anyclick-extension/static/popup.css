@@ -109,6 +109,15 @@ body {
   transform: translateX(14px);
 }
 
+.toggle input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle input:disabled {
+  cursor: not-allowed;
+}
+
 .settings {
   display: flex;
   flex-direction: column;
@@ -199,6 +208,17 @@ body {
 .field input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.field input:disabled {
+  background: #0f0f0f;
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.field input:disabled::placeholder {
+  color: #333;
 }
 
 .status {
@@ -357,6 +377,17 @@ body {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
+.field textarea:disabled {
+  background: #0f0f0f;
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.field textarea:disabled::placeholder {
+  color: #333;
+}
+
 /* Character count */
 .char-count {
   font-size: 10px;
@@ -388,6 +419,11 @@ body {
   background: #2a2a2a;
   border-color: #3a3a3a;
   color: #e0e0e0;
+}
+
+.reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Test button */

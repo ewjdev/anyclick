@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   UPLOADTHING_ENABLED: "anyclick_uploadthing_enabled",
   UPLOADTHING_ENDPOINT: "anyclick_uploadthing_endpoint",
   UPLOADTHING_API_KEY: "anyclick_uploadthing_api_key",
+  CUSTOM_MENU_OVERRIDE: "anyclick_custom_menu_override",
 } as const;
 
 /**
@@ -36,6 +37,8 @@ export const DEFAULTS = {
   UPLOADTHING_ENABLED: false,
   UPLOADTHING_ENDPOINT: "",
   UPLOADTHING_API_KEY: "",
+  // Context menu override default
+  CUSTOM_MENU_OVERRIDE: true,
 } as const;
 
 /**

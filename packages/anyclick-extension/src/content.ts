@@ -46,7 +46,7 @@ let lastMouseY = 0;
 let mouseMoveTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Whether the custom context menu is enabled */
-let customMenuEnabled = true;
+let customMenuEnabled = DEFAULTS.CUSTOM_MENU_OVERRIDE;
 
 // ========== Event Listeners ==========
 
@@ -87,7 +87,8 @@ document.addEventListener(
       return;
     }
 
-    // Skip if custom menu is disabled or if already showing our menu
+    // Skip if extension is disabled, custom menu is disabled, or if already showing our menu
+    // Check both main enabled toggle and custom menu override setting
     if (!customMenuEnabled || isMenuVisible()) {
       return;
     }
@@ -102,7 +103,7 @@ document.addEventListener(
     e.stopPropagation();
 
     // Show custom menu
-    showCustomMenu({ x: e.clientX, y: e.clientY });
+    showCustomMenu({ x: e.clientX, y: e.clientY }).catch(console.error);
   },
   { capture: true },
 );
@@ -113,12 +114,34 @@ initT3ChatAutofill();
 /**
  * Show custom context menu at position
  */
-function showCustomMenu(position: { x: number; y: number }): void {
+async function showCustomMenu(position: {
+  x: number;
+  y: number;
+}): Promise<void> {
   const callbacks: MenuCallbacks = {
     onSelect: handleMenuSelect,
     onClose: handleMenuClose,
     onInspect: handleInspectElement,
   };
+
+  // Load integration settings from storage
+  const settings = await new Promise<{
+    t3chatEnabled: boolean;
+    uploadthingEnabled: boolean;
+  }>((resolve) => {
+    chrome.storage.local.get(
+      [STORAGE_KEYS.T3CHAT_ENABLED, STORAGE_KEYS.UPLOADTHING_ENABLED],
+      (result) => {
+        resolve({
+          t3chatEnabled:
+            result[STORAGE_KEYS.T3CHAT_ENABLED] ?? DEFAULTS.T3CHAT_ENABLED,
+          uploadthingEnabled:
+            result[STORAGE_KEYS.UPLOADTHING_ENABLED] ??
+            DEFAULTS.UPLOADTHING_ENABLED,
+        });
+      },
+    );
+  });
 
   // Build dynamic menu items based on context
   const hasTextSelection = !!window.getSelection()?.toString().trim();
@@ -129,6 +152,8 @@ function showCustomMenu(position: { x: number; y: number }): void {
   const menuItems = buildMenuItems({
     hasTextSelection,
     isImageTarget,
+    t3chatEnabled: settings.t3chatEnabled,
+    uploadthingEnabled: settings.uploadthingEnabled,
   });
 
   showMenu(position, callbacks, menuItems);
@@ -534,8 +559,21 @@ chrome.runtime.onMessage.addListener(
       handleCapture().catch(console.error);
       sendResponse({ received: true });
     } else if (message.type === "TOGGLE_CUSTOM_MENU") {
-      customMenuEnabled = !customMenuEnabled;
-      sendResponse({ enabled: customMenuEnabled });
+      // Load from storage - check both main enabled and custom menu override
+      chrome.storage.local.get(
+        [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+        (result) => {
+          const extensionEnabled =
+            result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+          const menuOverride =
+            result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+            DEFAULTS.CUSTOM_MENU_OVERRIDE;
+          // Both must be true for context menu override to work
+          customMenuEnabled = extensionEnabled && menuOverride;
+          sendResponse({ enabled: customMenuEnabled });
+        },
+      );
+      return true; // Async response
     } else if (message.type === "GET_ELEMENT_AT_POINT") {
       // Used by DevTools panel to get element info
       const element = document.elementFromPoint(lastMouseX, lastMouseY);
@@ -1643,3 +1681,53 @@ function showToast(
     }
   }, 2500);
 }
+
+// ========== Initialization ==========
+
+/**
+ * Load custom menu override setting from storage
+ * Context menu override only works if BOTH main extension enabled AND custom menu override are true
+ */
+function loadCustomMenuSetting(): void {
+  chrome.storage.local.get(
+    [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+    (result) => {
+      const extensionEnabled = result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+      const menuOverride =
+        result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+        DEFAULTS.CUSTOM_MENU_OVERRIDE;
+      // Both must be true for context menu override to work
+      customMenuEnabled = extensionEnabled && menuOverride;
+    },
+  );
+}
+
+/**
+ * Listen for storage changes to update customMenuEnabled in real-time
+ * Context menu override only works if BOTH main extension enabled AND custom menu override are true
+ */
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") return;
+
+  // Update if either the main enabled toggle or custom menu override changed
+  if (
+    changes[STORAGE_KEYS.ENABLED] ||
+    changes[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]
+  ) {
+    chrome.storage.local.get(
+      [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+      (result) => {
+        const extensionEnabled =
+          result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+        const menuOverride =
+          result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+          DEFAULTS.CUSTOM_MENU_OVERRIDE;
+        // Both must be true for context menu override to work
+        customMenuEnabled = extensionEnabled && menuOverride;
+      },
+    );
+  }
+});
+
+// Initialize custom menu setting on load
+loadCustomMenuSetting();

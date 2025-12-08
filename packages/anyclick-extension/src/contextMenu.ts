@@ -91,11 +91,13 @@ export const MENU_ICONS = {
 export function buildMenuItems(options: {
   hasTextSelection?: boolean;
   isImageTarget?: boolean;
+  t3chatEnabled?: boolean;
+  uploadthingEnabled?: boolean;
 }): ExtensionMenuItem[] {
   const items: ExtensionMenuItem[] = [];
 
-  // Add t3.chat option when text is selected (at the top for prominence)
-  if (options.hasTextSelection) {
+  // Add t3.chat option when text is selected and t3chat is enabled (at the top for prominence)
+  if (options.hasTextSelection && options.t3chatEnabled !== false) {
     items.push({
       type: "t3chat",
       label: "Ask t3.chat",
@@ -103,8 +105,8 @@ export function buildMenuItems(options: {
     });
   }
 
-  // Add upload option when right-clicking an image
-  if (options.isImageTarget) {
+  // Add upload option when right-clicking an image and uploadthing is enabled
+  if (options.isImageTarget && options.uploadthingEnabled === true) {
     items.push({
       type: "upload-image",
       label: "Upload to UploadThing",
