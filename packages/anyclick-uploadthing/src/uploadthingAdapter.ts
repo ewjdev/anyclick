@@ -1,3 +1,4 @@
+import { AnyclickAdapter, AnyclickPayload } from "@ewjdev/anyclick-core";
 import type {
   ImageDetectionResult,
   ScreenshotUploadData,
@@ -331,5 +332,6 @@ export class UploadThingAdapter {
 export function createUploadThingAdapter(
   options: UploadThingAdapterOptions = {},
 ): UploadThingAdapter {
-  return new UploadThingAdapter(options);
+  const adapter = new UploadThingAdapter(options);
+  return adapter;
 }

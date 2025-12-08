@@ -103,6 +103,9 @@ document.addEventListener(
   { capture: true },
 );
 
+// Autofill t3.chat input when opened with ?q=... (fallback when site doesn't auto-handle)
+initT3ChatAutofill();
+
 /**
  * Show custom context menu at position
  */
@@ -1177,6 +1180,87 @@ function buildUploadFilename(src: string, ext = "png"): string {
   const domain = getDomainLabel(src);
   const timestamp = new Date().toISOString().slice(0, 19); // YYYY-MM-DDTHH:mm:ss
   return `${domain}-${timestamp}.${ext}`;
+}
+
+/**
+ * Autofill t3.chat input from ?q=... and trigger send (Enter) as a fallback
+ * when the site does not auto-handle the query parameter.
+ */
+function initT3ChatAutofill(): void {
+  if (!window.location.hostname.includes("t3.chat")) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("q");
+  if (!query) return;
+
+  const selectors = [
+    "#chat-input",
+    'textarea[name="input"]',
+    'textarea[aria-label="Message input"]',
+    'textarea[placeholder="Type your message here..."]',
+  ];
+
+  const tryFill = () => {
+    for (const sel of selectors) {
+      const el = document.querySelector(sel) as HTMLTextAreaElement | null;
+      if (el) {
+        fillT3ChatInput(el, query);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  let attempts = 0;
+  const maxAttempts = 30; // ~9s if 300ms interval
+  const intervalId = window.setInterval(() => {
+    attempts += 1;
+    if (tryFill() || attempts >= maxAttempts) {
+      clearInterval(intervalId);
+    }
+  }, 300);
+
+  // Also attempt once after DOM is ready
+  if (document.readyState !== "complete") {
+    window.addEventListener(
+      "DOMContentLoaded",
+      () => {
+        tryFill();
+      },
+      { once: true },
+    );
+  } else {
+    tryFill();
+  }
+}
+
+function fillT3ChatInput(input: HTMLTextAreaElement, text: string): void {
+  input.focus();
+  input.value = text;
+  input.dispatchEvent(
+    new InputEvent("input", { bubbles: true, cancelable: true }),
+  );
+
+  // Simulate Enter key to submit
+  const enterEvent = new KeyboardEvent("keydown", {
+    key: "Enter",
+    code: "Enter",
+    keyCode: 13,
+    which: 13,
+    bubbles: true,
+    cancelable: true,
+  });
+  input.dispatchEvent(enterEvent);
+
+  const enterUp = new KeyboardEvent("keyup", {
+    key: "Enter",
+    code: "Enter",
+    keyCode: 13,
+    which: 13,
+    bubbles: true,
+    cancelable: true,
+  });
+  input.dispatchEvent(enterUp);
 }
 
 /**
