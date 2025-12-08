@@ -13,6 +13,7 @@ import {
   type ExtensionMessage,
   PERF_LIMITS,
   type PageContext,
+  type ScreenshotResponseMessage,
   type SettingsResponseMessage,
   createMessage,
 } from "./types";
@@ -173,30 +174,114 @@ function handleSendToT3Chat(): void {
  * Upload targeted image to UploadThing
  */
 function handleUploadImageFromTarget(): void {
+  console.log("[Anyclick Upload] handleUploadImageFromTarget called", {
+    hasRightClickedElement: !!rightClickedElement,
+    elementTag: rightClickedElement?.tagName,
+  });
+
   if (!rightClickedElement) {
+    console.warn("[Anyclick Upload] No right-clicked element found");
     showToast("No image selected", "error");
     return;
   }
 
-  const imgSrc =
-    rightClickedElement instanceof HTMLImageElement
-      ? rightClickedElement.src
-      : rightClickedElement.getAttribute("src");
+  // Try multiple ways to get image source
+  let imgSrc: string | null = null;
+
+  if (rightClickedElement instanceof HTMLImageElement) {
+    imgSrc = rightClickedElement.src;
+    console.log("[Anyclick Upload] Got src from HTMLImageElement:", imgSrc);
+  } else {
+    imgSrc = rightClickedElement.getAttribute("src");
+    console.log("[Anyclick Upload] Got src from getAttribute:", imgSrc);
+  }
+
+  // Also try data-src for lazy-loaded images
+  if (!imgSrc) {
+    imgSrc = rightClickedElement.getAttribute("data-src");
+    console.log("[Anyclick Upload] Trying data-src:", imgSrc);
+  }
+
+  // Try srcset
+  if (!imgSrc && rightClickedElement instanceof HTMLImageElement) {
+    const srcset = rightClickedElement.srcset;
+    if (srcset) {
+      // Get the first URL from srcset
+      const firstSrc = srcset.split(",")[0]?.trim().split(" ")[0];
+      imgSrc = firstSrc || null;
+      console.log("[Anyclick Upload] Got src from srcset:", imgSrc);
+    }
+  }
+
+  // Try background image
+  if (!imgSrc) {
+    const computedStyle = window.getComputedStyle(rightClickedElement);
+    const bgImage = computedStyle.backgroundImage;
+    if (bgImage && bgImage !== "none") {
+      const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+      if (match) {
+        imgSrc = match[1];
+        console.log("[Anyclick Upload] Got src from background-image:", imgSrc);
+      }
+    }
+  }
 
   if (!imgSrc) {
+    console.error(
+      "[Anyclick Upload] Could not extract image source from element",
+      {
+        element: rightClickedElement,
+        tagName: rightClickedElement.tagName,
+        attributes: Array.from(rightClickedElement.attributes).map(
+          (a) => `${a.name}=${a.value}`,
+        ),
+      },
+    );
     showToast("Could not get image source", "error");
     return;
+  }
+
+  console.log("[Anyclick Upload] Image source found:", {
+    src: imgSrc,
+    isDataUrl: imgSrc.startsWith("data:"),
+    isBlobUrl: imgSrc.startsWith("blob:"),
+    isRelative:
+      !imgSrc.startsWith("http") &&
+      !imgSrc.startsWith("data:") &&
+      !imgSrc.startsWith("blob:"),
+  });
+
+  // Convert relative URLs to absolute
+  if (
+    !imgSrc.startsWith("http") &&
+    !imgSrc.startsWith("data:") &&
+    !imgSrc.startsWith("blob:")
+  ) {
+    const absoluteUrl = new URL(imgSrc, window.location.href).href;
+    console.log(
+      "[Anyclick Upload] Converted relative URL to absolute:",
+      absoluteUrl,
+    );
+    imgSrc = absoluteUrl;
   }
 
   // Get upload settings and upload
   chrome.storage.local.get(
     ["anyclick_uploadthing_endpoint", "anyclick_uploadthing_api_key"],
     (result) => {
+      console.log("[Anyclick Upload] Storage settings retrieved:", {
+        hasEndpoint: !!result.anyclick_uploadthing_endpoint,
+        endpoint: result.anyclick_uploadthing_endpoint,
+        hasApiKey: !!result.anyclick_uploadthing_api_key,
+      });
+
       handleUploadImage(
-        imgSrc,
+        imgSrc!,
         result.anyclick_uploadthing_endpoint,
         result.anyclick_uploadthing_api_key,
-      ).catch(console.error);
+      ).catch((error) => {
+        console.error("[Anyclick Upload] handleUploadImage threw:", error);
+      });
     },
   );
 }
@@ -412,13 +497,28 @@ document.addEventListener(
 
 /**
  * Upload an image from URL to UploadThing
+ * Strategy:
+ * 1. For data URLs - send as dataUrl to server
+ * 2. For same-origin URLs - try to fetch as blob, send as file
+ * 3. For cross-origin URLs - send URL to server, let server fetch it
  */
 async function handleUploadImage(
   src: string,
   endpoint?: string,
   apiKey?: string,
 ): Promise<{ success: boolean; url?: string; error?: string }> {
+  const filenameFor = (ext?: string) => buildUploadFilename(src, ext);
+  const domainLabel = getDomainLabel(src);
+
+  console.log("[Anyclick Upload] handleUploadImage called:", {
+    src: src.substring(0, 100) + (src.length > 100 ? "..." : ""),
+    endpoint,
+    hasApiKey: !!apiKey,
+    domainLabel,
+  });
+
   if (!endpoint) {
+    console.warn("[Anyclick Upload] No endpoint configured");
     showToast(
       "No upload endpoint configured. Set it in extension settings.",
       "warning",
@@ -429,46 +529,198 @@ async function handleUploadImage(
   try {
     showToast("Uploading image...", "info");
 
-    // Fetch the image
-    const response = await fetch(src);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    const filename = `image-${Date.now()}.${blob.type.split("/")[1] || "png"}`;
-
-    // Create form data
-    const formData = new FormData();
-    formData.append("file", blob, filename);
-
-    // Upload
     const headers: Record<string, string> = {};
     if (apiKey) {
       headers["x-uploadthing-api-key"] = apiKey;
     }
 
+    let formData: FormData;
+
+    // Handle data URLs - send as dataUrl to server
+    if (src.startsWith("data:")) {
+      console.log("[Anyclick Upload] Sending data URL to server...");
+      formData = new FormData();
+      formData.append("dataUrl", src);
+      formData.append("filename", filenameFor("png"));
+    }
+    // Handle blob URLs - need to fetch and send as file (same-origin only)
+    else if (src.startsWith("blob:")) {
+      console.log("[Anyclick Upload] Fetching blob URL...");
+      try {
+        const response = await fetch(src);
+        const blob = await response.blob();
+        const filename = filenameFor("png");
+        formData = new FormData();
+        formData.append("file", blob, filename);
+        console.log("[Anyclick Upload] Got blob:", {
+          size: blob.size,
+          type: blob.type,
+        });
+      } catch (error) {
+        console.error("[Anyclick Upload] Failed to fetch blob URL:", error);
+        throw new Error("Failed to access blob URL");
+      }
+    }
+    // Handle regular URLs - check if same-origin, otherwise send URL to server
+    else {
+      const srcUrl = new URL(src);
+      const currentUrl = new URL(window.location.href);
+      const isSameOrigin = srcUrl.origin === currentUrl.origin;
+
+      console.log("[Anyclick Upload] URL analysis:", {
+        srcOrigin: srcUrl.origin,
+        currentOrigin: currentUrl.origin,
+        isSameOrigin,
+      });
+
+      if (isSameOrigin) {
+        // Same origin - we can fetch it directly
+        console.log("[Anyclick Upload] Same-origin URL, fetching directly...");
+        try {
+          const response = await fetch(src);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch: ${response.status}`);
+          }
+          const blob = await response.blob();
+          const filename = filenameFor("png");
+          formData = new FormData();
+          formData.append("file", blob, filename);
+          console.log("[Anyclick Upload] Fetched same-origin image:", {
+            size: blob.size,
+            type: blob.type,
+          });
+        } catch (error) {
+          console.error("[Anyclick Upload] Same-origin fetch failed:", error);
+          // Fall back to sending URL to server
+          console.log("[Anyclick Upload] Falling back to server-side fetch...");
+          formData = new FormData();
+          formData.append("url", src);
+          formData.append("filename", filenameFor("png"));
+        }
+      } else {
+        // Cross-origin - first try to fetch with extension permissions/cookies,
+        // then fall back to server-side fetch if blocked.
+        console.log(
+          "[Anyclick Upload] Cross-origin URL, trying client fetch with credentials...",
+        );
+        try {
+          const response = await fetch(src, {
+            credentials: "include",
+            mode: "cors",
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to fetch cross-origin: ${response.status}`);
+          }
+          const blob = await response.blob();
+          const filename = filenameFor("png");
+          formData = new FormData();
+          formData.append("file", blob, filename);
+          console.log(
+            "[Anyclick Upload] Cross-origin fetch succeeded via extension:",
+            {
+              size: blob.size,
+              type: blob.type,
+            },
+          );
+        } catch (error) {
+          console.warn(
+            "[Anyclick Upload] Cross-origin fetch blocked, falling back to server fetch",
+            error,
+          );
+          // Try screenshot fallback via background capture to avoid CORS
+          const screenshot = await requestScreenshot();
+          const crop = getCurrentElementCrop();
+
+          if (screenshot.success && screenshot.dataUrl) {
+            const dataUrlForUpload = crop
+              ? await cropDataUrl(
+                  screenshot.dataUrl,
+                  crop,
+                  screenshot.width,
+                  screenshot.height,
+                )
+              : screenshot.dataUrl;
+
+            formData = new FormData();
+            formData.append("dataUrl", dataUrlForUpload);
+            formData.append("filename", filenameFor("png"));
+            console.log(
+              "[Anyclick Upload] Using screenshot fallback for upload",
+              {
+                width: screenshot.width,
+                height: screenshot.height,
+                sizeBytes: screenshot.sizeBytes,
+                cropped: !!crop,
+              },
+            );
+          } else {
+            // Last resort: let the server attempt to fetch (may 403)
+            formData = new FormData();
+            formData.append("url", src);
+            formData.append("filename", filenameFor("png"));
+            console.warn(
+              "[Anyclick Upload] Screenshot fallback unavailable, using server fetch",
+              screenshot.error,
+            );
+          }
+        }
+      }
+    }
+
+    // Upload to endpoint
+    console.log("[Anyclick Upload] Sending to endpoint:", endpoint);
     const uploadResponse = await fetch(endpoint, {
       method: "POST",
       headers,
       body: formData,
     });
 
+    console.log("[Anyclick Upload] Upload response:", {
+      ok: uploadResponse.ok,
+      status: uploadResponse.status,
+      statusText: uploadResponse.statusText,
+    });
+
     if (!uploadResponse.ok) {
-      throw new Error(`Upload failed: ${uploadResponse.status}`);
+      const errorText = await uploadResponse.text();
+      console.error("[Anyclick Upload] Upload failed:", {
+        status: uploadResponse.status,
+        body: errorText,
+      });
+      throw new Error(`Upload failed: ${uploadResponse.status} - ${errorText}`);
     }
 
     const result = await uploadResponse.json();
+    console.log("[Anyclick Upload] Upload result:", result);
 
     // Copy URL to clipboard
     if (result.url) {
-      await navigator.clipboard.writeText(result.url);
-      showToast("Image uploaded! URL copied to clipboard.", "success");
+      try {
+        await navigator.clipboard.writeText(result.url);
+        console.log("[Anyclick Upload] URL copied to clipboard:", result.url);
+        showToast("Image uploaded! URL copied to clipboard.", "success");
+      } catch (clipboardError) {
+        console.warn(
+          "[Anyclick Upload] Failed to copy to clipboard:",
+          clipboardError,
+        );
+        showToast("Image uploaded! URL: " + result.url, "success");
+      }
+    } else if (result.success) {
+      showToast("Image uploaded successfully!", "success");
+    } else {
+      console.warn("[Anyclick Upload] Upload response missing URL:", result);
+      showToast("Image uploaded but no URL returned", "warning");
     }
 
     return { success: true, url: result.url };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : "Upload failed";
+    console.error("[Anyclick Upload] Error:", {
+      message: errorMsg,
+      error,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     showToast(errorMsg, "error");
     return { success: false, error: errorMsg };
   }
@@ -806,6 +1058,125 @@ async function getSettings(): Promise<{
     createMessage({ type: "GET_SETTINGS" as const }),
   )) as SettingsResponseMessage;
   return response.settings;
+}
+
+/**
+ * Request a screenshot from the background script
+ */
+async function requestScreenshot(): Promise<ScreenshotResponseMessage> {
+  try {
+    const response = (await sendMessage(
+      createMessage({ type: "SCREENSHOT_REQUEST" as const }),
+    )) as ScreenshotResponseMessage;
+    return response;
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Screenshot failed";
+    console.error(
+      "[Anyclick Upload] Screenshot request error:",
+      message,
+      error,
+    );
+    return {
+      type: "SCREENSHOT_RESPONSE",
+      success: false,
+      error: message,
+    };
+  }
+}
+
+/**
+ * Get current element crop (page coords + dpr) for screenshot cropping
+ */
+function getCurrentElementCrop(): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  dpr: number;
+} | null {
+  const el = rightClickedElement || targetElement;
+  if (!el) return null;
+  const rect = el.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  return {
+    x: rect.x + window.scrollX,
+    y: rect.y + window.scrollY,
+    width: rect.width,
+    height: rect.height,
+    dpr,
+  };
+}
+
+/**
+ * Crop a screenshot data URL to the provided element rectangle.
+ */
+async function cropDataUrl(
+  dataUrl: string,
+  crop: { x: number; y: number; width: number; height: number; dpr: number },
+  reportedWidth?: number,
+  reportedHeight?: number,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        // Determine scale between reported width/height and actual image pixels
+        const scaleX =
+          reportedWidth && reportedWidth > 0 ? img.width / reportedWidth : 1;
+        const scaleY =
+          reportedHeight && reportedHeight > 0
+            ? img.height / reportedHeight
+            : 1;
+
+        const sx = crop.x * scaleX;
+        const sy = crop.y * scaleY;
+        const sw = crop.width * scaleX;
+        const sh = crop.height * scaleY;
+
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sw));
+        canvas.height = Math.max(1, Math.round(sh));
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas context unavailable");
+
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    img.onerror = (error) => reject(error);
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * Derive a domain label from the source URL (second-level if available).
+ */
+function getDomainLabel(src: string): string {
+  const fallback = window.location.hostname || "unknown";
+  const host = (() => {
+    try {
+      return new URL(src).hostname || fallback;
+    } catch {
+      return fallback;
+    }
+  })();
+  const parts = host.split(".").filter(Boolean);
+  const label =
+    parts.length >= 2 ? parts[parts.length - 2] : parts[0] || "unknown";
+  return label.replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
+}
+
+/**
+ * Build upload filename: <domain>-<timestamp>.ext
+ */
+function buildUploadFilename(src: string, ext = "png"): string {
+  const domain = getDomainLabel(src);
+  const timestamp = new Date().toISOString().slice(0, 19); // YYYY-MM-DDTHH:mm:ss
+  return `${domain}-${timestamp}.${ext}`;
 }
 
 /**

@@ -3,15 +3,17 @@ import type { UploadResult, UploadThingServerOptions } from "./types";
 /**
  * UploadThing Server Adapter
  *
- * Server-side adapter for handling UploadThing uploads in Next.js API routes.
- * This is the recommended approach for production as it keeps your API token secure.
+ * Server-side adapter for handling UploadThing uploads using the official UTApi.
+ * This is the recommended approach for production as it keeps your token secure.
+ *
+ * @see https://docs.uploadthing.com/api-reference/ut-api
  *
  * @example
  * ```ts
  * // app/api/uploadthing/route.ts
- * import { UploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
+ * import { createUploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
  *
- * const adapter = new UploadThingServerAdapter({
+ * const adapter = createUploadThingServerAdapter({
  *   token: process.env.UPLOADTHING_TOKEN!,
  * });
  *
@@ -25,135 +27,120 @@ import type { UploadResult, UploadThingServerOptions } from "./types";
  * ```
  */
 export class UploadThingServerAdapter {
+  private utapi: import("uploadthing/server").UTApi | null = null;
   private token: string;
-  private appId?: string;
-  private selfHosted: boolean;
-  private apiUrl: string;
 
   constructor(options: UploadThingServerOptions) {
     if (!options.token) {
       throw new Error("UploadThing token is required");
     }
-
     this.token = options.token;
-    this.appId = options.appId;
-    this.selfHosted = options.selfHosted ?? false;
-    this.apiUrl = options.apiUrl ?? "https://api.uploadthing.com";
+  }
+
+  /**
+   * Get or create the UTApi instance
+   */
+  private async getApi(): Promise<import("uploadthing/server").UTApi> {
+    if (!this.utapi) {
+      try {
+        const { UTApi } = await import("uploadthing/server");
+        this.utapi = new UTApi({ token: this.token });
+      } catch {
+        throw new Error(
+          "uploadthing package is required. Install it with: npm install uploadthing",
+        );
+      }
+    }
+    return this.utapi;
   }
 
   /**
    * Upload a file to UploadThing
-   * @param file - The file to upload (File or Buffer with metadata)
-   * @param options - Upload options
-   * @returns Upload result
+   * @param file - The file to upload (File, Blob, or buffer with metadata)
+   * @returns Upload result with URL
    */
   async uploadFile(
-    file: File | { buffer: Buffer; name: string; type: string }
+    file: File | Blob | { buffer: Buffer; name: string; type: string },
   ): Promise<UploadResult> {
+    console.log("[UploadThing ServerAdapter] uploadFile called");
+
     try {
-      // Convert to proper format
-      let fileData: File;
+      const api = await this.getApi();
+      console.log("[UploadThing ServerAdapter] UTApi instance ready");
+
+      // Convert to proper format for UTApi
+      let uploadFile: File;
       if (file instanceof File) {
-        fileData = file;
+        uploadFile = file;
+        console.log("[UploadThing ServerAdapter] Using File directly:", {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        });
+      } else if (file instanceof Blob) {
+        uploadFile = new File([file], `upload-${Date.now()}`, {
+          type: file.type,
+        });
+        console.log("[UploadThing ServerAdapter] Created File from Blob:", {
+          name: uploadFile.name,
+          size: uploadFile.size,
+          type: uploadFile.type,
+        });
       } else {
-        fileData = new File([file.buffer], file.name, { type: file.type });
+        uploadFile = new File([file.buffer], file.name, { type: file.type });
+        console.log("[UploadThing ServerAdapter] Created File from buffer:", {
+          name: uploadFile.name,
+          size: uploadFile.size,
+          type: uploadFile.type,
+        });
       }
 
-      // Step 1: Request presigned URL
-      const presignedResponse = await fetch(`${this.apiUrl}/v6/uploadFiles`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-uploadthing-api-key": this.token,
-          ...(this.appId && { "x-uploadthing-app-id": this.appId }),
-        },
-        body: JSON.stringify({
-          files: [
-            {
-              name: fileData.name,
-              size: fileData.size,
-              type: fileData.type,
-            },
-          ],
-          acl: "public-read",
-          contentDisposition: "inline",
-        }),
-      });
-
-      if (!presignedResponse.ok) {
-        const errorText = await presignedResponse.text();
-        throw new Error(
-          `Failed to get presigned URL: ${presignedResponse.status} - ${errorText}`
-        );
-      }
-
-      const presignedData = await presignedResponse.json();
-      const uploadInfo = presignedData.data?.[0];
-
-      if (!uploadInfo) {
-        throw new Error("Invalid presigned URL response");
-      }
-
-      // Step 2: Upload to presigned URL
-      const uploadUrl = uploadInfo.presignedUrls?.url || uploadInfo.url;
-      if (!uploadUrl) {
-        throw new Error("No upload URL in response");
-      }
-
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        body: fileData,
-        headers: {
-          "Content-Type": fileData.type,
-        },
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`File upload failed: ${uploadResponse.status}`);
-      }
-
-      // Step 3: Confirm upload completion (if needed)
-      if (uploadInfo.pollingUrl) {
-        // Poll for completion
-        let attempts = 0;
-        const maxAttempts = 10;
-
-        while (attempts < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-
-          const pollResponse = await fetch(uploadInfo.pollingUrl, {
-            headers: {
-              "x-uploadthing-api-key": this.token,
-            },
-          });
-
-          if (pollResponse.ok) {
-            const pollData = await pollResponse.json();
-            if (pollData.status === "uploaded") {
-              return {
-                success: true,
-                url: pollData.fileUrl || uploadInfo.fileUrl,
-                key: pollData.key || uploadInfo.key,
-                name: fileData.name,
-                size: fileData.size,
-              };
+      console.log("[UploadThing ServerAdapter] Calling UTApi.uploadFiles...");
+      const response = await api.uploadFiles(uploadFile);
+      console.log("[UploadThing ServerAdapter] UTApi response:", {
+        hasError: !!response.error,
+        hasData: !!response.data,
+        error: response.error,
+        data: response.data
+          ? {
+              url: response.data.url,
+              key: response.data.key,
+              name: response.data.name,
+              size: response.data.size,
             }
-          }
+          : null,
+      });
 
-          attempts++;
-        }
+      if (response.error) {
+        console.error(
+          "[UploadThing ServerAdapter] Upload error:",
+          response.error,
+        );
+        return {
+          success: false,
+          error: response.error.message || "Upload failed",
+        };
       }
 
+      console.log(
+        "[UploadThing ServerAdapter] Upload successful:",
+        response.data.url,
+      );
       return {
         success: true,
-        url: uploadInfo.fileUrl,
-        key: uploadInfo.key,
-        name: fileData.name,
-        size: fileData.size,
+        url: response.data.url,
+        key: response.data.key,
+        name: response.data.name,
+        size: response.data.size,
       };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown upload error";
+      console.error("[UploadThing ServerAdapter] Exception:", {
+        message,
+        error,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return {
         success: false,
         error: message,
@@ -162,18 +149,62 @@ export class UploadThingServerAdapter {
   }
 
   /**
+   * Upload multiple files to UploadThing
+   * @param files - Array of files to upload
+   * @returns Array of upload results
+   */
+  async uploadFiles(files: File[]): Promise<UploadResult[]> {
+    try {
+      const api = await this.getApi();
+      const responses = await api.uploadFiles(files);
+
+      // Handle both single and array responses
+      const results = Array.isArray(responses) ? responses : [responses];
+
+      return results.map((response) => {
+        if (response.error) {
+          return {
+            success: false,
+            error: response.error.message || "Upload failed",
+          };
+        }
+        return {
+          success: true,
+          url: response.data.url,
+          key: response.data.key,
+          name: response.data.name,
+          size: response.data.size,
+        };
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown upload error";
+      return files.map(() => ({
+        success: false,
+        error: message,
+      }));
+    }
+  }
+
+  /**
    * Upload a file from a data URL
-   * @param dataUrl - The data URL
+   * @param dataUrl - The data URL (base64 encoded)
    * @param filename - The filename to use
    * @returns Upload result
    */
   async uploadFromDataUrl(
     dataUrl: string,
-    filename: string
+    filename: string,
   ): Promise<UploadResult> {
+    console.log("[UploadThing ServerAdapter] uploadFromDataUrl called:", {
+      dataUrlLength: dataUrl.length,
+      filename,
+    });
+
     // Parse data URL
     const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
     if (!matches) {
+      console.error("[UploadThing ServerAdapter] Invalid data URL format");
       return {
         success: false,
         error: "Invalid data URL format",
@@ -184,6 +215,11 @@ export class UploadThingServerAdapter {
     const base64Data = matches[2];
     const buffer = Buffer.from(base64Data, "base64");
 
+    console.log("[UploadThing ServerAdapter] Parsed data URL:", {
+      mimeType,
+      bufferSize: buffer.length,
+    });
+
     return this.uploadFile({
       buffer,
       name: filename,
@@ -192,31 +228,68 @@ export class UploadThingServerAdapter {
   }
 
   /**
-   * Upload a file from a URL
-   * @param url - The file URL
+   * Upload a file from a URL (fetches the file first)
+   * @param url - The file URL to fetch and upload
    * @param filename - The filename to use
    * @returns Upload result
    */
-  async uploadFromUrl(url: string, filename: string): Promise<UploadResult> {
+  async uploadFromUrl(url: string, filename?: string): Promise<UploadResult> {
+    console.log("[UploadThing ServerAdapter] uploadFromUrl called:", {
+      url,
+      filename,
+    });
+
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch file: ${response.status}`);
+      const api = await this.getApi();
+      console.log(
+        "[UploadThing ServerAdapter] Calling UTApi.uploadFilesFromUrl...",
+      );
+
+      // Use UTApi's uploadFilesFromUrl for URL uploads
+      const response = await api.uploadFilesFromUrl({
+        url,
+        name: filename,
+      });
+
+      console.log(
+        "[UploadThing ServerAdapter] UTApi uploadFilesFromUrl response:",
+        {
+          hasError: !!response.error,
+          hasData: !!response.data,
+          error: response.error,
+        },
+      );
+
+      if (response.error) {
+        console.error(
+          "[UploadThing ServerAdapter] URL upload error:",
+          response.error,
+        );
+        return {
+          success: false,
+          error: response.error.message || "Upload failed",
+        };
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const contentType =
-        response.headers.get("content-type") || "application/octet-stream";
-
-      return this.uploadFile({
-        buffer,
-        name: filename,
-        type: contentType,
-      });
+      console.log(
+        "[UploadThing ServerAdapter] URL upload successful:",
+        response.data.url,
+      );
+      return {
+        success: true,
+        url: response.data.url,
+        key: response.data.key,
+        name: response.data.name,
+        size: response.data.size,
+      };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to fetch file";
+        error instanceof Error ? error.message : "Failed to upload from URL";
+      console.error("[UploadThing ServerAdapter] URL upload exception:", {
+        message,
+        error,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return {
         success: false,
         error: message,
@@ -226,34 +299,61 @@ export class UploadThingServerAdapter {
 
   /**
    * Delete a file from UploadThing
-   * @param key - The file key
+   * @param key - The file key to delete
    * @returns Whether deletion was successful
    */
   async deleteFile(key: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.apiUrl}/v6/deleteFiles`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-uploadthing-api-key": this.token,
-        },
-        body: JSON.stringify({ fileKeys: [key] }),
-      });
-
-      return response.ok;
+      const api = await this.getApi();
+      const result = await api.deleteFiles(key);
+      return result.success;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Delete multiple files from UploadThing
+   * @param keys - Array of file keys to delete
+   * @returns Whether deletion was successful
+   */
+  async deleteFiles(keys: string[]): Promise<boolean> {
+    try {
+      const api = await this.getApi();
+      const result = await api.deleteFiles(keys);
+      return result.success;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get file URLs for given keys
+   * @param keys - File keys to get URLs for
+   * @returns Object mapping keys to URLs
+   */
+  async getFileUrls(keys: string[]): Promise<Record<string, string>> {
+    try {
+      const api = await this.getApi();
+      const result = await api.getFileUrls(keys);
+      const urls: Record<string, string> = {};
+      for (const item of result.data) {
+        urls[item.key] = item.url;
+      }
+      return urls;
+    } catch {
+      return {};
     }
   }
 }
 
 /**
  * Create an UploadThingServerAdapter instance
- * @param options - Configuration options
+ * @param options - Configuration options (requires token)
  * @returns Configured UploadThingServerAdapter
  */
 export function createUploadThingServerAdapter(
-  options: UploadThingServerOptions
+  options: UploadThingServerOptions,
 ): UploadThingServerAdapter {
   return new UploadThingServerAdapter(options);
 }

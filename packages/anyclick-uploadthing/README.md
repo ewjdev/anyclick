@@ -1,252 +1,171 @@
 # @ewjdev/anyclick-uploadthing
 
-UploadThing adapter for Anyclick - upload screenshots and images to [UploadThing](https://uploadthing.com).
+UploadThing adapter for Anyclick - upload screenshots and images to UploadThing with a simple right-click menu.
 
 ## Installation
 
 ```bash
 npm install @ewjdev/anyclick-uploadthing uploadthing
-# or
-yarn add @ewjdev/anyclick-uploadthing uploadthing
-# or
-pnpm add @ewjdev/anyclick-uploadthing uploadthing
 ```
 
-## Quick Start
+## Quick Start (Server-Side)
 
-### 1. Create API Route (Recommended)
+The recommended approach is to create an API route that handles uploads securely on your server.
 
-Create a server-side endpoint for secure uploads:
+### 1. Set up environment variable
 
-```typescript
-// app/api/uploadthing/route.ts
-import { createUploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
-****
-const adapter = createUploadThingServerAdapter({
-  token: process.env.UPLOADTHING_TOKEN!,
-});
-****
-export async function POST(request: Request) {
-  const formData = await request.formData();
-  const file = formData.get("file") as File;
-
-  if (!file) {
-    return Response.json({ error: "No file provided" }, { status: 400 });
-  }
-
-  const result = await adapter.uploadFile(file);
-
-  if (!result.success) {
-    return Response.json({ error: result.error }, { status: 500 });
-  }
-
-  return Response.json({
-    url: result.url,
-    key: result.key,
-    name: result.name,
-  });
-}
-```
-
-### 2. Add Menu Item
-
-```tsx
-import {
-  AnyclickProvider,
-  createUploadThingMenuItem,
-} from "@ewjdev/anyclick-react";
-
-const menuItems = [
-  { label: "Report Bug", type: "bug", showComment: true },
-  createUploadThingMenuItem({
-    endpoint: "/api/uploadthing",
-    onUploadComplete: (result) => {
-      if (result.url) {
-        navigator.clipboard.writeText(result.url);
-        console.log("Uploaded:", result.url);
-      }
-    },
-  }),
-];
-
-function App() {
-  return (
-    <AnyclickProvider menuItems={menuItems}>
-      <YourApp />
-    </AnyclickProvider>
-  );
-}
-```
-
-## Client-Side Uploads
-
-For development or simple use cases, you can use direct client-side uploads:
-
-```typescript
-import { createUploadThingAdapter } from "@ewjdev/anyclick-uploadthing";
-
-const adapter = createUploadThingAdapter({
-  apiKey: "your-uploadthing-api-key",
-  persistApiKey: true, // Store in localStorage
-});
-
-// Upload from element
-const imageElement = document.querySelector("img");
-const result = await adapter.uploadFromElement(imageElement);
-
-// Upload from URL
-const result = await adapter.uploadFromUrl("https://example.com/image.png");
-
-// Upload screenshot data
-const result = await adapter.uploadScreenshot({
-  dataUrl: "data:image/png;base64,...",
-  name: "my-screenshot",
-  type: "element",
-});
-```
-
-> **Note:** Client-side uploads expose your API key to the browser. Use server-side uploads for production.
-
-## API
-
-### Browser Adapter
-
-```typescript
-import {
-  UploadThingAdapter,
-  createUploadThingAdapter,
-} from "@ewjdev/anyclick-uploadthing";
-
-const adapter = createUploadThingAdapter({
-  endpoint: "/api/uploadthing", // Your API route
-  // OR
-  apiKey: "...", // Direct client uploads (dev only)
-  persistApiKey: false, // Store in localStorage
-  headers: {}, // Custom headers
-  timeout: 30000, // Request timeout
-  onUploadStart: (file) => {},
-  onUploadProgress: (progress) => {},
-  onUploadComplete: (result) => {},
-  onUploadError: (error) => {},
-});
-
-// Methods
-await adapter.uploadFile(file);
-await adapter.uploadScreenshot({ dataUrl, name, type });
-await adapter.uploadFromUrl(imageUrl, filename);
-await adapter.uploadFromElement(element);
-adapter.detectImage(element); // Check if element is an image
-adapter.isConfigured(); // Check if adapter is ready
-adapter.setApiKey(key); // Set/update API key
-```
-
-### Server Adapter
-
-```typescript
-import {
-  UploadThingServerAdapter,
-  createUploadThingServerAdapter,
-} from "@ewjdev/anyclick-uploadthing/server";
-
-const adapter = createUploadThingServerAdapter({
-  token: process.env.UPLOADTHING_TOKEN!,
-  appId: "optional-app-id",
-  selfHosted: false,
-  apiUrl: "https://api.uploadthing.com", // For self-hosted
-});
-
-// Methods
-await adapter.uploadFile(file);
-await adapter.uploadFromDataUrl(dataUrl, filename);
-await adapter.uploadFromUrl(url, filename);
-await adapter.deleteFile(key);
-```
-
-## Image Detection
-
-Detect if an element contains an uploadable image:
-
-```typescript
-import { detectImage, isImageElement } from "@ewjdev/anyclick-uploadthing";
-
-// Full detection with details
-const result = detectImage(element);
-if (result.isImage) {
-  console.log("Type:", result.imageType); // 'img' | 'picture' | 'canvas' | 'svg' | 'background'
-  console.log("Source:", result.src);
-}
-
-// Simple check
-if (isImageElement(element)) {
-  // Element is an image
-}
-```
-
-## Utility Functions
-
-```typescript
-import {
-  dataUrlToFile,
-  dataUrlToBlob,
-  urlToFile,
-  getStoredApiKey,
-  storeApiKey,
-  clearStoredApiKey,
-  generateScreenshotFilename,
-  getFileExtension,
-} from "@ewjdev/anyclick-uploadthing";
-
-// Convert data URL to File
-const file = dataUrlToFile(dataUrl, "screenshot.png");
-
-// Fetch image from URL
-const file = await urlToFile("https://example.com/image.png", "image");
-
-// API key storage
-storeApiKey("your-key");
-const key = getStoredApiKey();
-clearStoredApiKey();
-
-// Generate filename
-const name = generateScreenshotFilename("element");
-// "screenshot-element-2024-01-15T10-30-00-000Z.png"
-```
-
-## Environment Variables
+Get your token from [UploadThing Dashboard](https://uploadthing.com/dashboard):
 
 ```bash
 # .env.local
-UPLOADTHING_TOKEN=your-token-here
+UPLOADTHING_TOKEN=your_token_here
 ```
 
-Get your token from [UploadThing Dashboard](https://uploadthing.com/dashboard).
+### 2. Create API Route
 
-## TypeScript
+```ts
+// app/api/uploadthing/route.ts
+import { NextResponse } from "next/server";
+import { createUploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
 
-Full TypeScript support:
+export async function POST(request: Request) {
+  const token = process.env.UPLOADTHING_TOKEN;
+  
+  if (!token) {
+    return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  }
 
-```typescript
-import type {
-  UploadThingAdapterOptions,
-  UploadThingServerOptions,
-  UploadResult,
-  ImageDetectionResult,
-  ScreenshotUploadData,
-} from "@ewjdev/anyclick-uploadthing";
+  const adapter = createUploadThingServerAdapter({ token });
+  
+  const formData = await request.formData();
+  const file = formData.get("file") as File;
+  
+  const result = await adapter.uploadFile(file);
+  return NextResponse.json(result);
+}
 ```
 
-## Self-Hosted UploadThing
+### 3. Configure Extension or Web Library
 
-For self-hosted instances:
+Point your Anyclick extension or web integration to your API endpoint:
 
-```typescript
+**Extension:** Set the Upload Endpoint in extension settings to `https://your-app.com/api/uploadthing`
+
+**Web:** Use the `createUploadThingMenuItem` helper:
+
+```tsx
+import { AnyclickProvider, createUploadThingMenuItem } from "@ewjdev/anyclick-react";
+
+const menuItems = [
+  createUploadThingMenuItem({
+    endpoint: "/api/uploadthing",
+    onSuccess: (result) => console.log("Uploaded:", result.url),
+  }),
+];
+
+<AnyclickProvider menuItems={menuItems}>
+  {children}
+</AnyclickProvider>
+```
+
+## Server Adapter API
+
+### `createUploadThingServerAdapter(options)`
+
+Creates a server adapter using the official [UTApi](https://docs.uploadthing.com/api-reference/ut-api).
+
+```ts
+import { createUploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
+
 const adapter = createUploadThingServerAdapter({
   token: process.env.UPLOADTHING_TOKEN!,
-  selfHosted: true,
-  apiUrl: "https://your-uploadthing-instance.com",
 });
 ```
 
-## License
+### Methods
 
-MIT
+#### `uploadFile(file)`
+
+Upload a file directly.
+
+```ts
+const result = await adapter.uploadFile(file);
+// { success: true, url: "https://...", key: "...", name: "...", size: 1234 }
+```
+
+#### `uploadFiles(files)`
+
+Upload multiple files.
+
+```ts
+const results = await adapter.uploadFiles([file1, file2]);
+```
+
+#### `uploadFromUrl(url, filename?)`
+
+Upload a file from a URL.
+
+```ts
+const result = await adapter.uploadFromUrl(
+  "https://example.com/image.png",
+  "my-image.png"
+);
+```
+
+#### `uploadFromDataUrl(dataUrl, filename)`
+
+Upload from a base64 data URL (useful for screenshots).
+
+```ts
+const result = await adapter.uploadFromDataUrl(
+  "data:image/png;base64,...",
+  "screenshot.png"
+);
+```
+
+#### `deleteFile(key)`
+
+Delete a file by its key.
+
+```ts
+const success = await adapter.deleteFile("file-key-here");
+```
+
+#### `deleteFiles(keys)`
+
+Delete multiple files.
+
+```ts
+const success = await adapter.deleteFiles(["key1", "key2"]);
+```
+
+#### `getFileUrls(keys)`
+
+Get URLs for file keys.
+
+```ts
+const urls = await adapter.getFileUrls(["key1", "key2"]);
+// { key1: "https://...", key2: "https://..." }
+```
+
+## Browser Extension Setup
+
+1. Click the Anyclick extension icon
+2. Scroll to **Integrations** section
+3. Enable **UploadThing**
+4. Enter your **Upload Endpoint** (e.g., `https://your-app.com/api/uploadthing`)
+5. Click **Save Settings**
+
+Now when you right-click on an image, you'll see "Upload to UploadThing" option.
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `UPLOADTHING_TOKEN` | Your UploadThing API token from the dashboard |
+
+## Links
+
+- [UploadThing Documentation](https://docs.uploadthing.com)
+- [UploadThing Dashboard](https://uploadthing.com/dashboard)
+- [UTApi Reference](https://docs.uploadthing.com/api-reference/ut-api)

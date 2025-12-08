@@ -3,8 +3,8 @@
  * Creates placeholder PNG icons for the extension.
  * These should be replaced with proper branded icons before store submission.
  */
-import { writeFileSync, mkdirSync, existsSync } from "fs";
-import { join, dirname } from "path";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -24,7 +24,7 @@ const minimalPNG = Buffer.from(
 
 // Create placeholder icons of different sizes
 // Note: These are all 1x1 pixel placeholders - replace before publishing
-const sizes = [16, 48, 128];
+const sizes = [16, 48, 64, 128];
 
 for (const size of sizes) {
   const iconPath = join(iconsDir, `icon${size}.png`);
@@ -34,5 +34,3 @@ for (const size of sizes) {
 
 console.log("\n⚠️  These are 1x1 pixel placeholders.");
 console.log("   Replace with proper icons before Chrome Web Store submission.");
-
-

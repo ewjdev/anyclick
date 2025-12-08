@@ -189,6 +189,20 @@ const STYLES = {
     transition: background-color 0.15s;
     min-height: 38px;
   `,
+  t3chatItem: `
+    background: #241020;
+    color: #f8e8f8;
+    border: 1px solid #6d1f4f;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: background 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+  `,
+  t3chatItemHover: `
+    background: linear-gradient(135deg, #8c1c52 0%, #b9355f 100%);
+    color: #fdf7ff;
+    border-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+  `,
   itemHover: `
     background-color: #f5f5f5;
   `,
@@ -364,15 +378,26 @@ function renderHeader(): HTMLElement {
 }
 
 function renderMenuItem(item: ExtensionMenuItem): HTMLElement {
-  const btn = createElement("button", STYLES.item);
+  const isT3Chat = item.type === "t3chat";
+  const baseStyles = isT3Chat
+    ? `${STYLES.item} ${STYLES.t3chatItem}`
+    : STYLES.item;
+  const btn = createElement("button", baseStyles);
 
   if (item.icon) {
     const iconSpan = createElement("span", STYLES.itemIcon, item.icon);
+    if (isT3Chat) {
+      iconSpan.style.filter = "brightness(1.05)";
+    }
     btn.appendChild(iconSpan);
   }
 
   const labelSpan = createElement("span", STYLES.itemLabel);
   labelSpan.textContent = item.label;
+  if (isT3Chat) {
+    labelSpan.style.color = "#fdf7ff";
+    labelSpan.style.fontWeight = "600";
+  }
   btn.appendChild(labelSpan);
 
   if (item.children && item.children.length > 0) {
@@ -382,10 +407,18 @@ function renderMenuItem(item: ExtensionMenuItem): HTMLElement {
 
   // Hover effects
   btn.addEventListener("mouseenter", () => {
-    btn.style.backgroundColor = "#f5f5f5";
+    if (isT3Chat) {
+      btn.setAttribute("style", `${baseStyles}; ${STYLES.t3chatItemHover}`);
+    } else {
+      btn.style.backgroundColor = "#f5f5f5";
+    }
   });
   btn.addEventListener("mouseleave", () => {
-    btn.style.backgroundColor = "transparent";
+    if (isT3Chat) {
+      btn.setAttribute("style", baseStyles);
+    } else {
+      btn.style.backgroundColor = "transparent";
+    }
   });
 
   // Click handler

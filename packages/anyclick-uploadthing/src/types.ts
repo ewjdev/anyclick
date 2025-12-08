@@ -54,28 +54,15 @@ export interface UploadThingAdapterOptions {
 
 /**
  * Configuration options for UploadThing server adapter
+ * Uses the official UTApi from uploadthing/server
+ * @see https://docs.uploadthing.com/api-reference/ut-api
  */
 export interface UploadThingServerOptions {
   /**
    * UploadThing API token (required)
+   * Get this from https://uploadthing.com/dashboard
    */
   token: string;
-
-  /**
-   * App ID for UploadThing
-   */
-  appId?: string;
-
-  /**
-   * Whether this is a self-hosted UploadThing instance
-   * @default false
-   */
-  selfHosted?: boolean;
-
-  /**
-   * Custom API URL for self-hosted instances
-   */
-  apiUrl?: string;
 }
 
 /**
@@ -103,7 +90,13 @@ export interface ImageDetectionResult {
   /** Whether the element is an image or contains an image */
   isImage: boolean;
   /** The type of image detected */
-  imageType?: "img" | "picture" | "svg" | "canvas" | "background" | "video-poster";
+  imageType?:
+    | "img"
+    | "picture"
+    | "svg"
+    | "canvas"
+    | "background"
+    | "video-poster";
   /** The image source URL if available */
   src?: string;
   /** The element containing the image */
