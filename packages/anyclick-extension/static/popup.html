@@ -6,128 +6,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Anyclick</title>
   <link rel="stylesheet" href="popup.css" />
+  <style>
+    /* Base styles for loading state */
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-width: 380px;
+      min-height: 400px;
+    }
+
+    #root {
+      min-height: 400px;
+    }
+  </style>
 </head>
 
-<body data-anyclick-root>
-  <div class="container">
-    <header class="header">
-      <h1 class="title">Anyclick</h1>
-      <div class="toggle-container">
-        <label class="toggle">
-          <input type="checkbox" id="enableToggle" checked />
-          <span class="slider"></span>
-        </label>
-        <span class="toggle-label" id="toggleLabel">Enabled</span>
-      </div>
-    </header>
-
-    <section class="settings">
-      <h2 class="section-title">Capture Settings</h2>
-      <div class="field">
-        <label for="endpoint">Endpoint URL</label>
-        <input type="url" id="endpoint" placeholder="https://your-api.com/feedback" />
-      </div>
-      <div class="field">
-        <label for="token">Auth Token (optional)</label>
-        <input type="password" id="token" placeholder="Bearer token..." />
-      </div>
-    </section>
-
-    <section class="settings">
-      <h2 class="section-title">Context Menu</h2>
-      <div class="field">
-        <div class="field-header">
-          <label>Override native menu</label>
-          <label class="toggle small">
-            <input type="checkbox" id="customMenuOverride" checked />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <p class="field-description">Replace the browser's default right-click menu with Anyclick's custom menu</p>
-      </div>
-    </section>
-
-    <section class="settings integrations">
-      <h2 class="section-title">Integrations</h2>
-
-      <div class="integration-group">
-        <div class="integration-header">
-          <span class="integration-name">UploadThing</span>
-          <label class="toggle small">
-            <input type="checkbox" id="uploadthingEnabled" />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="field">
-          <label for="uploadthingEndpoint">Upload Endpoint</label>
-          <input type="url" id="uploadthingEndpoint" placeholder="https://your-app.com/api/uploadthing" />
-        </div>
-        <div class="field">
-          <label for="uploadthingToken">API Token (optional)</label>
-          <input type="password" id="uploadthingToken" placeholder="ut_..." />
-        </div>
-      </div>
-
-      <div class="integration-group">
-        <div class="integration-header">
-          <span class="integration-name">t3.chat</span>
-          <label class="toggle small">
-            <input type="checkbox" id="t3chatEnabled" checked />
-            <span class="slider"></span>
-          </label>
-        </div>
-        <div class="field">
-          <label for="t3chatBaseUrl">Base URL</label>
-          <input type="url" id="t3chatBaseUrl" placeholder="https://t3.chat" value="https://t3.chat" />
-        </div>
-        <div class="field">
-          <div class="field-header">
-            <label>Auto-refine prompts</label>
-            <label class="toggle small">
-              <input type="checkbox" id="t3chatAutoRefine" checked />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <p class="field-description">Use AI to refine selected text before sending to t3.chat</p>
-        </div>
-        <div class="field">
-          <div class="field-header">
-            <label for="t3chatRefineEndpoint">Refine API Endpoint</label>
-            <button type="button" class="test-btn" id="testRefineEndpoint">Test</button>
-          </div>
-          <input type="url" id="t3chatRefineEndpoint" placeholder="http://localhost:3000/api/anyclick/chat"
-            value="http://localhost:3000/api/anyclick/chat" />
-          <p class="field-description" id="testResult">API endpoint for prompt refinement (use localhost for dev)</p>
-        </div>
-        <div class="field">
-          <div class="field-header">
-            <label for="t3chatSystemPrompt">System Prompt</label>
-            <button type="button" class="reset-btn" id="resetSystemPrompt">Reset</button>
-          </div>
-          <textarea id="t3chatSystemPrompt" rows="4"
-            placeholder="Custom instructions for prompt refinement..."></textarea>
-          <span class="char-count" id="systemPromptCharCount">0 / 1000</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="status" id="statusSection">
-      <div class="status-item">
-        <span class="status-label">Last capture:</span>
-        <span class="status-value" id="lastCapture">None</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">Status:</span>
-        <span class="status-value" id="lastStatus">Ready</span>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <button class="save-btn" id="saveBtn">Save Settings</button>
-      <a href="https://anyclick.ewj.dev/docs/extension" target="_blank" class="help-link">Help</a>
-    </footer>
-  </div>
-
+<body>
+  <div id="root"></div>
   <script src="popup.js"></script>
 </body>
 

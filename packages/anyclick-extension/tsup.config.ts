@@ -1,5 +1,11 @@
 import { defineConfig } from "tsup";
 
+const define = {
+  "process.env.NODE_ENV": JSON.stringify("production"),
+  // Ensure process is defined for browser builds; avoids runtime ReferenceError
+  process: "{}",
+};
+
 export default defineConfig([
   // Background service worker
   {
@@ -12,6 +18,10 @@ export default defineConfig([
     sourcemap: false,
     splitting: false,
     noExternal: [/.*/],
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
   // Content script (injected into pages)
   {
@@ -25,10 +35,14 @@ export default defineConfig([
     splitting: false,
     noExternal: [/.*/],
     globalName: "AnyclickContent",
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
-  // Popup script
+  // Popup script (React)
   {
-    entry: { popup: "src/popup.ts" },
+    entry: { popup: "src/popup/index.tsx" },
     format: ["iife"],
     outDir: "dist",
     outExtension: () => ({ js: ".js" }),
@@ -38,6 +52,11 @@ export default defineConfig([
     splitting: false,
     noExternal: [/.*/],
     globalName: "AnyclickPopup",
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+      options.jsx = "automatic";
+    },
   },
   // DevTools entry script
   {
@@ -51,6 +70,10 @@ export default defineConfig([
     splitting: false,
     noExternal: [/.*/],
     globalName: "AnyclickDevTools",
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
   // DevTools panel script
   {
@@ -64,6 +87,10 @@ export default defineConfig([
     splitting: false,
     noExternal: [/.*/],
     globalName: "AnyclickPanel",
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
   // Inspector window script (standalone popup)
   {
@@ -77,6 +104,10 @@ export default defineConfig([
     splitting: false,
     noExternal: [/.*/],
     globalName: "AnyclickInspector",
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
   // Types export (for consumers who want to work with payloads)
   {
@@ -87,5 +118,9 @@ export default defineConfig([
     dts: true,
     sourcemap: false,
     splitting: false,
+    define,
+    esbuildOptions(options) {
+      options.conditions = ["style", "import", "module", "default"];
+    },
   },
 ]);

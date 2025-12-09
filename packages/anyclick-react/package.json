@@ -55,7 +55,8 @@
     "@ewjdev/anyclick-core": "^1.4.0",
     "@ewjdev/anyclick-pointer": "^3.0.0",
     "lucide-react": "^0.475.0",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.2",
+    "tailwindcss": "4.1.17"
   },
   "peerDependencies": {
     "react": ">=19.2.1",
@@ -71,8 +72,8 @@
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
     "rimraf": "^6.0.1",
-    "tailwindcss": "4.0.0-alpha.13",
-    "vite": "^5.2.0"
+    "vite": "^5.2.0",
+    "@tailwindcss/vite": "4.1.17"
   },
   "engines": {
     "node": ">=18.18.0"

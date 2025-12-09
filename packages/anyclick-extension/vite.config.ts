@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { defineConfig } from "vite";
 
@@ -6,6 +7,7 @@ export default defineConfig({
   css: {
     postcss: path.resolve(__dirname, "postcss.config.cjs"),
   },
+  plugins: [tailwindcss()],
   build: {
     outDir: "dist/vite",
     sourcemap: true,

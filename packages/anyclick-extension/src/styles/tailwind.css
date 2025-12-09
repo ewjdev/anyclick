@@ -1,5 +1,19 @@
 @import "./tokens.css";
+@import "tailwindcss" prefix(ac);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Source paths for content scanning */
+@source "../popup/**/*.tsx";
+@source "../overlay.tsx";
+
+/* Custom theme extensions using CSS variables */
+@theme {
+  --color-surface: var(--ac-surface);
+  --color-surface-muted: var(--ac-surface-muted);
+  --color-border: var(--ac-border);
+  --color-text: var(--ac-text);
+  --color-text-muted: var(--ac-text-muted);
+  --color-accent: var(--ac-accent);
+  --color-accent-muted: var(--ac-accent-muted);
+  --color-accent-foreground: var(--ac-accent-foreground);
+  --color-destructive: var(--ac-destructive);
+}

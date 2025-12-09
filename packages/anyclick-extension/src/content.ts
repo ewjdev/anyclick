@@ -5,6 +5,7 @@ import {
   isMenuVisible,
   showMenu,
 } from "./contextMenu";
+import { mountOverlay, unmountOverlay } from "./overlay";
 import {
   type ActionMetadata,
   type AncestorInfo,
@@ -620,6 +621,10 @@ chrome.runtime.onMessage.addListener(
           });
         });
       return true; // Async response
+    } else if (message.type === "PING") {
+      // Simple liveness check so popup can show refresh CTA if needed.
+      sendResponse({ ok: true });
+      return true;
     } else if (message.type === "SET_ENABLED_STATE") {
       // Update enabled state immediately on the current tab (no refresh)
       chrome.storage.local.get(
@@ -629,6 +634,7 @@ chrome.runtime.onMessage.addListener(
             result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
             DEFAULTS.CUSTOM_MENU_OVERRIDE;
           customMenuEnabled = Boolean(message.enabled) && menuOverride;
+          syncOverlayMount();
           sendResponse({ enabled: customMenuEnabled });
         },
       );
@@ -965,7 +971,10 @@ async function handleCapture(): Promise<void> {
     }
 
     if (!settings.endpoint) {
-      showToast("Configure endpoint in extension popup", "warning");
+      showToast(
+        "No action taken. Configure endpoint in extension popup",
+        "warning",
+      );
       return;
     }
 
@@ -1029,7 +1038,10 @@ async function handleFeedbackCapture(
     }
 
     if (!settings.endpoint) {
-      showToast("Configure endpoint in extension popup", "warning");
+      showToast(
+        "No action taken. Configure endpoint in extension popup",
+        "warning",
+      );
       return;
     }
 
@@ -1363,6 +1375,7 @@ async function requestScreenshot(): Promise<ScreenshotResponseMessage> {
       type: "SCREENSHOT_RESPONSE",
       success: false,
       error: message,
+      timestamp: new Date().toISOString(),
     };
   }
 }
@@ -1716,6 +1729,7 @@ function loadCustomMenuSetting(): void {
         DEFAULTS.CUSTOM_MENU_OVERRIDE;
       // Both must be true for context menu override to work
       customMenuEnabled = extensionEnabled && menuOverride;
+      syncOverlayMount();
     },
   );
 }
@@ -1742,6 +1756,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           DEFAULTS.CUSTOM_MENU_OVERRIDE;
         // Both must be true for context menu override to work
         customMenuEnabled = extensionEnabled && menuOverride;
+        syncOverlayMount();
       },
     );
   }
@@ -1749,3 +1764,14 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 // Initialize custom menu setting on load
 loadCustomMenuSetting();
+
+/**
+ * Ensure the React overlay matches current enabled state.
+ */
+function syncOverlayMount(): void {
+  if (customMenuEnabled) {
+    mountOverlay();
+  } else {
+    unmountOverlay();
+  }
+}
