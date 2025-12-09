@@ -23,11 +23,24 @@ export function SettingsSection({
   return (
     <div className="ac:space-y-4">
       <div className="ac:space-y-2">
+        <div className="ac:flex ac:items-center ac:justify-between ac:py-2">
+          <div className="ac:space-y-0.5">
+            <Label>Override Native Menu</Label>
+            <p className="ac:text-xs ac:text-text-muted">
+              Replace browser's right-click menu
+            </p>
+          </div>
+          <Switch
+            checked={customMenuOverride}
+            onCheckedChange={onCustomMenuOverrideChange}
+            disabled={disabled}
+          />
+        </div>
         <div className="ac:flex ac:items-center ac:gap-2">
           <Label htmlFor="endpoint">Capture Endpoint</Label>
           <Tooltip
             content={
-              <div className="ac:space-y-1">
+              <div className="ac:space-y-1 w-[200px]">
                 <p>
                   The API endpoint where captured feedback will be sent. This
                   should be a POST endpoint that accepts JSON payloads.
@@ -124,20 +137,6 @@ export function SettingsSection({
         <p className="ac:text-xs ac:text-text-muted">
           Authentication token for your API endpoint
         </p>
-      </div>
-
-      <div className="ac:flex ac:items-center ac:justify-between ac:py-2">
-        <div className="ac:space-y-0.5">
-          <Label>Override Native Menu</Label>
-          <p className="ac:text-xs ac:text-text-muted">
-            Replace browser's right-click menu
-          </p>
-        </div>
-        <Switch
-          checked={customMenuOverride}
-          onCheckedChange={onCustomMenuOverrideChange}
-          disabled={disabled}
-        />
       </div>
     </div>
   );

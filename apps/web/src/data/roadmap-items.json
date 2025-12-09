@@ -200,15 +200,32 @@
       "source": "manual",
       "type": "feature",
       "title": "Workflow Recording",
-      "description": "Record sequences of user actions and clicks to capture complete user flows.",
+      "description": "Record complete user workflows with manual and event-based recording modes. Capture sequences of user actions, clicks, and interactions to document user flows, create test scenarios, or analyze user behavior. Recordings can be saved to the anyclick platform or self-hosted for full control over your data.",
       "era": "mid-term",
       "status": "open",
       "url": null,
-      "labels": ["recording", "ux"],
-      "tags": ["homepage:pm"],
+      "labels": ["recording", "ux", "analytics"],
+      "tags": ["homepage:pm", "homepage:qa", "homepage:developer"],
       "assignees": [],
-      "todos": [],
-      "updatedAt": "2024-12-05T00:00:00Z"
+      "todos": [
+        {
+          "completed": false,
+          "text": "Manual recording mode: Start/stop recording with user controls"
+        },
+        {
+          "completed": false,
+          "text": "Event-based recording: Automatically capture user interactions"
+        },
+        {
+          "completed": false,
+          "text": "Save to anyclick platform: Cloud storage and management"
+        },
+        {
+          "completed": false,
+          "text": "Self-hosted option: Export and store recordings locally"
+        }
+      ],
+      "updatedAt": "2025-01-08T00:00:00Z"
     },
     {
       "id": "plan-no-buttons",

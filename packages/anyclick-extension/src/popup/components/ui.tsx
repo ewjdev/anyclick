@@ -112,7 +112,8 @@ export function Switch({
       onClick={() => onCheckedChange(!checked)}
       className={cn(
         "ac:relative ac:inline-flex ac:h-5 ac:w-9 ac:shrink-0 ac:cursor-pointer ac:rounded-full ac:border-2 ac:transition-colors focus-visible:ac:outline focus-visible:ac:outline-2 focus-visible:ac:outline-offset-2 focus-visible:ac:outline-accent disabled:ac:cursor-not-allowed disabled:ac:opacity-50",
-        checked ? "ac:bg-accent ac:border-transparent" : "ac:bg-surface-muted",
+        checked ? "ac:bg-accent ac:border-green-500/50" : "ac:bg-surface-muted",
+        disabled ? "ac:opacity-10 ac:cursor-not-allowed" : "",
       )}
       style={
         !checked
@@ -269,9 +270,10 @@ export function Alert({
 type TooltipProps = {
   content: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 };
 
-export function Tooltip({ content, children }: TooltipProps) {
+export function Tooltip({ content, children, className }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   return (
@@ -288,7 +290,11 @@ export function Tooltip({ content, children }: TooltipProps) {
       {isVisible && (
         <div
           role="tooltip"
-          className="ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:bg-surface-muted ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none"
+          className={cn(
+            "ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:bg-surface-muted ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none",
+            "ac:bg-blur-md",
+            className,
+          )}
         >
           {content}
           <div className="ac:absolute ac:top-full ac:left-1/2 ac:-translate-x-1/2 ac:-mt-px ac:w-0 ac:h-0 ac:border-l-4 ac:border-r-4 ac:border-t-4 ac:border-transparent ac:border-t-border" />

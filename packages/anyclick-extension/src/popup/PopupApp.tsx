@@ -143,11 +143,25 @@ export function PopupApp() {
   const handleRefresh = useCallback(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tabId = tabs[0]?.id;
-      if (tabId) {
-        chrome.tabs.reload(tabId);
-      }
+      if (!tabId) return;
+
+      const handleUpdated = (
+        updatedTabId: number,
+        info: chrome.tabs.TabChangeInfo,
+      ) => {
+        if (updatedTabId !== tabId || info.status !== "complete") return;
+
+        chrome.tabs.onUpdated.removeListener(handleUpdated);
+
+        // Allow the refreshed tab a moment to re-inject the content script,
+        // then re-check liveness so the warning can clear.
+        setTimeout(checkContentLiveness, 200);
+      };
+
+      chrome.tabs.onUpdated.addListener(handleUpdated);
+      chrome.tabs.reload(tabId);
     });
-  }, []);
+  }, [checkContentLiveness]);
 
   // Show toast
   const showToast = useCallback((message: string, error = false) => {

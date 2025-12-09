@@ -9,8 +9,8 @@ interface HeaderProps {
 
 export function Header({ enabled, onEnabledChange, disabled }: HeaderProps) {
   return (
-    <div className="ac:flex ac:items-center ac:justify-between ac:p-4 ac:border-b ac:border-border">
-      <div className="ac:flex ac:items-center ac:gap-3">
+    <div className="ac:flex ac:items-center ac:justify-between ac:p-2 ac:border-b ac:border-border">
+      <div className="ac:flex ac:items-center ac:gap-1">
         <div className="ac:w-8 ac:h-8 ac:rounded-lg ac:bg-accent ac:flex ac:items-center ac:justify-center">
           <svg
             width="18"
