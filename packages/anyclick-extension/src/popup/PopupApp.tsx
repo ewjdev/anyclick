@@ -55,6 +55,9 @@ export function PopupApp() {
 
   const [contentLive, setContentLive] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savedSettings, setSavedSettings] = useState<Record<string, unknown>>(
+    {},
+  );
   const [toast, setToast] = useState<{
     message: string;
     error?: boolean;
@@ -109,8 +112,12 @@ export function PopupApp() {
   useEffect(() => {
     if (!loading) {
       checkContentLiveness();
+      // Initialize saved settings when first loaded
+      if (Object.keys(savedSettings).length === 0) {
+        setSavedSettings({ ...settings });
+      }
     }
-  }, [loading, checkContentLiveness]);
+  }, [loading, checkContentLiveness, settings, savedSettings]);
 
   // Notify active tab on enable change
   const handleEnabledChange = useCallback(
@@ -185,7 +192,7 @@ export function PopupApp() {
 
     setSaving(true);
     try {
-      await setSettings({
+      const settingsToSave = {
         [STORAGE_KEYS.ENDPOINT]: endpoint,
         [STORAGE_KEYS.TOKEN]: token,
         [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: customMenuOverride,
@@ -199,7 +206,9 @@ export function PopupApp() {
         [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: t3chatSystemPrompt,
         [STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT]:
           t3chatRefineEndpoint || DEFAULTS.T3CHAT_REFINE_ENDPOINT,
-      });
+      };
+      await setSettings(settingsToSave);
+      setSavedSettings({ ...settings, ...settingsToSave });
       showToast("Settings saved!");
       checkContentLiveness();
     } catch {
@@ -280,6 +289,40 @@ export function PopupApp() {
     }
   })();
 
+  // Check if settings are dirty (have unsaved changes)
+  const isDirty = (() => {
+    if (Object.keys(savedSettings).length === 0) return false;
+    const relevantKeys = [
+      STORAGE_KEYS.ENDPOINT,
+      STORAGE_KEYS.TOKEN,
+      STORAGE_KEYS.CUSTOM_MENU_OVERRIDE,
+      STORAGE_KEYS.UPLOADTHING_ENABLED,
+      STORAGE_KEYS.UPLOADTHING_ENDPOINT,
+      STORAGE_KEYS.UPLOADTHING_API_KEY,
+      STORAGE_KEYS.T3CHAT_ENABLED,
+      STORAGE_KEYS.T3CHAT_BASE_URL,
+      STORAGE_KEYS.T3CHAT_AUTO_REFINE,
+      STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT,
+      STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT,
+    ];
+    return relevantKeys.some((key) => {
+      const current = settings[key];
+      const saved = savedSettings[key];
+      // Handle empty string vs default values
+      if (key === STORAGE_KEYS.T3CHAT_BASE_URL) {
+        const currentVal = current || DEFAULTS.T3CHAT_BASE_URL;
+        const savedVal = saved || DEFAULTS.T3CHAT_BASE_URL;
+        return currentVal !== savedVal;
+      }
+      if (key === STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT) {
+        const currentVal = current || DEFAULTS.T3CHAT_REFINE_ENDPOINT;
+        const savedVal = saved || DEFAULTS.T3CHAT_REFINE_ENDPOINT;
+        return currentVal !== savedVal;
+      }
+      return current !== saved;
+    });
+  })();
+
   if (loading) {
     return (
       <div
@@ -292,7 +335,10 @@ export function PopupApp() {
   }
 
   return (
-    <div data-anyclick-root className="ac:w-[380px] ac:bg-surface ac:text-text">
+    <div
+      data-anyclick-root
+      className="ac:w-[380px] ac:min-h-[600px] ac:max-h-[600px] ac:bg-surface ac:text-text ac:flex ac:flex-col ac:overflow-hidden"
+    >
       <Header enabled={enabled} onEnabledChange={handleEnabledChange} />
 
       {!contentLive && (
@@ -302,102 +348,110 @@ export function PopupApp() {
         />
       )}
 
-      <div className="ac:p-4 ac:space-y-4">
-        {/* Status */}
-        <div className="ac:flex ac:items-center ac:justify-between ac:text-xs">
-          <div className="ac:flex ac:items-center ac:gap-2">
-            <span className="ac:text-text-muted">Last capture:</span>
-            <span className="ac:text-text">
-              {formatRelativeTime(lastCapture)}
-            </span>
+      <div className="ac:flex-1 ac:overflow-y-auto">
+        <div className="ac:p-4 ac:space-y-4">
+          {/* Status */}
+          <div className="ac:flex ac:items-center ac:justify-between ac:text-xs">
+            <div className="ac:flex ac:items-center ac:gap-2">
+              <span className="ac:text-text-muted">Last capture:</span>
+              <span className="ac:text-text">
+                {formatRelativeTime(lastCapture)}
+              </span>
+            </div>
+            <div className="ac:flex ac:items-center ac:gap-2">
+              <span className="ac:text-text-muted">Status:</span>
+              <span
+                className={
+                  parsedStatus.success
+                    ? "ac:text-green-400"
+                    : "ac:text-destructive"
+                }
+              >
+                {parsedStatus.message}
+              </span>
+            </div>
           </div>
-          <div className="ac:flex ac:items-center ac:gap-2">
-            <span className="ac:text-text-muted">Status:</span>
-            <span
-              className={
-                parsedStatus.success
-                  ? "ac:text-green-400"
-                  : "ac:text-destructive"
-              }
-            >
-              {parsedStatus.message}
-            </span>
-          </div>
-        </div>
 
-        <Separator />
+          <Separator />
 
-        {/* General Settings */}
-        <SettingsSection
-          endpoint={endpoint}
-          token={token}
-          customMenuOverride={customMenuOverride}
-          onEndpointChange={(v) => setSettings({ [STORAGE_KEYS.ENDPOINT]: v })}
-          onTokenChange={(v) => setSettings({ [STORAGE_KEYS.TOKEN]: v })}
-          onCustomMenuOverrideChange={(v) =>
-            setSettings({ [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: v })
-          }
-          disabled={!enabled}
-        />
+          {/* General Settings */}
+          <SettingsSection
+            endpoint={endpoint}
+            token={token}
+            customMenuOverride={customMenuOverride}
+            onEndpointChange={(v) =>
+              setSettings({ [STORAGE_KEYS.ENDPOINT]: v })
+            }
+            onTokenChange={(v) => setSettings({ [STORAGE_KEYS.TOKEN]: v })}
+            onCustomMenuOverrideChange={(v) =>
+              setSettings({ [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: v })
+            }
+            disabled={!enabled}
+          />
 
-        <Separator />
+          <Separator />
 
-        {/* Adapters */}
-        <div className="ac:space-y-2">
-          <h2 className="ac:text-sm ac:font-semibold ac:text-text">
-            Integrations
-          </h2>
+          {/* Adapters */}
           <div className="ac:space-y-2">
-            <T3ChatAdapter
-              enabled={t3chatEnabled}
-              baseUrl={t3chatBaseUrl}
-              autoRefine={t3chatAutoRefine}
-              systemPrompt={t3chatSystemPrompt}
-              refineEndpoint={t3chatRefineEndpoint}
-              onEnabledChange={(v) =>
-                setSettings({ [STORAGE_KEYS.T3CHAT_ENABLED]: v })
-              }
-              onBaseUrlChange={(v) =>
-                setSettings({ [STORAGE_KEYS.T3CHAT_BASE_URL]: v })
-              }
-              onAutoRefineChange={(v) =>
-                setSettings({ [STORAGE_KEYS.T3CHAT_AUTO_REFINE]: v })
-              }
-              onSystemPromptChange={(v) =>
-                setSettings({ [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: v })
-              }
-              onRefineEndpointChange={(v) =>
-                setSettings({ [STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT]: v })
-              }
-              onResetSystemPrompt={handleResetSystemPrompt}
-              onTestEndpoint={handleTestT3ChatEndpoint}
-              disabled={!enabled}
-              defaultSystemPrompt={DEFAULT_T3CHAT_SYSTEM_PROMPT}
-            />
+            <h2 className="ac:text-sm ac:font-semibold ac:text-text">
+              Integrations
+            </h2>
+            <div className="ac:space-y-2">
+              <T3ChatAdapter
+                enabled={t3chatEnabled}
+                baseUrl={t3chatBaseUrl}
+                autoRefine={t3chatAutoRefine}
+                systemPrompt={t3chatSystemPrompt}
+                refineEndpoint={t3chatRefineEndpoint}
+                onEnabledChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.T3CHAT_ENABLED]: v })
+                }
+                onBaseUrlChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.T3CHAT_BASE_URL]: v })
+                }
+                onAutoRefineChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.T3CHAT_AUTO_REFINE]: v })
+                }
+                onSystemPromptChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT]: v })
+                }
+                onRefineEndpointChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT]: v })
+                }
+                onResetSystemPrompt={handleResetSystemPrompt}
+                onTestEndpoint={handleTestT3ChatEndpoint}
+                disabled={!enabled}
+                defaultSystemPrompt={DEFAULT_T3CHAT_SYSTEM_PROMPT}
+              />
 
-            <UploadThingAdapter
-              enabled={uploadthingEnabled}
-              endpoint={uploadthingEndpoint}
-              apiKey={uploadthingApiKey}
-              onEnabledChange={(v) =>
-                setSettings({ [STORAGE_KEYS.UPLOADTHING_ENABLED]: v })
-              }
-              onEndpointChange={(v) =>
-                setSettings({ [STORAGE_KEYS.UPLOADTHING_ENDPOINT]: v })
-              }
-              onApiKeyChange={(v) =>
-                setSettings({ [STORAGE_KEYS.UPLOADTHING_API_KEY]: v })
-              }
-              disabled={!enabled}
-            />
+              <UploadThingAdapter
+                enabled={uploadthingEnabled}
+                endpoint={uploadthingEndpoint}
+                apiKey={uploadthingApiKey}
+                onEnabledChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.UPLOADTHING_ENABLED]: v })
+                }
+                onEndpointChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.UPLOADTHING_ENDPOINT]: v })
+                }
+                onApiKeyChange={(v) =>
+                  setSettings({ [STORAGE_KEYS.UPLOADTHING_API_KEY]: v })
+                }
+                disabled={!enabled}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="ac:p-4 ac:border-t ac:border-border">
+      {/* Footer - Pinned to bottom */}
+      <div className="ac:flex-shrink-0 ac:p-4 ac:border-t ac:border-border ac:bg-surface">
         <Button
-          className="ac:w-full"
+          className={`ac:w-full ac:transition-all ${
+            isDirty
+              ? "ac:bg-accent-muted hover:ac:bg-accent-muted/90 ac:border-accent/30"
+              : ""
+          }`}
           onClick={handleSave}
           disabled={!enabled || saving}
         >

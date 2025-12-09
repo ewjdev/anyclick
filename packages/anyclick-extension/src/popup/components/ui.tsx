@@ -3,6 +3,7 @@ import React, {
   InputHTMLAttributes,
   TextareaHTMLAttributes,
   forwardRef,
+  useState,
 } from "react";
 
 function cn(...classes: Array<string | false | null | undefined>) {
@@ -110,9 +111,16 @@ export function Switch({
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn(
-        "ac:relative ac:inline-flex ac:h-5 ac:w-9 ac:shrink-0 ac:cursor-pointer ac:rounded-full ac:border-2 ac:border-transparent ac:transition-colors focus-visible:ac:outline focus-visible:ac:outline-2 focus-visible:ac:outline-offset-2 focus-visible:ac:outline-accent disabled:ac:cursor-not-allowed disabled:ac:opacity-50",
-        checked ? "ac:bg-accent" : "ac:bg-border",
+        "ac:relative ac:inline-flex ac:h-5 ac:w-9 ac:shrink-0 ac:cursor-pointer ac:rounded-full ac:border-2 ac:transition-colors focus-visible:ac:outline focus-visible:ac:outline-2 focus-visible:ac:outline-offset-2 focus-visible:ac:outline-accent disabled:ac:cursor-not-allowed disabled:ac:opacity-50",
+        checked ? "ac:bg-accent ac:border-transparent" : "ac:bg-surface-muted",
       )}
+      style={
+        !checked
+          ? {
+              borderColor: "var(--ac-toggle-border)",
+            }
+          : undefined
+      }
     >
       <span
         className={cn(
@@ -252,6 +260,40 @@ export function Alert({
       {...props}
     >
       {children}
+    </div>
+  );
+}
+
+// ========== Tooltip ==========
+
+type TooltipProps = {
+  content: React.ReactNode;
+  children: React.ReactNode;
+};
+
+export function Tooltip({ content, children }: TooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <div className="ac:relative ac:inline-flex">
+      <div
+        onMouseEnter={() => setIsVisible(true)}
+        onMouseLeave={() => setIsVisible(false)}
+        onFocus={() => setIsVisible(true)}
+        onBlur={() => setIsVisible(false)}
+        className="ac:cursor-help"
+      >
+        {children}
+      </div>
+      {isVisible && (
+        <div
+          role="tooltip"
+          className="ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:bg-surface-muted ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none"
+        >
+          {content}
+          <div className="ac:absolute ac:top-full ac:left-1/2 ac:-translate-x-1/2 ac:-mt-px ac:w-0 ac:h-0 ac:border-l-4 ac:border-r-4 ac:border-t-4 ac:border-transparent ac:border-t-border" />
+        </div>
+      )}
     </div>
   );
 }

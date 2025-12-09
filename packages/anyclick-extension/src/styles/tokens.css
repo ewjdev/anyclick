@@ -12,6 +12,9 @@
   --ac-accent-foreground: #0b1020;
   --ac-destructive: #ef4444;
 
+  /* Toggle border for unchecked state */
+  --ac-toggle-border: rgba(156, 163, 175, 0.4);
+
   /* Layout */
   --ac-gap: 0.5rem;
   --ac-pad: 0.75rem;
