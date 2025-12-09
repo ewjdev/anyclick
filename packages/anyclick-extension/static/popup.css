@@ -109,6 +109,15 @@ body {
   transform: translateX(14px);
 }
 
+.toggle input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle input:disabled {
+  cursor: not-allowed;
+}
+
 .settings {
   display: flex;
   flex-direction: column;
@@ -199,6 +208,17 @@ body {
 .field input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.field input:disabled {
+  background: #0f0f0f;
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.field input:disabled::placeholder {
+  color: #333;
 }
 
 .status {
@@ -310,6 +330,123 @@ body {
 
 .toast.error {
   background: #ef4444;
+}
+
+/* Field header with inline controls */
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-header label {
+  margin-bottom: 0;
+}
+
+/* Field description text */
+.field-description {
+  font-size: 10px;
+  color: #666;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* Textarea styles */
+.field textarea {
+  background: #0f0f0f;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-family: "SF Mono", Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+  color: #e0e0e0;
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.field textarea::placeholder {
+  color: #555;
+}
+
+.field textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.field textarea:disabled {
+  background: #0f0f0f;
+  color: #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.field textarea:disabled::placeholder {
+  color: #333;
+}
+
+/* Character count */
+.char-count {
+  font-size: 10px;
+  color: #555;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.char-count.over-limit {
+  color: #ef4444;
+}
+
+/* Reset button */
+.reset-btn {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #888;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.reset-btn:hover {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #e0e0e0;
+}
+
+.reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Test button */
+.test-btn {
+  background: #3b82f6;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+
+.test-btn:hover {
+  background: #2563eb;
+}
+
+.test-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 

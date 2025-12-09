@@ -1,5 +1,22 @@
 # @ewjdev/anyclick-react
 
+## 3.0.0
+
+### Minor Changes
+
+- Add QuickChat component and presets for inline AI chat in context menu
+
+  - Add `QuickChat` component with type-to-chat functionality
+  - Add element context extraction and suggested prompts
+  - Add pinnable drawer mode support
+  - Add `presets` export with pre-configured QuickChat setups
+  - Update peer dependencies to React 19.2.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @ewjdev/anyclick-pointer@3.0.0
+
 ## 2.0.0
 
 ### Major Changes

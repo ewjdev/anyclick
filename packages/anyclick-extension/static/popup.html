@@ -33,6 +33,20 @@
       </div>
     </section>
 
+    <section class="settings">
+      <h2 class="section-title">Context Menu</h2>
+      <div class="field">
+        <div class="field-header">
+          <label>Override native menu</label>
+          <label class="toggle small">
+            <input type="checkbox" id="customMenuOverride" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="field-description">Replace the browser's default right-click menu with Anyclick's custom menu</p>
+      </div>
+    </section>
+
     <section class="settings integrations">
       <h2 class="section-title">Integrations</h2>
 
@@ -65,6 +79,34 @@
         <div class="field">
           <label for="t3chatBaseUrl">Base URL</label>
           <input type="url" id="t3chatBaseUrl" placeholder="https://t3.chat" value="https://t3.chat" />
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label>Auto-refine prompts</label>
+            <label class="toggle small">
+              <input type="checkbox" id="t3chatAutoRefine" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p class="field-description">Use AI to refine selected text before sending to t3.chat</p>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label for="t3chatRefineEndpoint">Refine API Endpoint</label>
+            <button type="button" class="test-btn" id="testRefineEndpoint">Test</button>
+          </div>
+          <input type="url" id="t3chatRefineEndpoint" placeholder="http://localhost:3000/api/anyclick/chat"
+            value="http://localhost:3000/api/anyclick/chat" />
+          <p class="field-description" id="testResult">API endpoint for prompt refinement (use localhost for dev)</p>
+        </div>
+        <div class="field">
+          <div class="field-header">
+            <label for="t3chatSystemPrompt">System Prompt</label>
+            <button type="button" class="reset-btn" id="resetSystemPrompt">Reset</button>
+          </div>
+          <textarea id="t3chatSystemPrompt" rows="4"
+            placeholder="Custom instructions for prompt refinement..."></textarea>
+          <span class="char-count" id="systemPromptCharCount">0 / 1000</span>
         </div>
       </div>
     </section>

@@ -9,12 +9,16 @@ import {
   type ActionMetadata,
   type AncestorInfo,
   type CapturePayload,
+  DEFAULTS,
+  DEFAULT_T3CHAT_SYSTEM_PROMPT,
   type ElementContext,
   type ExtensionMessage,
   PERF_LIMITS,
   type PageContext,
+  STORAGE_KEYS,
   type ScreenshotResponseMessage,
   type SettingsResponseMessage,
+  type T3ChatRefinementContext,
   createMessage,
 } from "./types";
 
@@ -42,7 +46,7 @@ let lastMouseY = 0;
 let mouseMoveTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Whether the custom context menu is enabled */
-let customMenuEnabled = true;
+let customMenuEnabled = DEFAULTS.CUSTOM_MENU_OVERRIDE;
 
 // ========== Event Listeners ==========
 
@@ -83,7 +87,8 @@ document.addEventListener(
       return;
     }
 
-    // Skip if custom menu is disabled or if already showing our menu
+    // Skip if extension is disabled, custom menu is disabled, or if already showing our menu
+    // Check both main enabled toggle and custom menu override setting
     if (!customMenuEnabled || isMenuVisible()) {
       return;
     }
@@ -98,7 +103,7 @@ document.addEventListener(
     e.stopPropagation();
 
     // Show custom menu
-    showCustomMenu({ x: e.clientX, y: e.clientY });
+    showCustomMenu({ x: e.clientX, y: e.clientY }).catch(console.error);
   },
   { capture: true },
 );
@@ -109,12 +114,34 @@ initT3ChatAutofill();
 /**
  * Show custom context menu at position
  */
-function showCustomMenu(position: { x: number; y: number }): void {
+async function showCustomMenu(position: {
+  x: number;
+  y: number;
+}): Promise<void> {
   const callbacks: MenuCallbacks = {
     onSelect: handleMenuSelect,
     onClose: handleMenuClose,
     onInspect: handleInspectElement,
   };
+
+  // Load integration settings from storage
+  const settings = await new Promise<{
+    t3chatEnabled: boolean;
+    uploadthingEnabled: boolean;
+  }>((resolve) => {
+    chrome.storage.local.get(
+      [STORAGE_KEYS.T3CHAT_ENABLED, STORAGE_KEYS.UPLOADTHING_ENABLED],
+      (result) => {
+        resolve({
+          t3chatEnabled:
+            result[STORAGE_KEYS.T3CHAT_ENABLED] ?? DEFAULTS.T3CHAT_ENABLED,
+          uploadthingEnabled:
+            result[STORAGE_KEYS.UPLOADTHING_ENABLED] ??
+            DEFAULTS.UPLOADTHING_ENABLED,
+        });
+      },
+    );
+  });
 
   // Build dynamic menu items based on context
   const hasTextSelection = !!window.getSelection()?.toString().trim();
@@ -125,6 +152,8 @@ function showCustomMenu(position: { x: number; y: number }): void {
   const menuItems = buildMenuItems({
     hasTextSelection,
     isImageTarget,
+    t3chatEnabled: settings.t3chatEnabled,
+    uploadthingEnabled: settings.uploadthingEnabled,
   });
 
   showMenu(position, callbacks, menuItems);
@@ -143,8 +172,8 @@ function handleMenuSelect(type: string, comment?: string): void {
     // Direct capture
     handleCapture().catch(console.error);
   } else if (type === "t3chat") {
-    // Send selected text to t3.chat
-    handleSendToT3Chat();
+    // Send selected text to t3.chat (with optional refinement)
+    handleSendToT3Chat().catch(console.error);
   } else if (type === "upload-image") {
     // Upload image to UploadThing
     handleUploadImageFromTarget();
@@ -157,19 +186,180 @@ function handleMenuSelect(type: string, comment?: string): void {
 
 /**
  * Send selected text to t3.chat
+ * If auto-refine is enabled, first refines the prompt using gpt-5-mini
  */
-function handleSendToT3Chat(): void {
+async function handleSendToT3Chat(): Promise<void> {
+  console.log("[Anyclick Content] handleSendToT3Chat called");
+
   const selectedText = window.getSelection()?.toString().trim() ?? "";
+  console.log("[Anyclick Content] Selected text:", {
+    length: selectedText.length,
+    preview: selectedText.slice(0, 100),
+  });
+
   if (!selectedText) {
     showToast("No text selected", "warning");
     return;
   }
 
-  // Get base URL from storage and open t3.chat
-  chrome.storage.local.get(["anyclick_t3chat_base_url"], (result) => {
-    const baseUrl = result.anyclick_t3chat_base_url || "https://t3.chat";
-    const url = `${baseUrl}/?q=${encodeURIComponent(selectedText)}`;
-    window.open(url, "_blank");
+  // Get settings from storage
+  console.log("[Anyclick Content] Loading settings from storage...");
+  const settings = await new Promise<{
+    baseUrl: string;
+    autoRefine: boolean;
+    systemPrompt: string;
+    refineEndpoint: string;
+  }>((resolve) => {
+    chrome.storage.local.get(
+      [
+        STORAGE_KEYS.T3CHAT_BASE_URL,
+        STORAGE_KEYS.T3CHAT_AUTO_REFINE,
+        STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT,
+        STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT,
+      ],
+      (result) => {
+        console.log("[Anyclick Content] Storage result:", result);
+        resolve({
+          baseUrl:
+            result[STORAGE_KEYS.T3CHAT_BASE_URL] || DEFAULTS.T3CHAT_BASE_URL,
+          autoRefine:
+            result[STORAGE_KEYS.T3CHAT_AUTO_REFINE] ??
+            DEFAULTS.T3CHAT_AUTO_REFINE,
+          systemPrompt:
+            result[STORAGE_KEYS.T3CHAT_SYSTEM_PROMPT] ||
+            DEFAULT_T3CHAT_SYSTEM_PROMPT,
+          refineEndpoint:
+            result[STORAGE_KEYS.T3CHAT_REFINE_ENDPOINT] ||
+            DEFAULTS.T3CHAT_REFINE_ENDPOINT,
+        });
+      },
+    );
+  });
+
+  console.log("[Anyclick Content] Settings loaded:", {
+    baseUrl: settings.baseUrl,
+    autoRefine: settings.autoRefine,
+    hasSystemPrompt: !!settings.systemPrompt,
+    refineEndpoint: settings.refineEndpoint,
+  });
+
+  let finalPrompt = selectedText;
+
+  // If auto-refine is enabled, refine the prompt
+  if (settings.autoRefine) {
+    console.log(
+      "[Anyclick Content] Auto-refine is enabled, starting refinement...",
+    );
+    showToast("Refining prompt...", "info");
+
+    try {
+      finalPrompt = await refinePromptForT3Chat(
+        selectedText,
+        settings.systemPrompt,
+        settings.refineEndpoint,
+      );
+      console.log("[Anyclick Content] Refinement successful:", {
+        originalLength: selectedText.length,
+        refinedLength: finalPrompt.length,
+      });
+      showToast("Prompt refined!", "success");
+    } catch (error) {
+      console.error("[Anyclick Content] Prompt refinement failed:", error);
+      showToast("Refinement failed, using original text", "warning");
+      // Fallback to original text
+      finalPrompt = selectedText;
+    }
+  } else {
+    console.log(
+      "[Anyclick Content] Auto-refine is disabled, using original text",
+    );
+  }
+
+  // Open t3.chat with the (possibly refined) prompt
+  const url = `${settings.baseUrl}/?q=${encodeURIComponent(finalPrompt)}`;
+  console.log("[Anyclick Content] Opening t3.chat with URL:", url);
+  window.open(url, "_blank");
+}
+
+/**
+ * Refine prompt using the API before sending to t3.chat
+ * Routes through background script to bypass CORS restrictions
+ */
+async function refinePromptForT3Chat(
+  selectedText: string,
+  systemPrompt: string,
+  refineEndpoint: string,
+): Promise<string> {
+  // Build context from the right-clicked element
+  const context = buildT3ChatContext(selectedText, rightClickedElement);
+  const contextString = formatT3ChatContextString(context);
+
+  console.log("[Anyclick Content] Sending REFINE_PROMPT to background:", {
+    selectedTextLength: selectedText.length,
+    contextLength: contextString.length,
+    hasSystemPrompt: !!systemPrompt,
+    refineEndpoint,
+  });
+
+  // Send message to background script to make the API call
+  // Background script has permission to make cross-origin requests
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      {
+        type: "REFINE_PROMPT",
+        selectedText,
+        context: contextString,
+        systemPrompt,
+        refineEndpoint,
+        timestamp: new Date().toISOString(),
+      },
+      (response) => {
+        console.log("[Anyclick Content] REFINE_PROMPT response received:", {
+          hasResponse: !!response,
+          lastError: chrome.runtime.lastError?.message,
+          response,
+        });
+
+        if (chrome.runtime.lastError) {
+          console.error(
+            "[Anyclick Content] Chrome runtime error:",
+            chrome.runtime.lastError,
+          );
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+
+        if (!response) {
+          console.error("[Anyclick Content] No response from background");
+          reject(new Error("No response from background script"));
+          return;
+        }
+
+        if (!response.success) {
+          console.error(
+            "[Anyclick Content] Refinement failed:",
+            response.error,
+          );
+          reject(new Error(response.error || "Refinement failed"));
+          return;
+        }
+
+        // Extract refined prompt from the response payload
+        const refinedPrompt = response.payload?.refinedPrompt;
+        console.log("[Anyclick Content] Refinement result:", {
+          hasPayload: !!response.payload,
+          hasRefinedPrompt: !!refinedPrompt,
+          refinedPromptLength: refinedPrompt?.length,
+        });
+
+        if (!refinedPrompt) {
+          reject(new Error("No refined prompt in response"));
+          return;
+        }
+
+        resolve(refinedPrompt);
+      },
+    );
   });
 }
 
@@ -369,8 +559,21 @@ chrome.runtime.onMessage.addListener(
       handleCapture().catch(console.error);
       sendResponse({ received: true });
     } else if (message.type === "TOGGLE_CUSTOM_MENU") {
-      customMenuEnabled = !customMenuEnabled;
-      sendResponse({ enabled: customMenuEnabled });
+      // Load from storage - check both main enabled and custom menu override
+      chrome.storage.local.get(
+        [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+        (result) => {
+          const extensionEnabled =
+            result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+          const menuOverride =
+            result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+            DEFAULTS.CUSTOM_MENU_OVERRIDE;
+          // Both must be true for context menu override to work
+          customMenuEnabled = extensionEnabled && menuOverride;
+          sendResponse({ enabled: customMenuEnabled });
+        },
+      );
+      return true; // Async response
     } else if (message.type === "GET_ELEMENT_AT_POINT") {
       // Used by DevTools panel to get element info
       const element = document.elementFromPoint(lastMouseX, lastMouseY);
@@ -916,6 +1119,64 @@ function buildPageContext(): PageContext {
 }
 
 /**
+ * Build context for t3.chat prompt refinement
+ * Returns a formatted string with selected text, element, and page context
+ */
+function buildT3ChatContext(
+  selectedText: string,
+  element: Element | null,
+): T3ChatRefinementContext {
+  const context: T3ChatRefinementContext = {
+    selectedText,
+    page: {
+      url: window.location.href,
+      title: document.title,
+    },
+  };
+
+  if (element) {
+    context.element = {
+      tag: element.tagName.toLowerCase(),
+      selector: getUniqueSelector(element),
+      innerText: truncate(
+        element instanceof HTMLElement
+          ? element.innerText
+          : element.textContent || "",
+        100,
+      ),
+      classes: Array.from(element.classList).slice(0, 5),
+    };
+  }
+
+  return context;
+}
+
+/**
+ * Format T3Chat context as a string for the API
+ */
+function formatT3ChatContextString(context: T3ChatRefinementContext): string {
+  const parts: string[] = [];
+
+  parts.push(`Page: ${context.page.title}`);
+  parts.push(`URL: ${context.page.url}`);
+
+  if (context.element) {
+    parts.push(`Element: <${context.element.tag}>`);
+    if (context.element.selector) {
+      parts.push(`Selector: ${context.element.selector}`);
+    }
+    if (context.element.classes && context.element.classes.length > 0) {
+      parts.push(`Classes: ${context.element.classes.join(", ")}`);
+    }
+    if (context.element.innerText) {
+      parts.push(`Element text: ${context.element.innerText}`);
+    }
+  }
+
+  return parts.join("\n");
+}
+
+/**
  * Build action metadata from last interaction
  */
 function buildActionMetadata(): ActionMetadata {
@@ -1420,3 +1681,53 @@ function showToast(
     }
   }, 2500);
 }
+
+// ========== Initialization ==========
+
+/**
+ * Load custom menu override setting from storage
+ * Context menu override only works if BOTH main extension enabled AND custom menu override are true
+ */
+function loadCustomMenuSetting(): void {
+  chrome.storage.local.get(
+    [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+    (result) => {
+      const extensionEnabled = result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+      const menuOverride =
+        result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+        DEFAULTS.CUSTOM_MENU_OVERRIDE;
+      // Both must be true for context menu override to work
+      customMenuEnabled = extensionEnabled && menuOverride;
+    },
+  );
+}
+
+/**
+ * Listen for storage changes to update customMenuEnabled in real-time
+ * Context menu override only works if BOTH main extension enabled AND custom menu override are true
+ */
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local") return;
+
+  // Update if either the main enabled toggle or custom menu override changed
+  if (
+    changes[STORAGE_KEYS.ENABLED] ||
+    changes[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]
+  ) {
+    chrome.storage.local.get(
+      [STORAGE_KEYS.ENABLED, STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+      (result) => {
+        const extensionEnabled =
+          result[STORAGE_KEYS.ENABLED] ?? DEFAULTS.ENABLED;
+        const menuOverride =
+          result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+          DEFAULTS.CUSTOM_MENU_OVERRIDE;
+        // Both must be true for context menu override to work
+        customMenuEnabled = extensionEnabled && menuOverride;
+      },
+    );
+  }
+});
+
+// Initialize custom menu setting on load
+loadCustomMenuSetting();

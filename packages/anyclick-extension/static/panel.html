@@ -386,6 +386,129 @@
         opacity: 0.5;
       }
     }
+
+    /* T3Chat Settings Styles */
+    .settings-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-section .section-content {
+      padding: 12px;
+    }
+
+    .field-group {
+      margin-bottom: 12px;
+    }
+
+    .field-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .field-description {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .toggle-small {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toggle-small input[type="checkbox"] {
+      width: 28px;
+      height: 16px;
+      appearance: none;
+      background-color: var(--bg-tertiary);
+      border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .toggle-small input[type="checkbox"]:checked {
+      background-color: var(--accent);
+    }
+
+    .toggle-small input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle-small input[type="checkbox"]:checked::before {
+      transform: translateX(12px);
+    }
+
+    .settings-textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 8px;
+      font-family: "SF Mono", Monaco, "Cascadia Mono", "Roboto Mono", monospace;
+      font-size: 11px;
+      color: var(--text-primary);
+      background-color: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      resize: vertical;
+      margin-top: 6px;
+    }
+
+    .settings-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .settings-textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .char-count {
+      display: block;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .char-count.over-limit {
+      color: var(--error);
+    }
+
+    .reset-btn-small {
+      padding: 2px 6px;
+      font-size: 10px;
+      color: var(--text-secondary);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .reset-btn-small:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
   </style>
 </head>
 
@@ -432,6 +555,39 @@
         </svg>
         <h3>No Element Selected</h3>
         <p>Right-click any element on the page and select "Inspect in DevTools" to view its details here.</p>
+      </div>
+
+      <!-- T3Chat Settings Section -->
+      <div class="section settings-section" id="t3chat-settings-section">
+        <div class="section-header" id="t3chat-settings-header">
+          <div class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+            <span>t3.chat Settings</span>
+          </div>
+        </div>
+        <div class="section-content">
+          <div class="field-group">
+            <div class="field-header">
+              <span class="field-label">Auto-refine prompts</span>
+              <div class="toggle-small">
+                <input type="checkbox" id="panel-t3chat-auto-refine" checked />
+              </div>
+            </div>
+            <p class="field-description">Use AI to refine selected text before sending to t3.chat</p>
+          </div>
+          <div class="field-group">
+            <div class="field-header">
+              <span class="field-label">System Prompt</span>
+              <button type="button" class="reset-btn-small" id="panel-reset-system-prompt">Reset</button>
+            </div>
+            <textarea id="panel-t3chat-system-prompt" class="settings-textarea" rows="4"
+              placeholder="Custom instructions for prompt refinement..."></textarea>
+            <span class="char-count" id="panel-system-prompt-char-count">0 / 1000</span>
+          </div>
+        </div>
       </div>
     </div>
 

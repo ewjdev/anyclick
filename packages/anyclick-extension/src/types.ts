@@ -11,9 +11,13 @@ export const STORAGE_KEYS = {
   // T3Chat and UploadThing settings
   T3CHAT_ENABLED: "anyclick_t3chat_enabled",
   T3CHAT_BASE_URL: "anyclick_t3chat_base_url",
+  T3CHAT_SYSTEM_PROMPT: "anyclick_t3chat_system_prompt",
+  T3CHAT_AUTO_REFINE: "anyclick_t3chat_auto_refine",
+  T3CHAT_REFINE_ENDPOINT: "anyclick_t3chat_refine_endpoint",
   UPLOADTHING_ENABLED: "anyclick_uploadthing_enabled",
   UPLOADTHING_ENDPOINT: "anyclick_uploadthing_endpoint",
   UPLOADTHING_API_KEY: "anyclick_uploadthing_api_key",
+  CUSTOM_MENU_OVERRIDE: "anyclick_custom_menu_override",
 } as const;
 
 /**
@@ -26,10 +30,15 @@ export const DEFAULTS = {
   // T3Chat defaults
   T3CHAT_ENABLED: true,
   T3CHAT_BASE_URL: "https://t3.chat",
+  T3CHAT_AUTO_REFINE: true,
+  T3CHAT_SYSTEM_PROMPT: "",
+  T3CHAT_REFINE_ENDPOINT: "http://localhost:3000/api/anyclick/chat",
   // UploadThing defaults
   UPLOADTHING_ENABLED: false,
   UPLOADTHING_ENDPOINT: "",
   UPLOADTHING_API_KEY: "",
+  // Context menu override default
+  CUSTOM_MENU_OVERRIDE: true,
 } as const;
 
 /**
@@ -190,7 +199,8 @@ export type MessageType =
   | "SET_CONFIG"
   | "SEND_TO_T3CHAT"
   | "UPLOAD_IMAGE"
-  | "UPLOAD_SCREENSHOT";
+  | "UPLOAD_SCREENSHOT"
+  | "REFINE_PROMPT";
 
 /**
  * Base message structure
@@ -410,6 +420,10 @@ export interface ExtensionConfig {
   t3chat: {
     enabled: boolean;
     baseUrl: string;
+    /** Custom system prompt for prompt refinement */
+    systemPrompt?: string;
+    /** Whether to auto-refine prompts before sending to t3.chat */
+    autoRefine?: boolean;
   };
   /** UploadThing configuration */
   uploadthing: {
@@ -420,6 +434,13 @@ export interface ExtensionConfig {
 }
 
 /**
+ * Default system prompt for t3.chat prompt refinement
+ */
+export const DEFAULT_T3CHAT_SYSTEM_PROMPT = `You are a prompt refinement assistant. Your task is to refine the user's selected text into a clear, concise, and well-formed question or prompt for t3.chat.
+
+Consider the context provided (element information, page details) to add relevant details that make the prompt more useful. Keep the refined prompt concise but informative. Return only the refined prompt, no explanations.`;
+
+/**
  * Default extension configuration
  */
 export const DEFAULT_EXTENSION_CONFIG: ExtensionConfig = {
@@ -427,6 +448,8 @@ export const DEFAULT_EXTENSION_CONFIG: ExtensionConfig = {
   t3chat: {
     enabled: true,
     baseUrl: "https://t3.chat",
+    systemPrompt: DEFAULT_T3CHAT_SYSTEM_PROMPT,
+    autoRefine: true,
   },
   uploadthing: {
     enabled: false,
@@ -452,4 +475,41 @@ export interface ExtensionResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+/**
+ * Context for t3.chat prompt refinement
+ */
+export interface T3ChatRefinementContext {
+  /** Selected text to refine */
+  selectedText: string;
+  /** Element context (if available) */
+  element?: {
+    tag: string;
+    selector: string;
+    innerText?: string;
+    classes?: string[];
+  };
+  /** Page context */
+  page: {
+    url: string;
+    title: string;
+  };
+}
+
+/**
+ * Request payload for prompt refinement API
+ */
+export interface RefinePromptRequest {
+  action: "refine";
+  selectedText: string;
+  context: string;
+  systemPrompt?: string;
+}
+
+/**
+ * Response from prompt refinement API
+ */
+export interface RefinePromptResponse {
+  refinedPrompt: string;
 }

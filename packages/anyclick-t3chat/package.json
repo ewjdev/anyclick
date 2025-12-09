@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-t3chat",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "private": false,
   "description": "T3.chat adapter for Anyclick - send text and queries to t3.chat",
   "keywords": [

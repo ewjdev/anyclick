@@ -1,5 +1,12 @@
 # @ewjdev/anyclick-adapters
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @ewjdev/anyclick-pointer@3.0.0
+
 ## 1.4.0
 
 ### Minor Changes

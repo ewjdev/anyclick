@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@ewjdev/anyclick-core": "^1.4.0",
-    "@ewjdev/anyclick-pointer": "^1.4.0",
+    "@ewjdev/anyclick-pointer": "^3.0.0",
     "lucide-react": "^0.475.0",
     "zustand": "^5.0.2"
   },
