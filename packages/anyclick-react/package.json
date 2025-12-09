@@ -45,6 +45,8 @@
     "dist"
   ],
   "scripts": {
+    "dev:vite": "vite",
+    "build:vite": "vite build",
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react",
     "clean": "rimraf dist",
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
@@ -60,11 +62,17 @@
     "react-dom": ">=19.2.1"
   },
   "devDependencies": {
+    "@types/node": "^20.17.32",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "tailwindcss": "4.0.0-alpha.13",
+    "vite": "^5.2.0"
   },
   "engines": {
     "node": ">=18.18.0"

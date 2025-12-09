@@ -1,3 +1,4 @@
+import "./styles/tailwind.css";
 import {
   type CaptureStatus,
   DEFAULTS,
@@ -178,6 +179,22 @@ function updateSettingsDisabledState(enabled: boolean): void {
 }
 
 /**
+ * Notify the active tab so the content script can apply the new enabled state
+ * without requiring a page refresh.
+ */
+function notifyActiveTabEnabled(enabled: boolean): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id;
+    if (!tabId) return;
+    chrome.tabs
+      .sendMessage(tabId, { type: "SET_ENABLED_STATE", enabled })
+      .catch(() => {
+        // Content script may not be present (restricted pages); ignore.
+      });
+  });
+}
+
+/**
  * Update system prompt character count display
  */
 function updateSystemPromptCharCount(): void {
@@ -250,6 +267,7 @@ enableToggle.addEventListener("change", () => {
   updateToggleLabel(enabled);
   updateSettingsDisabledState(enabled);
   chrome.storage.local.set({ [STORAGE_KEYS.ENABLED]: enabled });
+  notifyActiveTabEnabled(enabled);
 });
 
 /**

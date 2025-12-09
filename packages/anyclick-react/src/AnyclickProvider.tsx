@@ -460,23 +460,25 @@ export function AnyclickProvider({
 
   return (
     <AnyclickContext.Provider value={contextValue}>
-      {content}
-      <ContextMenu
-        className={effectiveMenuClassName}
-        containerElement={containerElement}
-        header={header}
-        highlightConfig={effectiveHighlightConfig}
-        isSubmitting={isSubmitting}
-        items={menuItems}
-        onClose={closeMenu}
-        onSelect={handleMenuSelect}
-        position={menuPosition}
-        quickChatConfig={quickChatConfig}
-        screenshotConfig={effectiveScreenshotConfig}
-        style={effectiveMenuStyle}
-        targetElement={targetElement}
-        visible={menuVisible && !effectiveDisabled}
-      />
+      <div data-anyclick-root>
+        {content}
+        <ContextMenu
+          className={effectiveMenuClassName}
+          containerElement={containerElement}
+          header={header}
+          highlightConfig={effectiveHighlightConfig}
+          isSubmitting={isSubmitting}
+          items={menuItems}
+          onClose={closeMenu}
+          onSelect={handleMenuSelect}
+          position={menuPosition}
+          quickChatConfig={quickChatConfig}
+          screenshotConfig={effectiveScreenshotConfig}
+          style={effectiveMenuStyle}
+          targetElement={targetElement}
+          visible={menuVisible && !effectiveDisabled}
+        />
+      </div>
     </AnyclickContext.Provider>
   );
 }

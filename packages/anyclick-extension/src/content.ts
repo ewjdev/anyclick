@@ -551,7 +551,12 @@ function handleInspectElement(): void {
  */
 chrome.runtime.onMessage.addListener(
   (
-    message: { type: string; timestamp?: string; payload?: unknown },
+    message: {
+      type: string;
+      timestamp?: string;
+      payload?: unknown;
+      enabled?: boolean;
+    },
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
   ) => {
@@ -615,6 +620,19 @@ chrome.runtime.onMessage.addListener(
           });
         });
       return true; // Async response
+    } else if (message.type === "SET_ENABLED_STATE") {
+      // Update enabled state immediately on the current tab (no refresh)
+      chrome.storage.local.get(
+        [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+        (result) => {
+          const menuOverride =
+            result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+            DEFAULTS.CUSTOM_MENU_OVERRIDE;
+          customMenuEnabled = Boolean(message.enabled) && menuOverride;
+          sendResponse({ enabled: customMenuEnabled });
+        },
+      );
+      return true;
     }
     return false;
   },

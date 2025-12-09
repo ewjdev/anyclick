@@ -26,6 +26,8 @@
  * ```
  */
 "use client";
+// Shared styles (prefixed, no preflight) for anyclick react surfaces.
+import "./styles/tailwind.css";
 
 // ============================================================================
 // Core Components
@@ -117,6 +119,11 @@ export { generateProviderId } from "./store";
  * Dispatches a context menu event to matching providers.
  */
 export { dispatchContextMenuEvent } from "./store";
+
+// ============================================================================
+// UI primitives (shadcn-inspired, prefixed Tailwind)
+// ============================================================================
+export * from "./ui";
 
 /**
  * Provider instance type for advanced store management.

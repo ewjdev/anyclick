@@ -1,0 +1,24 @@
+[data-anyclick-root] {
+  /* Base surface and text */
+  --ac-surface: #0f172a;
+  --ac-surface-muted: #111827;
+  --ac-border: #1f2937;
+  --ac-text: #e5e7eb;
+  --ac-text-muted: #9ca3af;
+
+  /* Accents */
+  --ac-accent: #22d3ee;
+  --ac-accent-muted: #0ea5e9;
+  --ac-accent-foreground: #0b1020;
+  --ac-destructive: #ef4444;
+
+  /* Layout */
+  --ac-gap: 0.5rem;
+  --ac-pad: 0.75rem;
+  --ac-shadow-menu: 0 10px 40px rgba(0, 0, 0, 0.35);
+
+  /* Radius */
+  --ac-radius-md: 8px;
+  --ac-radius-lg: 12px;
+  --ac-radius-full: 9999px;
+}
