@@ -1738,7 +1738,7 @@ function showToast(
         toastElement = null;
       }, 200);
     }
-  }, 2500);
+  }, 4000);
 }
 
 // ========== Initialization ==========

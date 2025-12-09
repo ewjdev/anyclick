@@ -263,7 +263,7 @@ function OverlayApp() {
     switch (state) {
       case "ready":
         // Green tint: brightness + saturate + hue-rotate to approximate #10b981
-        return "brightness(0.85) saturate(1.8) hue-rotate(120deg)";
+        return "brightness(0.8) saturate(1.2) hue-rotate(20deg)";
       case "error":
         // Red tint: brightness + saturate to approximate #ef4444
         return "brightness(0.9) saturate(1.5) hue-rotate(0deg)";

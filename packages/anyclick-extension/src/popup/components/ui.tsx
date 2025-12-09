@@ -271,18 +271,34 @@ type TooltipProps = {
   content: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  /** Optional click handler for the tooltip content */
+  onClick?: () => void;
+  /** Position preference: 'left' aligns tooltip to left edge, 'center' centers it (default: 'left' to stay in bounds) */
+  position?: "left" | "center";
 };
 
-export function Tooltip({ content, children, className }: TooltipProps) {
+export function Tooltip({
+  content,
+  children,
+  className,
+  onClick,
+  position = "left",
+}: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
 
+  // Keep tooltip visible when hovering over the tooltip content itself
+  const handleMouseEnter = () => setIsVisible(true);
+  const handleMouseLeave = () => setIsVisible(false);
+
   return (
-    <div className="ac:relative ac:inline-flex">
+    <div
+      className="ac:relative ac:inline-flex"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div
-        onMouseEnter={() => setIsVisible(true)}
-        onMouseLeave={() => setIsVisible(false)}
-        onFocus={() => setIsVisible(true)}
-        onBlur={() => setIsVisible(false)}
+        onFocus={handleMouseEnter}
+        onBlur={handleMouseLeave}
         className="ac:cursor-help"
       >
         {children}
@@ -290,15 +306,30 @@ export function Tooltip({ content, children, className }: TooltipProps) {
       {isVisible && (
         <div
           role="tooltip"
+          onClick={onClick}
           className={cn(
-            "ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none",
-            "ac:backdrop-blur-md",
-            "ac:w-[250px]",
+            "ac:absolute ac:bottom-full ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:whitespace-normal",
+            "ac:backdrop-blur-md ac:bg-surface/95",
+            "ac:w-[250px] ac:max-w-[calc(380px-2rem)]",
+            // Position: left-aligned to stay within popup bounds, or centered
+            position === "left"
+              ? "ac:left-0"
+              : "ac:left-1/2 ac:-translate-x-1/2",
+            // Make clickable if onClick is provided
+            onClick && "ac:cursor-pointer hover:ac:bg-surface-muted",
             className,
           )}
         >
           {content}
-          <div className="ac:absolute ac:top-full ac:left-1/2 ac:-translate-x-1/2 ac:-mt-px ac:w-0 ac:h-0 ac:border-l-4 ac:border-r-4 ac:border-t-4 ac:border-transparent ac:border-t-border" />
+          {/* Arrow - positioned based on tooltip alignment */}
+          <div
+            className={cn(
+              "ac:absolute ac:top-full ac:-mt-px ac:w-0 ac:h-0 ac:border-l-4 ac:border-r-4 ac:border-t-4 ac:border-transparent ac:border-t-border",
+              position === "left"
+                ? "ac:left-3"
+                : "ac:left-1/2 ac:-translate-x-1/2",
+            )}
+          />
         </div>
       )}
     </div>
