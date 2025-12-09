@@ -1,9 +1,9 @@
+import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
+import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
-import { Inter, Montserrat, Lato } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Inter, Lato, Montserrat } from "next/font/google";
 import "./globals.css";
-import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 const montserrat = Montserrat({ subsets: ["latin"] });
@@ -26,6 +26,13 @@ export const metadata: Metadata = {
     "ai",
     "typescript",
   ],
+  icons: {
+    icon: [
+      { url: "/logo.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" },
+    ],
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {

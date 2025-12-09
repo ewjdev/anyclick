@@ -1,3 +1,4 @@
+import { AnyclickLogo } from "@/components/AnyclickLogo";
 import {
   CodeBlock,
   HeroCodeBlock,
@@ -156,10 +157,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-500/25 group-hover:shadow-violet-500/40 transition-shadow">
-                <MousePointerClick className="w-5 h-5 text-white" />
-              </div>
-              <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur transition-opacity" />
+              <AnyclickLogo size="lg" />
+              <div className="absolute -inset-1 rounded-full bg-emerald-500/20 opacity-0 group-hover:opacity-30 blur transition-opacity" />
             </div>
             <span className="text-xl font-semibold tracking-tight">
               anyclick
@@ -706,9 +705,7 @@ export default function Layout({ children }) {
       <footer className="py-12 px-6 border-t border-white/5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-              <MousePointerClick className="w-4 h-4 text-white" />
-            </div>
+            <AnyclickLogo size="md" />
             <span className="font-semibold">anyclick</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
