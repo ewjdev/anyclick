@@ -4,81 +4,21 @@ import {
   HeroCodeBlock,
   TerminalBlock,
 } from "@/components/CodePreview";
+import { RoleContextMenuShowcase } from "@/components/RoleContextMenuShowcase";
 import roadmapData from "@/data/roadmap-items.json";
 import {
   ArrowRight,
   Box,
   Camera,
-  Check,
   Clock,
   Code2,
-  Eye,
   GitBranch,
   Layers,
-  LucideIcon,
   MousePointerClick,
-  Palette,
-  Sparkles,
-  Target,
   Terminal,
-  TestTube,
-  Users,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
-
-// Icon mapping for dynamic rendering
-const iconMap: Record<string, LucideIcon> = {
-  TestTube,
-  Terminal,
-  Target,
-  Users,
-  Palette,
-  Eye,
-};
-
-// Color mapping for Tailwind classes
-const colorMap: Record<
-  string,
-  { gradient: string; border: string; text: string; bg: string }
-> = {
-  emerald: {
-    gradient: "from-emerald-500/20 to-emerald-500/5",
-    border: "hover:border-emerald-500/30",
-    text: "text-emerald-400",
-    bg: "bg-emerald-500/10",
-  },
-  amber: {
-    gradient: "from-amber-500/20 to-amber-500/5",
-    border: "hover:border-amber-500/30",
-    text: "text-amber-400",
-    bg: "bg-amber-500/10",
-  },
-  violet: {
-    gradient: "from-violet-500/20 to-violet-500/5",
-    border: "hover:border-violet-500/30",
-    text: "text-violet-400",
-    bg: "bg-violet-500/10",
-  },
-  cyan: {
-    gradient: "from-cyan-500/20 to-cyan-500/5",
-    border: "hover:border-cyan-500/30",
-    text: "text-cyan-400",
-    bg: "bg-cyan-500/10",
-  },
-  rose: {
-    gradient: "from-rose-500/20 to-rose-500/5",
-    border: "hover:border-rose-500/30",
-    text: "text-rose-400",
-    bg: "bg-rose-500/10",
-  },
-  indigo: {
-    gradient: "from-indigo-500/20 to-indigo-500/5",
-    border: "hover:border-indigo-500/30",
-    text: "text-indigo-400",
-    bg: "bg-indigo-500/10",
-  },
-};
 
 // Safely normalize tags to a string array
 const getTags = (item: { tags?: unknown }): string[] => {
@@ -277,61 +217,20 @@ export default function RootLayout({ children }) {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Object.entries(roles).map(([roleKey, role]) => {
-              const Icon = iconMap[role.icon] || Sparkles;
-              const colors = colorMap[role.color] || colorMap.emerald;
-              const upcomingFeatures = getUpcomingFeaturesForRole(roleKey);
-
-              return (
-                <div
-                  key={roleKey}
-                  className={`group p-6 rounded-2xl bg-white/[0.02] border border-white/5 ${colors.border} transition-all hover:bg-white/[0.04]`}
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}
-                    >
-                      <Icon className={`w-6 h-6 ${colors.text}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{role.title}</h3>
-                      <p className="text-sm text-gray-500">{role.subtitle}</p>
-                    </div>
-                  </div>
-                  <ul className="space-y-2 text-sm">
-                    {/* Available features */}
-                    {role.features
-                      .filter((f) => f.available)
-                      .map((feature, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-center gap-2 text-gray-300"
-                        >
-                          <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                          {feature.text}
-                        </li>
-                      ))}
-                    {/* Upcoming features from roadmap */}
-                    {upcomingFeatures.map((item) => (
-                      <li
-                        key={item.id}
-                        className="flex items-center gap-2 text-gray-500"
-                      >
-                        <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                        <span>
-                          {item.title}{" "}
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            Soon
-                          </span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
+          <RoleContextMenuShowcase
+            roles={Object.entries(roles).map(([roleKey, role]) => ({
+              key: roleKey,
+              title: role.title,
+              subtitle: role.subtitle,
+              icon: role.icon,
+              color: role.color,
+              features: role.features,
+              upcoming: getUpcomingFeaturesForRole(roleKey).map((item) => ({
+                id: item.id,
+                title: item.title,
+              })),
+            }))}
+          />
 
           {/* Roadmap Summary */}
           {(() => {
