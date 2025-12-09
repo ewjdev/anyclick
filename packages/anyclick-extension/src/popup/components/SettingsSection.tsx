@@ -1,5 +1,11 @@
-import React from "react";
-import { Input, Label, Switch, Tooltip } from "./ui";
+import React, { useState } from "react";
+import { Button, Input, Label, Switch, Tooltip } from "./ui";
+
+export type EndpointStatus =
+  | { state: "idle"; message?: string; hint?: string }
+  | { state: "loading"; message?: string; hint?: string }
+  | { state: "success"; message?: string; hint?: string }
+  | { state: "error"; message?: string; hint?: string };
 
 interface SettingsSectionProps {
   endpoint: string;
@@ -8,6 +14,8 @@ interface SettingsSectionProps {
   onEndpointChange: (value: string) => void;
   onTokenChange: (value: string) => void;
   onCustomMenuOverrideChange: (value: boolean) => void;
+  onTestEndpoint: () => void;
+  endpointStatus: EndpointStatus;
   disabled?: boolean;
 }
 
@@ -18,24 +26,22 @@ export function SettingsSection({
   onEndpointChange,
   onTokenChange,
   onCustomMenuOverrideChange,
+  onTestEndpoint,
+  endpointStatus,
   disabled,
 }: SettingsSectionProps) {
+  const [showToken, setShowToken] = useState(false);
+
+  const endpointStatusColor =
+    endpointStatus.state === "success"
+      ? "ac:text-green-400"
+      : endpointStatus.state === "error"
+        ? "ac:text-destructive"
+        : "ac:text-text-muted";
+
   return (
     <div className="ac:space-y-4">
       <div className="ac:space-y-2">
-        <div className="ac:flex ac:items-center ac:justify-between ac:py-2">
-          <div className="ac:space-y-0.5">
-            <Label>Override Native Menu</Label>
-            <p className="ac:text-xs ac:text-text-muted">
-              Replace browser's right-click menu
-            </p>
-          </div>
-          <Switch
-            checked={customMenuOverride}
-            onCheckedChange={onCustomMenuOverrideChange}
-            disabled={disabled}
-          />
-        </div>
         <div className="ac:flex ac:items-center ac:gap-2">
           <Label htmlFor="endpoint">Capture Endpoint</Label>
           <Tooltip
@@ -74,14 +80,95 @@ export function SettingsSection({
             </svg>
           </Tooltip>
         </div>
-        <Input
-          id="endpoint"
-          type="url"
-          placeholder="https://your-api.com/feedback"
-          value={endpoint}
-          onChange={(e) => onEndpointChange(e.target.value)}
-          disabled={disabled}
-        />
+        <div className="ac:flex ac:items-center ac:gap-2">
+          <Input
+            id="endpoint"
+            type="url"
+            placeholder="https://your-api.com/feedback"
+            value={endpoint}
+            onChange={(e) => onEndpointChange(e.target.value)}
+            disabled={disabled}
+            className="ac:flex-1"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onTestEndpoint}
+            disabled={
+              disabled || endpointStatus.state === "loading" || !endpoint.trim()
+            }
+          >
+            {endpointStatus.state === "loading" ? "Testing..." : "Test"}
+          </Button>
+        </div>
+        {endpointStatus.state !== "idle" && (
+          <div
+            className={`ac:flex ac:items-start ac:gap-2 ac:text-xs ${endpointStatusColor}`}
+          >
+            {endpointStatus.state === "success" ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ac:mt-0.5"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            ) : endpointStatus.state === "loading" ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ac:mt-0.5 ac:animate-spin"
+              >
+                <circle cx="12" cy="12" r="10" opacity="0.25" />
+                <path d="M12 2a10 10 0 0 1 10 10" />
+              </svg>
+            ) : (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="ac:mt-0.5"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" x2="12" y1="8" y2="12" />
+                <line x1="12" x2="12.01" y1="16" y2="16" />
+              </svg>
+            )}
+            <div className="ac:space-y-0.5">
+              <p className="ac:leading-relaxed">
+                {endpointStatus.message ||
+                  (endpointStatus.state === "success"
+                    ? "Endpoint responded successfully."
+                    : endpointStatus.state === "error"
+                      ? "Unable to reach endpoint."
+                      : "Testing endpoint...")}
+              </p>
+              {endpointStatus.hint && (
+                <p className="ac:text-[11px] ac:text-text-muted ac:leading-relaxed">
+                  {endpointStatus.hint}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
         <p className="ac:text-xs ac:text-text-muted">
           Where captured feedback is sent
         </p>
@@ -126,14 +213,27 @@ export function SettingsSection({
             </svg>
           </Tooltip>
         </div>
-        <Input
-          id="token"
-          type="password"
-          placeholder="Bearer token..."
-          value={token}
-          onChange={(e) => onTokenChange(e.target.value)}
-          disabled={disabled}
-        />
+        <div className="ac:flex ac:gap-2">
+          <Input
+            id="token"
+            type={showToken ? "text" : "password"}
+            placeholder="Bearer token..."
+            value={token}
+            onChange={(e) => onTokenChange(e.target.value)}
+            disabled={disabled}
+            className="ac:flex-1"
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setShowToken((prev) => !prev)}
+            disabled={disabled}
+            aria-pressed={showToken}
+          >
+            {showToken ? "Hide" : "Show"}
+          </Button>
+        </div>
         <p className="ac:text-xs ac:text-text-muted">
           Authentication token for your API endpoint
         </p>

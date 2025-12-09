@@ -6,11 +6,13 @@ import {
   STORAGE_KEYS,
 } from "../types";
 import { Header } from "./components/Header";
-import { SettingsSection } from "./components/SettingsSection";
+import { EndpointStatus, SettingsSection } from "./components/SettingsSection";
 import { StatusBanner } from "./components/StatusBanner";
 import { T3ChatAdapter, UploadThingAdapter } from "./components/adapters";
-import { Button, Separator } from "./components/ui";
+import { Badge, Button, Separator } from "./components/ui";
 import { useStorageMulti } from "./hooks/useStorage";
+
+const ANYCLICK_LOGO = "./icons/icon128.png";
 
 // Storage keys and defaults
 const STORAGE_KEYS_ARRAY = [
@@ -30,7 +32,9 @@ const STORAGE_KEYS_ARRAY = [
   STORAGE_KEYS.CUSTOM_MENU_OVERRIDE,
 ];
 
-const DEFAULT_VALUES = {
+type SettingsMap = Record<string, string | boolean>;
+
+const DEFAULT_VALUES: SettingsMap = {
   [STORAGE_KEYS.ENABLED]: DEFAULTS.ENABLED,
   [STORAGE_KEYS.ENDPOINT]: DEFAULTS.ENDPOINT,
   [STORAGE_KEYS.TOKEN]: DEFAULTS.TOKEN,
@@ -48,16 +52,17 @@ const DEFAULT_VALUES = {
 };
 
 export function PopupApp() {
-  const [settings, setSettings, loading] = useStorageMulti(
+  const [settings, setSettings, loading] = useStorageMulti<SettingsMap>(
     STORAGE_KEYS_ARRAY,
     DEFAULT_VALUES,
   );
 
   const [contentLive, setContentLive] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [savedSettings, setSavedSettings] = useState<Record<string, unknown>>(
-    {},
-  );
+  const [savedSettings, setSavedSettings] = useState<Partial<SettingsMap>>({});
+  const [endpointStatus, setEndpointStatus] = useState<EndpointStatus>({
+    state: "idle",
+  });
   const [toast, setToast] = useState<{
     message: string;
     error?: boolean;
@@ -180,6 +185,11 @@ export function PopupApp() {
     }
   };
 
+  // Reset endpoint test state when URL changes
+  useEffect(() => {
+    setEndpointStatus({ state: "idle" });
+  }, [endpoint]);
+
   // Save settings
   const handleSave = useCallback(async () => {
     // Validate URLs
@@ -247,6 +257,90 @@ export function PopupApp() {
     checkContentLiveness,
   ]);
 
+  // Test capture endpoint reachability
+  const handleTestCaptureEndpoint = useCallback(async () => {
+    if (!endpoint) {
+      setEndpointStatus({
+        state: "error",
+        message: "Enter an endpoint URL to test.",
+        hint: "Provide a full https:// URL.",
+      });
+      return;
+    }
+
+    if (!isValidUrl(endpoint)) {
+      setEndpointStatus({
+        state: "error",
+        message: "Enter a valid http(s) URL.",
+        hint: "Example: https://your-api.com/feedback",
+      });
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    setEndpointStatus({
+      state: "loading",
+      message: "Checking endpoint...",
+    });
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: token } : {}),
+          "X-Anyclick-Probe": "1",
+        },
+        body: JSON.stringify({
+          type: "anyclick:probe",
+          source: "anyclick-extension",
+          timestamp: new Date().toISOString(),
+        }),
+        signal: controller.signal,
+        mode: "cors",
+      });
+
+      clearTimeout(timeoutId);
+
+      let bodyText = "";
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = "";
+      }
+
+      if (response.ok) {
+        setEndpointStatus({
+          state: "success",
+          message: "Endpoint responded successfully.",
+          hint: "Ready to receive feedback payloads.",
+        });
+        return;
+      }
+
+      const shortBody =
+        bodyText?.slice(0, 200) ||
+        "Check CORS, auth token, and allowed POST methods.";
+      setEndpointStatus({
+        state: "error",
+        message:
+          `Received ${response.status} ${response.statusText || ""}`.trim(),
+        hint: shortBody,
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unable to reach endpoint.";
+      setEndpointStatus({
+        state: "error",
+        message: errorMessage,
+        hint: "Verify the URL is reachable, uses HTTPS, and allows POST requests.",
+      });
+    }
+  }, [endpoint, token, isValidUrl]);
+
   // Test T3Chat endpoint
   const handleTestT3ChatEndpoint = useCallback(async () => {
     try {
@@ -274,24 +368,6 @@ export function PopupApp() {
     });
     showToast("System prompt reset to default");
   }, [setSettings, showToast]);
-
-  // Format relative time
-  const formatRelativeTime = (dateStr: string) => {
-    if (!dateStr) return "None";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-
-    if (diffSec < 60) return "Just now";
-    if (diffMin < 60) return `${diffMin}m ago`;
-    if (diffHour < 24) return `${diffHour}h ago`;
-    if (diffDay < 7) return `${diffDay}d ago`;
-    return date.toLocaleDateString();
-  };
 
   // Parse status
   const parsedStatus = (() => {
@@ -337,6 +413,11 @@ export function PopupApp() {
     });
   })();
 
+  const statusBadgeVariant = parsedStatus.success ? "success" : "destructive";
+  const statusColor = parsedStatus.success
+    ? "ac:text-green-400"
+    : "ac:text-destructive";
+
   if (loading) {
     return (
       <div
@@ -353,7 +434,13 @@ export function PopupApp() {
       data-anyclick-root
       className="ac:w-[380px] ac:min-h-[600px] ac:max-h-[600px] ac:bg-surface ac:text-text ac:flex ac:flex-col ac:overflow-hidden"
     >
-      <Header enabled={enabled} onEnabledChange={handleEnabledChange} />
+      <Header
+        logoSrc={ANYCLICK_LOGO}
+        enabled={enabled}
+        onEnabledChange={handleEnabledChange}
+        statusAsMessage={parsedStatus.message}
+        lastCapture={lastCapture}
+      />
 
       {!contentLive && (
         <StatusBanner
@@ -364,30 +451,6 @@ export function PopupApp() {
 
       <div className="ac:flex-1 ac:overflow-y-auto">
         <div className="ac:p-4 ac:space-y-4">
-          {/* Status */}
-          <div className="ac:flex ac:items-center ac:justify-between ac:text-xs">
-            <div className="ac:flex ac:items-center ac:gap-2">
-              <span className="ac:text-text-muted">Last capture:</span>
-              <span className="ac:text-text">
-                {formatRelativeTime(lastCapture)}
-              </span>
-            </div>
-            <div className="ac:flex ac:items-center ac:gap-2">
-              <span className="ac:text-text-muted">Status:</span>
-              <span
-                className={
-                  parsedStatus.success
-                    ? "ac:text-green-400"
-                    : "ac:text-destructive"
-                }
-              >
-                {parsedStatus.message}
-              </span>
-            </div>
-          </div>
-
-          <Separator />
-
           {/* General Settings */}
           <SettingsSection
             endpoint={endpoint}
@@ -400,6 +463,8 @@ export function PopupApp() {
             onCustomMenuOverrideChange={(v) =>
               setSettings({ [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: v })
             }
+            onTestEndpoint={handleTestCaptureEndpoint}
+            endpointStatus={endpointStatus}
             disabled={!enabled}
           />
 
@@ -459,17 +524,19 @@ export function PopupApp() {
       </div>
 
       {/* Footer - Pinned to bottom */}
-      <div className="ac:flex-shrink-0 ac:p-4 ac:border-t ac:border-border ac:bg-surface">
+      <div className="ac:p-2 ac:border-t ac:border-border ac:bg-surface">
         <Button
+          variant={!isDirty ? "default" : "outline"}
           className={`ac:w-full ac:transition-all ${
-            isDirty
+            !isDirty
               ? "ac:bg-accent-muted hover:ac:bg-accent-muted/90 ac:border-accent/30"
-              : ""
+              : "ac:text-white/40"
           }`}
           onClick={handleSave}
-          disabled={!enabled || saving}
+          disabled={!enabled || saving || !isDirty}
+          aria-live="polite"
         >
-          {saving ? "Saving..." : "Save Settings"}
+          {saving ? "Saving..." : isDirty ? "Save changes" : ""}
         </Button>
       </div>
 

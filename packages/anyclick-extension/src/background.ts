@@ -14,6 +14,7 @@ import {
   PERF_LIMITS,
   type PageContext,
   type QueuedPayload,
+  type RefinePromptMessage,
   STORAGE_KEYS,
   createMessage,
 } from "./types";
@@ -487,14 +488,7 @@ chrome.runtime.onMessage.addListener(
 
     // Allow popup to send REFINE_PROMPT for the test button (no tab context)
     if (!sender.tab?.id && message.type === "REFINE_PROMPT") {
-      void handleRefinePrompt(
-        message as ExtensionMessage & {
-          selectedText: string;
-          context: string;
-          systemPrompt?: string;
-          refineEndpoint?: string;
-        },
-      )
+      void handleRefinePrompt(message)
         .then((response) => {
           sendResponse(response);
         })
@@ -597,14 +591,11 @@ async function handleMessage(
 
     case "REFINE_PROMPT":
       console.log("[Anyclick Background] Routing to handleRefinePrompt");
-      return handleRefinePrompt(
-        message as ExtensionMessage & {
-          selectedText: string;
-          context: string;
-          systemPrompt?: string;
-          refineEndpoint?: string;
-        },
-      );
+      return handleRefinePrompt(message);
+
+    case "OPEN_POPUP":
+      console.log("[Anyclick Background] Routing to handleOpenPopup");
+      return handleOpenPopup();
 
     default:
       console.warn("[Anyclick Background] Unknown message type:", message.type);
@@ -684,6 +675,42 @@ async function handleInspectElement(
     success: true,
     panelConnected: panelConnected || inspectorConnected,
   });
+}
+
+// ========== Open Popup ==========
+
+/**
+ * Handle request to open the extension popup
+ * Uses chrome.action.openPopup() which requires user gesture context
+ */
+async function handleOpenPopup(): Promise<ExtensionMessage> {
+  try {
+    // chrome.action.openPopup() is available in Chrome 99+
+    // It requires being called in a user gesture context
+    if (chrome.action?.openPopup) {
+      await chrome.action.openPopup();
+      console.log("[Anyclick Background] Popup opened successfully");
+      return createMessage({
+        type: "CAPTURE_RESPONSE" as const,
+        success: true,
+      });
+    } else {
+      // Fallback for older Chrome versions
+      return createMessage({
+        type: "CAPTURE_RESPONSE" as const,
+        success: false,
+        error: "chrome.action.openPopup not available",
+      });
+    }
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.warn("[Anyclick Background] Failed to open popup:", errorMsg);
+    return createMessage({
+      type: "CAPTURE_RESPONSE" as const,
+      success: false,
+      error: errorMsg,
+    });
+  }
 }
 
 // ========== Screenshot Capture ==========
@@ -823,12 +850,9 @@ async function handleSubmitRequest(payload: CapturePayload) {
  * Handle prompt refinement request from content script
  * This runs in the background script to bypass CORS restrictions
  */
-async function handleRefinePrompt(message: {
-  selectedText: string;
-  context: string;
-  systemPrompt?: string;
-  refineEndpoint?: string;
-}): Promise<ExtensionMessage> {
+async function handleRefinePrompt(
+  message: RefinePromptMessage,
+): Promise<ExtensionMessage> {
   console.log("[Anyclick Background] handleRefinePrompt called with:", {
     selectedTextLength: message.selectedText?.length,
     contextLength: message.context?.length,

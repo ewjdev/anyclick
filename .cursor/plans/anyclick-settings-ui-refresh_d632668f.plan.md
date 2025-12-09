@@ -4,19 +4,19 @@ overview: Refine the Anyclick extension settings UI for clearer control, inline 
 todos:
   - id: update-header-toggle
     content: Switch header to single master toggle + status badge
-    status: pending
+    status: completed
   - id: dirty-save-cta
     content: Style Save CTA for dirty/clean states and keep sticky
-    status: pending
+    status: completed
   - id: api-validation-inline
     content: Add inline validation UX for endpoint/auth inputs
-    status: pending
+    status: completed
   - id: status-display-polish
     content: Improve status/last-capture display with icons/colors
-    status: pending
+    status: completed
   - id: integration-cards
     content: Unify integration cards with single toggle + accordion
-    status: pending
+    status: completed
 ---
 
 # Anyclick Settings UI Polish

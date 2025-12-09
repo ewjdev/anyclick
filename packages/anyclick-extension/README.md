@@ -1,6 +1,6 @@
 # @ewjdev/anyclick-extension
 
-Browser extension for Anyclick - adds right-click context menu integration with t3.chat and UploadThing to any webpage.
+Browser extension for Anyclick - anyclick context layer provides an easy layer for product teams and customers to take actions and understand intent
 
 ## Features
 
@@ -17,33 +17,32 @@ Browser extension for Anyclick - adds right-click context menu integration with 
 
 ```bash
 git clone https://github.com/ewjdev/anyclick.git
-cd anyclick/packages/anyclick-extension
 ```
 
 2. Install dependencies:
 
 ```bash
-npm install
+yarn install
 ```
 
 3. Build the extension:
 
 ```bash
-npm run build:extension
+yarn build:extension
 ```
 
 4. Load in Chrome:
    - Go to `chrome://extensions`
    - Enable "Developer mode"
    - Click "Load unpacked"
-   - Select the `packages/anyclick-extension` folder
+   - Select the `packages/anyclick-extension/dist` folder
 
 ### From Store (Coming Soon)
 
 The extension will be available on:
 - Chrome Web Store
-- Firefox Add-ons
-- Edge Add-ons
+- Firefox Add-ons (Depends on demand)
+- Edge Add-ons (Depends on demand)
 
 ## Usage
 
@@ -105,16 +104,16 @@ packages/anyclick-extension/
 
 ```bash
 # Build library exports
-npm run build
+yarn build
 
 # Build extension bundle
-npm run build:extension
+yarn build:extension
 
 # Development watch mode
-npm run dev
+yarn dev
 
 # Clean build files
-npm run clean
+yarn clean
 ```
 
 ### Using Extension Adapters in Your Code
@@ -194,9 +193,9 @@ import {
 
 | Browser | Minimum Version | Status |
 |---------|----------------|--------|
-| Chrome  | 102+           | ✅ Supported |
-| Edge    | 102+           | ✅ Supported |
-| Firefox | 109+           | ✅ Supported |
+| Chrome  | 142+           | ✅ Supported   |
+| Edge    | 12+            | 🚧 Coming Soon |
+| Firefox | 144+           | 🚧 Coming Soon |
 | Safari  | -              | 🚧 Coming Soon |
 
 ## Contributing

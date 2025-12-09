@@ -291,8 +291,9 @@ export function Tooltip({ content, children, className }: TooltipProps) {
         <div
           role="tooltip"
           className={cn(
-            "ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:bg-surface-muted ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none",
-            "ac:bg-blur-md",
+            "ac:absolute ac:bottom-full ac:left-1/2 ac:-translate-x-1/2 ac:mb-2 ac:z-50 ac:px-3 ac:py-2 ac:rounded-md ac:border ac:border-border ac:text-xs ac:text-text ac:shadow-lg ac:max-w-xs ac:whitespace-normal ac:pointer-events-none",
+            "ac:backdrop-blur-md",
+            "ac:w-[250px]",
             className,
           )}
         >

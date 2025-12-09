@@ -13,6 +13,7 @@ interface AdapterCardProps {
 }
 
 export function AdapterCard({
+  id,
   name,
   description,
   icon,
@@ -22,15 +23,11 @@ export function AdapterCard({
   children,
 }: AdapterCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const contentId = `${id}-settings`;
 
   return (
     <Card className="ac:overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="ac:w-full ac:p-3 ac:flex ac:items-center ac:justify-between ac:text-left hover:ac:bg-surface/50 ac:transition-colors"
-        disabled={disabled}
-      >
+      <div className="ac:p-3 ac:flex ac:items-center ac:justify-between ac:gap-3">
         <div className="ac:flex ac:items-center ac:gap-3">
           <div className="ac:w-8 ac:h-8 ac:rounded-md ac:bg-surface ac:border ac:border-border ac:flex ac:items-center ac:justify-center ac:text-text-muted">
             {icon}
@@ -48,36 +45,45 @@ export function AdapterCard({
           </div>
         </div>
         <div className="ac:flex ac:items-center ac:gap-2">
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
+          <Switch
+            checked={enabled}
+            onCheckedChange={onEnabledChange}
+            disabled={disabled}
+            id={`${id}-toggle`}
+          />
+          <button
+            type="button"
+            onClick={() => setExpanded((prev) => !prev)}
+            className="ac:flex ac:items-center ac:gap-1 ac:text-xs ac:text-text-muted hover:ac:text-text ac:transition-colors disabled:ac:opacity-50"
+            aria-expanded={expanded}
+            aria-controls={contentId}
+            disabled={disabled}
           >
-            <Switch
-              checked={enabled}
-              onCheckedChange={onEnabledChange}
-              disabled={disabled}
-            />
-          </div>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`ac:text-text-muted ac:transition-transform ${
-              expanded ? "ac:rotate-180" : ""
-            }`}
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
+            <span>{expanded ? "Hide" : "Settings"}</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`ac:transition-transform ${
+                expanded ? "ac:rotate-180" : ""
+              }`}
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </button>
         </div>
-      </button>
+      </div>
       {expanded && (
-        <div className="ac:px-3 ac:pb-3 ac:pt-0 ac:border-t ac:border-border">
+        <div
+          id={contentId}
+          className="ac:px-3 ac:pb-3 ac:pt-0 ac:border-t ac:border-border"
+        >
           <div className="ac:pt-3 ac:space-y-3">{children}</div>
         </div>
       )}

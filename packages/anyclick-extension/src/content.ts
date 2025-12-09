@@ -80,6 +80,34 @@ document.addEventListener(
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 
+    // Check if clicking on the overlay icon (shadow host)
+    const targetEl = e.target as Element;
+    if (
+      targetEl.id === "anyclick-react-shadow-host" ||
+      targetEl.closest?.("#anyclick-react-shadow-host")
+    ) {
+      // Prevent native and custom context menu on overlay icon
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Toggle Anyclick off if it's currently on
+      if (customMenuEnabled) {
+        chrome.storage.local.set(
+          {
+            [STORAGE_KEYS.ENABLED]: false,
+            [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: false,
+          },
+          () => {
+            console.log(
+              "[Anyclick Content] Extension disabled via overlay right-click",
+            );
+            showToast("Anyclick disabled", "info");
+          },
+        );
+      }
+      return;
+    }
+
     // Skip if extension context is invalidated (extension was reloaded)
     if (!isExtensionContextValid()) {
       console.warn(
@@ -1672,7 +1700,7 @@ function showToast(
   toastElement.style.cssText = `
     position: fixed !important;
     bottom: 20px !important;
-    right: 20px !important;
+    right: 100px !important; // space for overlay icon
     background: ${bg} !important;
     border: 1px solid ${border} !important;
     color: white !important;
@@ -1767,11 +1795,41 @@ loadCustomMenuSetting();
 
 /**
  * Ensure the React overlay matches current enabled state.
+ * Overlay should always be mounted to show status (ready/inactive/error).
+ * The overlay component itself will handle showing the correct state based on enabled status.
  */
 function syncOverlayMount(): void {
-  if (customMenuEnabled) {
-    mountOverlay();
-  } else {
-    unmountOverlay();
-  }
+  // Always mount overlay so it can show status
+  // The overlay component will check storage and show green (ready), grey (inactive), or red (error)
+  mountOverlay();
 }
+
+/**
+ * Listen for overlay click events (when user clicks overlay icon)
+ */
+document.addEventListener("anyclick-overlay-click", ((e: CustomEvent) => {
+  const action = e.detail?.action;
+  const message = e.detail?.message;
+
+  switch (action) {
+    case "enabled":
+      showToast(
+        "Anyclick enabled! Right-click any element to get started.",
+        "success",
+      );
+      break;
+    case "disabled":
+      showToast("Anyclick disabled", "info");
+      break;
+    case "popup-fallback":
+      showToast(
+        message || "Click the Anyclick extension icon in your toolbar",
+        "info",
+      );
+      break;
+    default:
+      if (message) {
+        showToast(message, "info");
+      }
+  }
+}) as EventListener);
