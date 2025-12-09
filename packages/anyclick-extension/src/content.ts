@@ -6,6 +6,7 @@ import {
   showMenu,
 } from "./contextMenu";
 import { mountOverlay, unmountOverlay } from "./overlay";
+import { mountPointer } from "./pointer/mount";
 import {
   type ActionMetadata,
   type AncestorInfo,
@@ -48,6 +49,8 @@ let mouseMoveTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Whether the custom context menu is enabled */
 let customMenuEnabled = DEFAULTS.CUSTOM_MENU_OVERRIDE;
+/** Whether the custom pointer should be active */
+let pointerEnabled: boolean = DEFAULTS.ENABLED;
 
 // ========== Event Listeners ==========
 
@@ -662,7 +665,9 @@ chrome.runtime.onMessage.addListener(
             result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
             DEFAULTS.CUSTOM_MENU_OVERRIDE;
           customMenuEnabled = Boolean(message.enabled) && menuOverride;
+          pointerEnabled = Boolean(message.enabled);
           syncOverlayMount();
+          syncPointerMount();
           sendResponse({ enabled: customMenuEnabled });
         },
       );
@@ -1702,6 +1707,7 @@ function showToast(
     bottom: 20px !important;
     right: 100px !important; // space for overlay icon
     background: ${bg} !important;
+    backdrop-filter: blur(10px) !important;
     border: 1px solid ${border} !important;
     color: white !important;
     padding: 10px 16px !important;
@@ -1757,7 +1763,9 @@ function loadCustomMenuSetting(): void {
         DEFAULTS.CUSTOM_MENU_OVERRIDE;
       // Both must be true for context menu override to work
       customMenuEnabled = extensionEnabled && menuOverride;
+      pointerEnabled = extensionEnabled;
       syncOverlayMount();
+      syncPointerMount();
     },
   );
 }
@@ -1784,7 +1792,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           DEFAULTS.CUSTOM_MENU_OVERRIDE;
         // Both must be true for context menu override to work
         customMenuEnabled = extensionEnabled && menuOverride;
+        pointerEnabled = extensionEnabled;
         syncOverlayMount();
+        syncPointerMount();
       },
     );
   }
@@ -1802,6 +1812,14 @@ function syncOverlayMount(): void {
   // Always mount overlay so it can show status
   // The overlay component will check storage and show green (ready), grey (inactive), or red (error)
   mountOverlay();
+}
+
+/**
+ * Ensure the custom pointer matches the enabled state.
+ */
+function syncPointerMount(): void {
+  console.log("[Anyclick][content] syncPointerMount", { pointerEnabled });
+  mountPointer(pointerEnabled);
 }
 
 /**

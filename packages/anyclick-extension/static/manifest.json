@@ -44,7 +44,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icons/*.png"],
+      "resources": ["popup.css", "icons/*.png", "icons/*.svg"],
       "matches": ["<all_urls>"]
     }
   ]
