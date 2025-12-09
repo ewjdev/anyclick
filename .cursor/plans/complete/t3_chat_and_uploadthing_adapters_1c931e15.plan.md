@@ -1,33 +1,3 @@
----
-name: T3 Chat and UploadThing Adapters
-overview: Build adapters for t3.chat and UploadThing services, supporting both web library and browser extension, with Next.js backend integration options and future proxy service compatibility.
-todos:
-  - id: create-t3chat-package
-    content: Create packages/anyclick-t3chat with browser adapter, types, and utilities for text selection detection and t3.chat navigation
-    status: completed
-  - id: create-uploadthing-package
-    content: Create packages/anyclick-uploadthing with browser and server adapters, image detection utilities, and UploadThing SDK integration
-    status: completed
-  - id: integrate-t3chat-menu
-    content: Add conditional t3.chat menu item to ContextMenu when text is selected, using text selection detection
-    status: completed
-  - id: integrate-t3chat-quickchat
-    content: Add Send to t3.chat option in QuickChat component that navigates with current query
-    status: completed
-  - id: integrate-uploadthing-menu
-    content: Add UploadThing menu items for images and screenshots, with image detection logic
-    status: completed
-  - id: create-extension-package
-    content: Create packages/anyclick-extension with content scripts, background scripts, and adapter wrappers
-    status: completed
-  - id: add-nextjs-examples
-    content: Create example pages and API routes for t3.chat and UploadThing Next.js integration
-    status: completed
-  - id: write-documentation
-    content: Write README files for both adapters, extension package, and update main adapter docs
-    status: completed
----
-
 # T3 Chat and UploadThing Adapters Implementation Plan
 
 ## Overview
