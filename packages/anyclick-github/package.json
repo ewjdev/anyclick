@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-github",
-  "version": "1.4.0",
+  "version": "3.0.0",
   "private": false,
   "description": "GitHub adapter for UI feedback - includes browser HTTP adapter and Node-side GitHub integration",
   "keywords": [

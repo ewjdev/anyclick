@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-extension",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "private": false,
   "description": "Browser extension for Anyclick - right-click context menu with t3.chat and UploadThing integration",
   "keywords": [
@@ -49,8 +49,8 @@
   },
   "dependencies": {
     "@ewjdev/anyclick-core": "^1.4.0",
-    "@ewjdev/anyclick-t3chat": "^1.0.0",
-    "@ewjdev/anyclick-uploadthing": "^1.0.0"
+    "@ewjdev/anyclick-t3chat": "^3.0.0",
+    "@ewjdev/anyclick-uploadthing": "^3.0.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",

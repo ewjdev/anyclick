@@ -31,13 +31,15 @@ Scope here does **not** block the error ingestion stack.
 <!-- ROADMAP:AUTO-START -->
 ## Short-term (next up)
 
-- 🚧 **Quick Chat (AI Assistant)**: Inline AI chat in context menu with type-to-chat, element context extraction, suggested prompts, and pinnable drawer mode. `In Progress`
+- **Quick Chat (AI Assistant)**: Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnabl...
 - **Notifications Package**: Toast → Banner → Inline → Indicator, with NotificationContainer mount point.
 - **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme hooks shared with AnyclickProvider.
 - **Noise Controls**: Coalescing identical errors, per-severity rate limits, dismissal persistence, opt-in feedback prompt...
 - **Configuration Options**: Timeouts, placement, portal target, mobile-safe spacing, z-index and overlap rules.
 - **Auto Error Collection**: Automatically capture unhandled errors with DOM context and screenshots.
 - **Element-Specific Menus**: Show different menu options based on the clicked element type or context.
+- ✅ **Chrome Extension**: Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and ... [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension)
+- ✅ **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context. [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira)
 
 ## Mid-term
 
@@ -50,10 +52,9 @@ Scope here does **not** block the error ingestion stack.
 
 ## Later
 
-- **Integrations**: Slack/Jira/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.
+- **Integrations**: Slack/Linear connectors, SSO options, CD/CI release mapping for source-map lookups.
 - **Analytics**: Trend views, cohorting by release/environment, regression detection, and optional RUM sampling knobs...
 - **Dashboard Polish**: Saved views, shared links with redaction, dark/light themes, and multi-tenant separation.
-- **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context.
 - **Slack Integration**: Post feedback and bug reports to Slack channels with rich formatting.
 - **Pain Point Analytics**: Aggregate and analyze feedback to identify common user pain points.
 - **Click Behavior Tracking**: Track click patterns and user behavior for UX insights.

@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-uploadthing",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "private": false,
   "description": "UploadThing adapter for Anyclick - upload screenshots and images to UploadThing",
   "keywords": [
