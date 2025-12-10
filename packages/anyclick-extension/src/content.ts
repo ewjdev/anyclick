@@ -57,6 +57,8 @@ let pointerEnabled: boolean = DEFAULTS.ENABLED;
 /**
  * Track mouse position for element targeting (debounced)
  */
+console.log("[Anyclick Content] Adding mousemove listener");
+console.count("[Anyclick Content] mousemove listener added");
 document.addEventListener(
   "mousemove",
   (e) => {

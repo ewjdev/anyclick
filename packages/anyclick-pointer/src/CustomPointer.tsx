@@ -8,25 +8,25 @@ import React, {
   useState,
 } from "react";
 import { MousePointer2 } from "lucide-react";
+import {
+  clearTouchInteraction,
+  getDeviceType,
+  markTouchInteraction,
+  shouldShowPointer,
+  wasLastInteractionTouch,
+} from "./deviceDetection";
 import type {
   CustomPointerProps,
+  PointerConfig,
   PointerInteractionState,
   PointerTheme,
-  PointerConfig,
 } from "./types";
 import {
+  defaultPointerConfig,
   defaultPointerTheme,
   defaultPointerThemeColors,
   defaultPointerThemeSizes,
-  defaultPointerConfig,
 } from "./types";
-import {
-  shouldShowPointer,
-  markTouchInteraction,
-  wasLastInteractionTouch,
-  clearTouchInteraction,
-  getDeviceType,
-} from "./deviceDetection";
 
 /**
  * CSS style IDs
@@ -104,6 +104,7 @@ export function CustomPointer({
   enabled = true,
   onInteractionChange,
 }: CustomPointerProps) {
+  console.count("CustomPointer RENDER");
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
   const mergedConfig = useMemo(() => mergeConfig(config), [config]);
 
