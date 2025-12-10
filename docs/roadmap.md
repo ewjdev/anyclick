@@ -31,6 +31,8 @@ Scope here does **not** block the error ingestion stack.
 <!-- ROADMAP:AUTO-START -->
 ## Short-term (next up)
 
+- ✅ **Chrome Extension**: Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and ... [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension)
+- ✅ **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context. [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira)
 - **Quick Chat (AI Assistant)**: Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnabl...
 - **Notifications Package**: Toast → Banner → Inline → Indicator, with NotificationContainer mount point.
 - **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme hooks shared with AnyclickProvider.
@@ -38,8 +40,6 @@ Scope here does **not** block the error ingestion stack.
 - **Configuration Options**: Timeouts, placement, portal target, mobile-safe spacing, z-index and overlap rules.
 - **Auto Error Collection**: Automatically capture unhandled errors with DOM context and screenshots.
 - **Element-Specific Menus**: Show different menu options based on the clicked element type or context.
-- ✅ **Chrome Extension**: Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and ... [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension)
-- ✅ **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context. [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira)
 
 ## Mid-term
 
