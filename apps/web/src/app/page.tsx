@@ -4,7 +4,7 @@ import {
   HeroCodeBlock,
   TerminalBlock,
 } from "@/components/CodePreview";
-import { RoleContextMenuShowcase } from "@/components/RoleContextMenuShowcase";
+import { WorkstreamShowcase } from "@/components/WorkstreamShowcase";
 import roadmapData from "@/data/roadmap-items.json";
 import {
   ArrowRight,
@@ -28,55 +28,6 @@ const getTags = (item: { tags?: unknown }): string[] => {
   }
   return [];
 };
-
-// Get upcoming features for a role from roadmap items
-function getUpcomingFeaturesForRole(roleKey: string) {
-  const tag = `homepage:${roleKey}`;
-  return roadmapData.items.filter(
-    (item) =>
-      getTags(item).includes(tag) &&
-      item.status !== "completed" &&
-      item.status !== "closed",
-  );
-}
-
-// Type for role configuration
-interface RoleConfig {
-  title: string;
-  subtitle: string;
-  icon: string;
-  color: string;
-  features: Array<{ text: string; available: boolean }>;
-}
-
-// Validate and get roles from roadmap data
-function getRoles(): Record<string, RoleConfig> {
-  const raw = roadmapData.roles;
-  if (!raw || typeof raw !== "object") return {};
-
-  const isRole = (value: unknown): value is RoleConfig => {
-    if (!value || typeof value !== "object") return false;
-    const role = value as Partial<RoleConfig>;
-    const featuresValid =
-      Array.isArray(role.features) &&
-      role.features.every(
-        (f) =>
-          f && typeof f.text === "string" && typeof f.available === "boolean",
-      );
-    return (
-      typeof role.title === "string" &&
-      typeof role.subtitle === "string" &&
-      typeof role.icon === "string" &&
-      typeof role.color === "string" &&
-      featuresValid
-    );
-  };
-
-  const entries = Object.entries(raw).filter(([, value]) => isRole(value));
-  return Object.fromEntries(entries) as Record<string, RoleConfig>;
-}
-
-const roles = getRoles();
 
 export default function Home() {
   return (
@@ -135,7 +86,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-32 px-6">
+      <section className="relative pt-24 pb-32 px-0 md:px-6">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
@@ -144,9 +95,9 @@ export default function Home() {
           </div> */}
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6 mx-2">
             <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              UX / DevX done right
+              UX done right
             </span>
             <br />
             <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
@@ -155,7 +106,7 @@ export default function Home() {
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed px-2">
             Right-click any element in your app to get the right context,
             anyclick will format it for consumers and adapters will
             automagically route it to the appropriate system. Issues or AI
@@ -163,20 +114,13 @@ export default function Home() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <Link
               href="/docs/getting-started"
               className="group px-8 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25 flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/examples/basic"
-              className="px-8 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold transition-all flex items-center gap-2"
-            >
-              <Code2 className="w-4 h-4" />
-              View Examples
             </Link>
           </div>
         </div>
@@ -207,30 +151,18 @@ export default function RootLayout({ children }) {
       <section className="py-24 px-6 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent" />
         <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Built for every role
+              Built for every workstream
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Whether you&apos;re hunting bugs, designing interfaces, or
-              managing products—anyclick adapts to your workflow.
+              From software development to healthcare, e-commerce to social
+              media—anyclick adapts to any workflow with role-specific context
+              menus.
             </p>
           </div>
 
-          <RoleContextMenuShowcase
-            roles={Object.entries(roles).map(([roleKey, role]) => ({
-              key: roleKey,
-              title: role.title,
-              subtitle: role.subtitle,
-              icon: role.icon,
-              color: role.color,
-              features: role.features,
-              upcoming: getUpcomingFeaturesForRole(roleKey).map((item) => ({
-                id: item.id,
-                title: item.title,
-              })),
-            }))}
-          />
+          <WorkstreamShowcase />
 
           {/* Roadmap Summary */}
           {(() => {
