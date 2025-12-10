@@ -4,7 +4,7 @@ import {
   HeroCodeBlock,
   TerminalBlock,
 } from "@/components/CodePreview";
-import { WorkstreamShowcase } from "@/components/WorkstreamShowcase";
+import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamShowcase";
 import roadmapData from "@/data/roadmap-items.json";
 import {
   ArrowRight,
@@ -147,24 +147,24 @@ export default function RootLayout({ children }) {
         />
       </section>
 
-      {/* Use Cases Section */}
-      <section className="py-24 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent" />
-        <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Built for every workstream
-            </h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              From software development to healthcare, e-commerce to social
-              media—anyclick adapts to any workflow with role-specific context
-              menus.
-            </p>
-          </div>
+      {/* Immersive Workstream Section */}
+      <section className="relative">
+        <div className="text-center py-16 px-6">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Built to extend most UI workstreams
+          </h2>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Scroll through immersive experiences. Each workstream has its own
+            visual identity and context menu. Right-click to try it.
+          </p>
+        </div>
 
-          <WorkstreamShowcase />
+        <ImmersiveWorkstreamShowcase />
+      </section>
 
-          {/* Roadmap Summary */}
+      {/* Roadmap Summary */}
+      <section className="py-16 px-6">
+        <div className="max-w-7xl mx-auto">
           {(() => {
             const upcomingItems = roadmapData.items.filter(
               (item) =>
@@ -178,7 +178,7 @@ export default function RootLayout({ children }) {
               .join(", ");
 
             return (
-              <div className="mt-16 p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">

@@ -68,3 +68,96 @@
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+
+/* =============================================================================
+   Workstream Theme Animations
+   Performant, subtle animations for workstream showcase lanes
+   ============================================================================= */
+
+@keyframes shimmer {
+  0%,
+  100% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes flow {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes healthcarePulse {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes dotsDrift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 24px 24px;
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  25% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.35;
+  }
+  75% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes circuitPulse {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+/* Reduced motion: disable all workstream animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-software-shimmer,
+  .animate-ecommerce-flow,
+  .animate-healthcare-pulse,
+  .animate-billing-dots,
+  .animate-social-twinkle,
+  .animate-automation-circuit {
+    animation: none !important;
+  }
+
+  .animate-software-shimmer *,
+  .animate-ecommerce-flow *,
+  .animate-healthcare-pulse *,
+  .animate-billing-dots *,
+  .animate-social-twinkle *,
+  .animate-automation-circuit * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

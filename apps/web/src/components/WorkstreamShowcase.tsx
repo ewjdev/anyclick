@@ -8,25 +8,19 @@ import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import {
   Bug,
-  Camera,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
   Code2,
-  FileText,
-  Heart,
   HeartPulse,
   ImagePlus,
   MessageSquare,
   MousePointer2,
   Package,
   Palette,
-  PenTool,
   Puzzle,
   Receipt,
   ShieldCheck,
-  ShoppingCart,
-  Stethoscope,
   Target,
   Terminal,
   TrendingUp,
@@ -37,6 +31,156 @@ import {
 import Link from "next/link";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
+
+// =============================================================================
+// Workstream Theme Configuration
+// =============================================================================
+
+interface WorkstreamTheme {
+  // Track (lane) styling
+  trackGradient: string;
+  trackBg?: string;
+  trackShadow: string;
+  trackBorder: string;
+  // Animation
+  animation?: string;
+  animationClass?: string;
+  // Accent for scroll buttons
+  accentColor: string;
+  accentColorLight: string;
+  // Card theming
+  cardBg: string;
+  cardBorder: string;
+  cardHoverBg: string;
+  cardGlow?: string;
+}
+
+const workstreamThemes: Record<string, WorkstreamTheme> = {
+  // Software Dev: neon terminal grid, cool violet/green accents, scanline shimmer
+  software: {
+    trackGradient:
+      "linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(34, 197, 94, 0.06) 50%, rgba(139, 92, 246, 0.08) 100%)",
+    trackBg: `
+      linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(34, 197, 94, 0.06) 50%, rgba(139, 92, 246, 0.08) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(139, 92, 246, 0.03) 20px, rgba(139, 92, 246, 0.03) 21px),
+      repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(34, 197, 94, 0.02) 20px, rgba(34, 197, 94, 0.02) 21px)
+    `,
+    trackShadow:
+      "inset 0 2px 12px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(139, 92, 246, 0.1)",
+    trackBorder: "rgba(139, 92, 246, 0.15)",
+    animation: "shimmer",
+    animationClass: "animate-software-shimmer",
+    accentColor: "#8b5cf6",
+    accentColorLight: "rgba(139, 92, 246, 0.3)",
+    cardBg: "rgba(139, 92, 246, 0.04)",
+    cardBorder: "rgba(139, 92, 246, 0.12)",
+    cardHoverBg: "rgba(139, 92, 246, 0.08)",
+    cardGlow: "0 0 20px rgba(139, 92, 246, 0.1)",
+  },
+
+  // E-commerce: warm warehouse/amber, subtle moving gradient for logistics flow
+  ecommerce: {
+    trackGradient:
+      "linear-gradient(90deg, rgba(245, 158, 11, 0.06) 0%, rgba(251, 191, 36, 0.1) 50%, rgba(245, 158, 11, 0.06) 100%)",
+    trackBg: `
+      linear-gradient(90deg, rgba(245, 158, 11, 0.06) 0%, rgba(251, 191, 36, 0.1) 50%, rgba(245, 158, 11, 0.06) 100%)
+    `,
+    trackShadow:
+      "inset 0 2px 12px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(245, 158, 11, 0.08)",
+    trackBorder: "rgba(245, 158, 11, 0.12)",
+    animation: "flow",
+    animationClass: "animate-ecommerce-flow",
+    accentColor: "#f59e0b",
+    accentColorLight: "rgba(245, 158, 11, 0.3)",
+    cardBg: "rgba(245, 158, 11, 0.04)",
+    cardBorder: "rgba(245, 158, 11, 0.12)",
+    cardHoverBg: "rgba(245, 158, 11, 0.08)",
+    cardGlow: "0 0 16px rgba(245, 158, 11, 0.08)",
+  },
+
+  // Healthcare Front Desk: calm teal/emerald, soft pulse animation, gentle glass
+  healthcare: {
+    trackGradient:
+      "linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 184, 166, 0.08) 50%, rgba(16, 185, 129, 0.06) 100%)",
+    trackBg: `
+      linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 184, 166, 0.08) 50%, rgba(16, 185, 129, 0.06) 100%)
+    `,
+    trackShadow:
+      "inset 0 2px 10px rgba(0,0,0,0.35), inset 0 -1px 0 rgba(16, 185, 129, 0.1)",
+    trackBorder: "rgba(16, 185, 129, 0.12)",
+    animation: "pulse",
+    animationClass: "animate-healthcare-pulse",
+    accentColor: "#10b981",
+    accentColorLight: "rgba(16, 185, 129, 0.3)",
+    cardBg: "rgba(16, 185, 129, 0.03)",
+    cardBorder: "rgba(16, 185, 129, 0.1)",
+    cardHoverBg: "rgba(16, 185, 129, 0.07)",
+    cardGlow: "0 0 18px rgba(16, 185, 129, 0.08)",
+  },
+
+  // Medical Billing: navy/blue with ledger lines, faint parallax dots
+  billing: {
+    trackGradient:
+      "linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, rgba(30, 64, 175, 0.08) 100%)",
+    trackBg: `
+      linear-gradient(180deg, rgba(59, 130, 246, 0.06) 0%, rgba(30, 64, 175, 0.08) 100%),
+      repeating-linear-gradient(0deg, transparent, transparent 32px, rgba(59, 130, 246, 0.04) 32px, rgba(59, 130, 246, 0.04) 33px)
+    `,
+    trackShadow:
+      "inset 0 2px 12px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(59, 130, 246, 0.08)",
+    trackBorder: "rgba(59, 130, 246, 0.1)",
+    animation: "dots",
+    animationClass: "animate-billing-dots",
+    accentColor: "#3b82f6",
+    accentColorLight: "rgba(59, 130, 246, 0.3)",
+    cardBg: "rgba(59, 130, 246, 0.03)",
+    cardBorder: "rgba(59, 130, 246, 0.1)",
+    cardHoverBg: "rgba(59, 130, 246, 0.07)",
+    cardGlow: "0 0 16px rgba(59, 130, 246, 0.08)",
+  },
+
+  // Social Media: vibrant pink/purple with bokeh/particle twinkle
+  social: {
+    trackGradient:
+      "linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(236, 72, 153, 0.08) 100%)",
+    trackBg: `
+      linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(236, 72, 153, 0.08) 100%)
+    `,
+    trackShadow:
+      "inset 0 2px 12px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(236, 72, 153, 0.12)",
+    trackBorder: "rgba(236, 72, 153, 0.15)",
+    animation: "twinkle",
+    animationClass: "animate-social-twinkle",
+    accentColor: "#ec4899",
+    accentColorLight: "rgba(236, 72, 153, 0.3)",
+    cardBg: "rgba(236, 72, 153, 0.04)",
+    cardBorder: "rgba(236, 72, 153, 0.12)",
+    cardHoverBg: "rgba(236, 72, 153, 0.08)",
+    cardGlow: "0 0 20px rgba(236, 72, 153, 0.1)",
+  },
+
+  // Browser Automation: orange/yellow circuit motif, slight tilt/hover lift
+  automation: {
+    trackGradient:
+      "linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(234, 179, 8, 0.06) 50%, rgba(249, 115, 22, 0.08) 100%)",
+    trackBg: `
+      linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(234, 179, 8, 0.06) 50%, rgba(249, 115, 22, 0.08) 100%),
+      repeating-linear-gradient(90deg, transparent 0px, transparent 40px, rgba(249, 115, 22, 0.03) 40px, rgba(249, 115, 22, 0.03) 42px),
+      repeating-linear-gradient(0deg, transparent 0px, transparent 40px, rgba(234, 179, 8, 0.02) 40px, rgba(234, 179, 8, 0.02) 42px)
+    `,
+    trackShadow:
+      "inset 0 2px 12px rgba(0,0,0,0.45), inset 0 -1px 0 rgba(249, 115, 22, 0.1)",
+    trackBorder: "rgba(249, 115, 22, 0.12)",
+    animation: "circuit",
+    animationClass: "animate-automation-circuit",
+    accentColor: "#f97316",
+    accentColorLight: "rgba(249, 115, 22, 0.3)",
+    cardBg: "rgba(249, 115, 22, 0.04)",
+    cardBorder: "rgba(249, 115, 22, 0.12)",
+    cardHoverBg: "rgba(249, 115, 22, 0.08)",
+    cardGlow: "0 0 16px rgba(249, 115, 22, 0.1)",
+  },
+};
 
 // =============================================================================
 // Role Configuration Type
@@ -60,7 +204,7 @@ interface WorkstreamConfig {
   title: string;
   tagline: string;
   roles: RoleConfig[];
-  trackColor: string; // For the recessed track background
+  trackColor: string; // Legacy - keeping for reference
 }
 
 const workstreams: WorkstreamConfig[] = [
@@ -521,9 +665,11 @@ const workstreams: WorkstreamConfig[] = [
 function RoleCard({
   role,
   workstreamId,
+  theme,
 }: {
   role: RoleConfig;
   workstreamId: string;
+  theme: WorkstreamTheme;
 }) {
   return (
     <AnyclickProvider
@@ -557,15 +703,35 @@ function RoleCard({
         }}
       >
         <div
-          className="group relative flex min-w-[140px] flex-col items-center gap-2 rounded-lg bg-white/[0.02] p-4 transition-all hover:bg-white/[0.05]"
+          className={cn(
+            "group relative flex min-w-[140px] flex-col items-center gap-2 rounded-lg p-4",
+            "transition-all duration-300 ease-out",
+            "hover:scale-[1.02] hover:-translate-y-0.5",
+            // Reduced motion fallback
+            "motion-reduce:hover:scale-100 motion-reduce:hover:translate-y-0",
+          )}
           style={{
-            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.03), 0 0 0 1px ${role.accentColor}15`,
+            backgroundColor: theme.cardBg,
+            border: `1px solid ${theme.cardBorder}`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.04), ${theme.cardGlow || "none"}`,
+          }}
+          onMouseEnter={(e) => {
+            const target = e.currentTarget;
+            target.style.backgroundColor = theme.cardHoverBg;
+            target.style.borderColor = role.accentColor + "30";
+            target.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.06), 0 0 24px ${role.accentColor}20`;
+          }}
+          onMouseLeave={(e) => {
+            const target = e.currentTarget;
+            target.style.backgroundColor = theme.cardBg;
+            target.style.borderColor = theme.cardBorder;
+            target.style.boxShadow = `inset 0 1px 0 rgba(255,255,255,0.04), ${theme.cardGlow || "none"}`;
           }}
         >
           {/* Icon */}
           <div
-            className="flex h-10 w-10 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
-            style={{ backgroundColor: `${role.accentColor}15` }}
+            className="flex h-10 w-10 items-center justify-center rounded-lg transition-transform duration-300 group-hover:scale-110 motion-reduce:group-hover:scale-100"
+            style={{ backgroundColor: `${role.accentColor}18` }}
           >
             {role.pointerIcon}
           </div>
@@ -578,7 +744,7 @@ function RoleCard({
             {role.menuItems.slice(0, 2).map((item) => (
               <span
                 key={item.type}
-                className="rounded px-1.5 py-0.5 text-[10px]"
+                className="rounded px-1.5 py-0.5 text-[10px] transition-colors duration-200"
                 style={{
                   backgroundColor: `${role.accentColor}15`,
                   color: role.accentColor,
@@ -590,7 +756,7 @@ function RoleCard({
           </div>
 
           {/* Right-click hint */}
-          <span className="mt-1 flex items-center gap-1 text-[10px] text-gray-500 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="mt-1 flex items-center gap-1 text-[10px] text-gray-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <MousePointer2 size={10} />
             Right-click
           </span>
@@ -606,6 +772,7 @@ function RoleCard({
 
 function WorkstreamLane({ workstream }: { workstream: WorkstreamConfig }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const theme = workstreamThemes[workstream.id];
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -619,41 +786,129 @@ function WorkstreamLane({ workstream }: { workstream: WorkstreamConfig }) {
       {/* Lane header */}
       <div className="mb-3 flex items-baseline justify-between px-1">
         <div>
-          <h3 className="text-sm font-semibold text-white">
+          <h3
+            className="text-sm font-semibold"
+            style={{ color: theme.accentColor }}
+          >
             {workstream.title}
           </h3>
           <p className="text-xs text-gray-500">{workstream.tagline}</p>
         </div>
         <Link
           href="/examples/role-presets"
-          className="text-xs text-gray-500 hover:text-white transition-colors"
+          className="text-xs transition-colors hover:opacity-80"
+          style={{ color: theme.accentColorLight }}
         >
           See all →
         </Link>
       </div>
 
-      {/* Recessed track container */}
+      {/* Recessed track container with theme */}
       <div
         className={cn(
-          "relative rounded-xl",
-          // Recessed/inset effect
-          "bg-gradient-to-r",
-          workstream.trackColor,
-          "shadow-[inset_0_2px_8px_rgba(0,0,0,0.4),inset_0_-1px_0_rgba(255,255,255,0.03)]",
-          "border border-white/[0.03]",
+          "relative rounded-xl overflow-hidden",
+          // Animation class (respects reduced-motion via CSS)
+          theme.animationClass,
         )}
+        style={{
+          background: theme.trackBg || theme.trackGradient,
+          boxShadow: theme.trackShadow,
+          border: `1px solid ${theme.trackBorder}`,
+        }}
       >
-        {/* Scroll buttons */}
+        {/* Animated overlay for specific themes */}
+        {theme.animation === "shimmer" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30 motion-reduce:hidden"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(139, 92, 246, 0.1) 50%, transparent 100%)",
+              backgroundSize: "200% 100%",
+              animation: "shimmer 8s ease-in-out infinite",
+            }}
+          />
+        )}
+        {theme.animation === "flow" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-40 motion-reduce:hidden"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(245, 158, 11, 0.08) 30%, rgba(251, 191, 36, 0.12) 50%, rgba(245, 158, 11, 0.08) 70%, transparent 100%)",
+              backgroundSize: "300% 100%",
+              animation: "flow 12s linear infinite",
+            }}
+          />
+        )}
+        {theme.animation === "pulse" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-25 motion-reduce:hidden"
+            style={{
+              background: `radial-gradient(ellipse at center, ${theme.accentColorLight} 0%, transparent 70%)`,
+              animation: "healthcarePulse 4s ease-in-out infinite",
+            }}
+          />
+        )}
+        {theme.animation === "dots" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-20 motion-reduce:hidden"
+            style={{
+              backgroundImage: `radial-gradient(circle, ${theme.accentColor}30 1px, transparent 1px)`,
+              backgroundSize: "24px 24px",
+              animation: "dotsDrift 20s linear infinite",
+            }}
+          />
+        )}
+        {theme.animation === "twinkle" && (
+          <div
+            className="pointer-events-none absolute inset-0 motion-reduce:hidden"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle at 20% 30%, rgba(236, 72, 153, 0.3) 0%, transparent 8%),
+                radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.25) 0%, transparent 10%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.2) 0%, transparent 6%),
+                radial-gradient(circle at 30% 80%, rgba(168, 85, 247, 0.2) 0%, transparent 8%)
+              `,
+              animation: "twinkle 6s ease-in-out infinite",
+            }}
+          />
+        )}
+        {theme.animation === "circuit" && (
+          <div
+            className="pointer-events-none absolute inset-0 opacity-15 motion-reduce:hidden"
+            style={{
+              backgroundImage: `
+                linear-gradient(90deg, ${theme.accentColor}20 1px, transparent 1px),
+                linear-gradient(0deg, ${theme.accentColor}15 1px, transparent 1px)
+              `,
+              backgroundSize: "40px 40px",
+              animation: "circuitPulse 3s ease-in-out infinite",
+            }}
+          />
+        )}
+
+        {/* Scroll buttons - tinted to lane accent */}
         <button
           onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-r-lg bg-black/50 p-1.5 text-gray-400 opacity-0 backdrop-blur transition-opacity hover:text-white group-hover/lane:opacity-100"
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-r-lg p-1.5 opacity-0 backdrop-blur-sm transition-all duration-200 hover:scale-110 group-hover/lane:opacity-100 motion-reduce:hover:scale-100"
+          style={{
+            backgroundColor: `${theme.accentColor}20`,
+            color: theme.accentColor,
+            border: `1px solid ${theme.accentColor}30`,
+            borderLeft: "none",
+          }}
           aria-label="Scroll left"
         >
           <ChevronLeft size={16} />
         </button>
         <button
           onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-l-lg bg-black/50 p-1.5 text-gray-400 opacity-0 backdrop-blur transition-opacity hover:text-white group-hover/lane:opacity-100"
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-l-lg p-1.5 opacity-0 backdrop-blur-sm transition-all duration-200 hover:scale-110 group-hover/lane:opacity-100 motion-reduce:hover:scale-100"
+          style={{
+            backgroundColor: `${theme.accentColor}20`,
+            color: theme.accentColor,
+            border: `1px solid ${theme.accentColor}30`,
+            borderRight: "none",
+          }}
           aria-label="Scroll right"
         >
           <ChevronRight size={16} />
@@ -669,7 +924,12 @@ function WorkstreamLane({ workstream }: { workstream: WorkstreamConfig }) {
           }}
         >
           {workstream.roles.map((role) => (
-            <RoleCard key={role.id} role={role} workstreamId={workstream.id} />
+            <RoleCard
+              key={role.id}
+              role={role}
+              workstreamId={workstream.id}
+              theme={theme}
+            />
           ))}
         </div>
       </div>
@@ -689,7 +949,7 @@ export function WorkstreamShowcase({ className }: { className?: string }) {
       ))}
 
       {/* Extensibility callout */}
-      <div className="mt-8 rounded-xl border border-white/5 bg-white/[0.01] p-4 text-center">
+      <div className="mt-8 rounded-xl border border-white/5 bg-white/1 p-4 text-center">
         <p className="text-sm text-gray-400">
           <span className="text-white font-medium">Extensible by design</span> —
           Build custom workstreams for any industry. Context menus, pointers,
@@ -706,5 +966,3 @@ export function WorkstreamShowcase({ className }: { className?: string }) {
     </div>
   );
 }
-
-
