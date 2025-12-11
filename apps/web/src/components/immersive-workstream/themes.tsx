@@ -176,7 +176,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
     backgroundGradient: `
       radial-gradient(ellipse at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 70% 80%, rgba(20, 184, 166, 0.06) 0%, transparent 50%),
-      linear-gradient(180deg, #ffffff 0%, #f8fffe 50%, #f0fdf9 100%)
+      linear-gradient(180deg, rgba(0, 111, 0, 0.06) 0%, rgba(255, 255, 255, 0.8) 30%, rgba(255, 255, 255, 0.8) 70%, rgba(0, 111, 0, 0.06) 100%)
     `,
     floatingElements: [
       {

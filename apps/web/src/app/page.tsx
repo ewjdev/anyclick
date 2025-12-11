@@ -1,18 +1,11 @@
 import { AnyclickLogo } from "@/components/AnyclickLogo";
 import { HeroCodeBlock } from "@/components/CodePreview";
+import FeaturesSection from "@/components/FeaturesSection";
 import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamShowcase";
+import PackagesSection from "@/components/PackagesSection";
 import QuickStartSection from "@/components/QuickStartSection";
 import RoadmapSummary from "@/components/RoadmapSummary";
-import {
-  ArrowRight,
-  Box,
-  Camera,
-  GitBranch,
-  Layers,
-  MousePointerClick,
-  Terminal,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, Box, GitBranch, Terminal } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -137,7 +130,7 @@ export default function RootLayout({ children }) {
       <section className="relative">
         <div className="text-center py-16 px-6">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Built to extend most UI workflows
+            Built to extend browser workflows
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Scroll through immersive experiences. Each workflow has its own
@@ -158,212 +151,12 @@ export default function RootLayout({ children }) {
       {/* Features Section */}
       <section className="py-24 px-6 relative">
         <div className="absolute inset-0 bg-linear-to-b from-transparent via-violet-500/5 to-transparent" />
-        <div className="max-w-7xl mx-auto relative">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything you need for UI feedback
-            </h2>
-            <p className="text-gray-400 max-w-xl mx-auto">
-              From capturing user intent to automatic code fixes, anyclick
-              streamlines the entire feedback workflow.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 */}
-            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/4">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <MousePointerClick className="w-6 h-6 text-violet-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                Context-Aware Capture
-              </h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Right-click any element to capture its full DOM context,
-                including selectors, data attributes, ancestors, and surrounding
-                page information.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Camera className="w-6 h-6 text-cyan-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Screenshot Capture</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Automatically capture screenshots of the target element, its
-                container, and the full page—all included in the feedback
-                payload.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-emerald-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <GitBranch className="w-6 h-6 text-emerald-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">GitHub Integration</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Automatically create GitHub Issues with rich context, formatted
-                markdown, and embedded screenshots for seamless issue tracking.
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-amber-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Terminal className="w-6 h-6 text-amber-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Cursor AI Agent</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Launch Cursor&apos;s AI agent directly from feedback—locally
-                during development or via cloud agent for instant code fixes.
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-rose-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-rose-500/20 to-rose-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Layers className="w-6 h-6 text-rose-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Framework Agnostic</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Core library works with any JavaScript framework. Use the React
-                provider for React apps, or build your own integration.
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                <Zap className="w-6 h-6 text-indigo-400" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Zero Config</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Works out of the box with sensible defaults. Right-click
-                anywhere in your app and start capturing feedback immediately.
-              </p>
-            </div>
-          </div>
-        </div>
+        <FeaturesSection />
       </section>
 
       {/* Packages Section */}
       <section className="py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Modular Architecture
-            </h2>
-            <p className="text-gray-400 max-w-xl mx-auto">
-              Pick only the packages you need. All packages are published under
-              the <code className="text-cyan-400">@anyclick</code> scope.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Core Package */}
-            <div className="p-6 rounded-2xl bg-linear-to-br from-violet-500/10 to-transparent border border-violet-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Box className="w-6 h-6 text-violet-400" />
-                <code className="text-violet-300 font-mono">
-                  @ewjdev/anyclick-core
-                </code>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                Framework-agnostic core library. DOM capture, payload building,
-                screenshot utilities, and adapter interface.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  TypeScript
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  ESM + CJS
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Zero Dependencies
-                </span>
-              </div>
-            </div>
-
-            {/* React Package */}
-            <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Box className="w-6 h-6 text-cyan-400" />
-                <code className="text-cyan-300 font-mono">
-                  @ewjdev/anyclick-react
-                </code>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                React provider and context menu UI. Drop-in component that
-                handles all UI and event management.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  React 19+
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Context Menu
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Highlights
-                </span>
-              </div>
-            </div>
-
-            {/* GitHub Package */}
-            <div className="p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-transparent border border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <GitBranch className="w-6 h-6 text-emerald-400" />
-                <code className="text-emerald-300 font-mono">
-                  @ewjdev/anyclick-github
-                </code>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                GitHub Issues integration. HTTP adapter for browser +
-                server-side GitHub API client with image uploads.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  GitHub API
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Image Upload
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Markdown
-                </span>
-              </div>
-            </div>
-
-            {/* Cursor Packages */}
-            <div className="p-6 rounded-2xl bg-linear-to-br from-amber-500/10 to-transparent border border-amber-500/20">
-              <div className="flex items-center gap-3 mb-4">
-                <Terminal className="w-6 h-6 text-amber-400" />
-                <code className="text-amber-300 font-mono">
-                  @ewjdev/anyclick-cursor-*
-                </code>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">
-                Cursor AI integrations. Local adapter runs cursor-agent on your
-                machine; cloud adapter uses Cursor&apos;s API.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  cursor-agent
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Cloud Agent
-                </span>
-                <span className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400">
-                  Auto-fix
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PackagesSection />
       </section>
 
       {/* 
