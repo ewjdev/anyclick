@@ -40,9 +40,7 @@ export function NavigationRail({
                 style={{
                   backgroundColor: isActive
                     ? theme.primaryColor
-                    : theme.mode === "light"
-                      ? "rgba(0,0,0,0.2)"
-                      : "rgba(255,255,255,0.2)",
+                    : "rgba(255,255,255,0.2)",
                   boxShadow: isActive
                     ? `0 0 16px ${theme.primaryColor}, 0 0 32px ${theme.primaryColor}40`
                     : "none",

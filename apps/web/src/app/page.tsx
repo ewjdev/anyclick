@@ -1,17 +1,12 @@
 import { AnyclickLogo } from "@/components/AnyclickLogo";
-import {
-  CodeBlock,
-  HeroCodeBlock,
-  TerminalBlock,
-} from "@/components/CodePreview";
+import { HeroCodeBlock } from "@/components/CodePreview";
 import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamShowcase";
-import roadmapData from "@/data/roadmap-items.json";
+import QuickStartSection from "@/components/QuickStartSection";
+import RoadmapSummary from "@/components/RoadmapSummary";
 import {
   ArrowRight,
   Box,
   Camera,
-  Clock,
-  Code2,
   GitBranch,
   Layers,
   MousePointerClick,
@@ -20,21 +15,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Safely normalize tags to a string array
-const getTags = (item: { tags?: unknown }): string[] => {
-  if (!item.tags) return [];
-  if (Array.isArray(item.tags)) {
-    return item.tags.filter((t): t is string => typeof t === "string");
-  }
-  return [];
-};
-
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden">
       {/* Animated gradient background */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0d1117] via-[#0a0a0f] to-[#1a0a2e]" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#0d1117] via-[#0a0a0f] to-[#1a0a2e]" />
         <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
         <div
           className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] animate-pulse"
@@ -44,7 +30,7 @@ export default function Home() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 border-b border-white/5 backdrop-blur-xl bg-white/[0.02]">
+      <nav className="relative z-10 border-b border-white/5 backdrop-blur-xl bg-white/2">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative">
@@ -96,11 +82,11 @@ export default function Home() {
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6 mx-2">
-            <span className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
               UX done right
             </span>
             <br />
-            <span className="bg-gradient-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
               Why not click on everything?
             </span>
           </h1>
@@ -117,7 +103,7 @@ export default function Home() {
           <div className="flex items-center justify-center gap-4">
             <Link
               href="/docs/getting-started"
-              className="group px-8 py-3 rounded-xl bg-gradient-to-r from-violet-500 to-cyan-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25 flex items-center gap-2"
+              className="group px-8 py-3 rounded-xl bg-linear-to-r from-violet-500 to-cyan-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25 flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -151,10 +137,10 @@ export default function RootLayout({ children }) {
       <section className="relative">
         <div className="text-center py-16 px-6">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Built to extend most UI workstreams
+            Built to extend most UI workflows
           </h2>
           <p className="text-gray-400 max-w-2xl mx-auto">
-            Scroll through immersive experiences. Each workstream has its own
+            Scroll through immersive experiences. Each workflow has its own
             visual identity and context menu. Right-click to try it.
           </p>
         </div>
@@ -165,58 +151,13 @@ export default function RootLayout({ children }) {
       {/* Roadmap Summary */}
       <section className="py-16 px-6">
         <div className="max-w-7xl mx-auto">
-          {(() => {
-            const upcomingItems = roadmapData.items.filter(
-              (item) =>
-                item.status !== "completed" &&
-                item.status !== "closed" &&
-                getTags(item).some((t) => t.startsWith("homepage:")),
-            );
-            const upcomingTitles = upcomingItems
-              .slice(0, 5)
-              .map((item) => item.title)
-              .join(", ");
-
-            return (
-              <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/5 to-transparent border border-amber-500/10">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-                      <Clock className="w-5 h-5 text-amber-400" />
-                      Coming Soon
-                    </h3>
-                    <p className="text-sm text-gray-400 max-w-2xl">
-                      {upcomingTitles}
-                      {upcomingItems.length > 5 ? ", and more" : ""}. See
-                      what&apos;s next on our{" "}
-                      <Link
-                        href="/roadmap"
-                        className="text-amber-300 underline"
-                      >
-                        roadmap
-                      </Link>
-                      .
-                    </p>
-                  </div>
-                  <a
-                    href="https://github.com/ewjdev/anyclick/issues"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-shrink-0 px-5 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-medium transition-colors flex items-center gap-2"
-                  >
-                    Request a feature
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
-            );
-          })()}
+          <RoadmapSummary />
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-24 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/5 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-violet-500/5 to-transparent" />
         <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -230,8 +171,8 @@ export default function RootLayout({ children }) {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature 1 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-violet-500/30 transition-all hover:bg-white/4">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <MousePointerClick className="w-6 h-6 text-violet-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
@@ -245,8 +186,8 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Feature 2 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-cyan-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Camera className="w-6 h-6 text-cyan-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Screenshot Capture</h3>
@@ -258,8 +199,8 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Feature 3 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-emerald-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <GitBranch className="w-6 h-6 text-emerald-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">GitHub Integration</h3>
@@ -270,8 +211,8 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Feature 4 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-amber-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Terminal className="w-6 h-6 text-amber-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Cursor AI Agent</h3>
@@ -282,8 +223,8 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Feature 5 */}
-            <div className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-rose-500/30 transition-all hover:bg-white/[0.04]">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <div className="group p-6 rounded-2xl bg-white/2 border border-white/5 hover:border-rose-500/30 transition-all hover:bg-white/[0.04]">
+              <div className="w-12 h-12 rounded-xl bg-linear-to-br from-rose-500/20 to-rose-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                 <Layers className="w-6 h-6 text-rose-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">Framework Agnostic</h3>
@@ -323,7 +264,7 @@ export default function RootLayout({ children }) {
 
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* Core Package */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-transparent border border-violet-500/20">
+            <div className="p-6 rounded-2xl bg-linear-to-br from-violet-500/10 to-transparent border border-violet-500/20">
               <div className="flex items-center gap-3 mb-4">
                 <Box className="w-6 h-6 text-violet-400" />
                 <code className="text-violet-300 font-mono">
@@ -348,7 +289,7 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* React Package */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
+            <div className="p-6 rounded-2xl bg-linear-to-br from-cyan-500/10 to-transparent border border-cyan-500/20">
               <div className="flex items-center gap-3 mb-4">
                 <Box className="w-6 h-6 text-cyan-400" />
                 <code className="text-cyan-300 font-mono">
@@ -373,7 +314,7 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* GitHub Package */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20">
+            <div className="p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-transparent border border-emerald-500/20">
               <div className="flex items-center gap-3 mb-4">
                 <GitBranch className="w-6 h-6 text-emerald-400" />
                 <code className="text-emerald-300 font-mono">
@@ -398,7 +339,7 @@ export default function RootLayout({ children }) {
             </div>
 
             {/* Cursor Packages */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20">
+            <div className="p-6 rounded-2xl bg-linear-to-br from-amber-500/10 to-transparent border border-amber-500/20">
               <div className="flex items-center gap-3 mb-4">
                 <Terminal className="w-6 h-6 text-amber-400" />
                 <code className="text-amber-300 font-mono">
@@ -425,111 +366,13 @@ export default function RootLayout({ children }) {
         </div>
       </section>
 
-      {/* Quick Start Section */}
-      <section className="py-24 px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent" />
-        <div className="max-w-4xl mx-auto relative">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Quick Start</h2>
-            <p className="text-gray-400">
-              Get up and running in under 2 minutes
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            {/* Step 1 */}
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold">
-                1
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-3">Install the packages</h3>
-                <TerminalBlock
-                  code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github"
-                  showCopy={true}
-                />
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold">
-                2
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-3">Create an API route</h3>
-                <CodeBlock
-                  filename="app/api/feedback/route.ts"
-                  language="typescript"
-                  code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-
-const github = createGitHubAdapter({
-  owner: 'your-org',
-  repo: 'your-repo',
-  token: process.env.GITHUB_TOKEN
-});
-
-export async function POST(req) {
-  const payload = await req.json();
-  const result = await github.submit(payload);
-  return Response.json(result);
-}`}
-                />
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold">
-                3
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-3">Wrap your app</h3>
-                <CodeBlock
-                  filename="app/layout.tsx"
-                  language="tsx"
-                  code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
-
-const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
-
-export default function Layout({ children }) {
-  return (
-    <AnyclickProvider adapter={adapter}>
-      {children}
-    </AnyclickProvider>
-  );
-}`}
-                />
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center font-bold">
-                4
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold mb-3">Right-click anywhere!</h3>
-                <p className="text-gray-400">
-                  That&apos;s it! Right-click any element in your app to open
-                  the feedback menu. Select a feedback type, add a comment, and
-                  submit. Your feedback is now on GitHub.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12 text-center">
-            <Link
-              href="/docs/getting-started"
-              className="inline-flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
-            >
-              Read the full documentation
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
+      {/* 
+        Quick Start Section
+        Hidden on mobile cause you wouldn't be taking the actions of starting on mobile
+       */}
+      <section className="py-24 px-6 relative hidden md:block">
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-cyan-500/5 to-transparent" />
+        <QuickStartSection />
       </section>
 
       {/* Footer */}

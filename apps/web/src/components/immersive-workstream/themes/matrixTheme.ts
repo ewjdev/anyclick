@@ -1,62 +1,110 @@
 import { EditorView } from "@codemirror/view";
 
+const greens = {
+  light: "#00ff00",
+  medium: "#00aa00",
+  dark: "#004400",
+  darker: "#003200",
+  muted: "#006000",
+  error: "#ff4400",
+};
+
+const themeColors = {
+  background: "#000000",
+  text: greens.light,
+  caret: greens.light,
+  selection: greens.darker,
+  gutter: greens.muted,
+  gutterText: "#ffffff",
+  gutterBorder: greens.light,
+  activeLine: greens.dark,
+  activeLineText: greens.light,
+  activeLineGutter: greens.dark,
+  activeLineGutterText: greens.light,
+  activeLineGutterBorder: greens.dark,
+};
+
 export const matrixTheme = EditorView.theme(
   {
     "&": {
-      backgroundColor: "#000000",
-      color: "#00ff00",
+      backgroundColor: themeColors.background,
+      color: themeColors.text,
       fontFamily: "ui-monospace, 'Fira Code', monospace",
       fontSize: "14px",
     },
     ".cm-scroller": {
-      backgroundColor: "#000000",
+      backgroundColor: themeColors.background,
     },
     ".cm-content": {
-      caretColor: "#00ff00",
+      caretColor: themeColors.caret,
       padding: "16px",
     },
     ".cm-cursor, .cm-dropCursor": {
-      borderLeftColor: "#00ff00",
+      borderLeftColor: themeColors.caret,
       borderLeftWidth: "1px",
     },
     "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection":
       {
-        backgroundColor: "#2d2d2d",
+        border: `1px dashed ${greens.muted}`,
+        borderRadius: "4px",
+        padding: "2px",
+        backgroundColor: themeColors.selection,
       },
     ".cm-gutters": {
-      backgroundColor: "#006000",
-      color: "#ffffff",
-      borderRight: "2px solid #00ff00",
+      backgroundColor: themeColors.gutter,
+      color: themeColors.gutterText,
+      borderRight: `2px solid ${themeColors.gutterBorder}`,
     },
     ".cm-lineNumbers .cm-gutterElement": {
       color: "#ffffff",
     },
     ".cm-activeLineGutter": {
-      backgroundColor: "#004400",
+      backgroundColor: greens.darker,
     },
     ".cm-activeLine": {
-      backgroundColor: "#004400",
+      backgroundColor: greens.darker,
     },
     ".cm-line": {
       padding: "0 6px",
     },
-    ".cm-activeLine .ͼb,.cm-activeLine .ͼg": {
-      color: "#00ff00",
+    ".cm-activeLine .ͼm": {
+      color: themeColors.background,
+    },
+    ".ͼm": {
+      color: greens.light,
+    },
+    ".cm-activeLine .ͼb": {
+      color: greens.medium,
     },
     ".ͼb": {
-      color: "#00ff00",
+      color: greens.darker,
+    },
+    ".cm-activeLine .ͼg": {
+      color: themeColors.background,
     },
     ".ͼg": {
-      color: "#004400",
+      color: greens.medium,
+    },
+    ".cm-activeLine .ͼl": {
+      color: themeColors.background,
     },
     ".ͼl": {
-      color: "#00ff00",
+      color: greens.light,
+    },
+    ".cm-activeLine .ͼe": {
+      color: greens.light,
     },
     ".ͼe": {
-      color: "#005500",
+      color: greens.darker,
+    },
+    ".cm-activeLine .ͼc": {
+      color: greens.medium,
     },
     ".ͼc": {
-      color: "#00gg00",
+      color: greens.muted,
+    },
+    ".ͼc:contains('false')": {
+      color: "#ff0000",
     },
   },
   { dark: true },
