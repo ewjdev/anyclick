@@ -172,7 +172,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
     primaryColor: "#10b981",
     secondaryColor: "#14b8a6",
     glowColor: "rgba(16, 185, 129, 0.3)",
-    mode: "light",
+    mode: "dark",
     backgroundGradient: `
       radial-gradient(ellipse at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 70% 80%, rgba(20, 184, 166, 0.06) 0%, transparent 50%),
