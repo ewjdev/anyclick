@@ -13,6 +13,7 @@ import {
   ChevronRightIcon,
   FlagIcon,
   GripVertical,
+  Loader2,
   PlusIcon,
   Sparkles,
   ThumbsUpIcon,
@@ -212,9 +213,20 @@ const CommentForm = React.memo(function CommentForm({
             ...menuStyles.button,
             ...menuStyles.submitButton,
             ...(isSubmitting ? menuStyles.submitButtonDisabled : {}),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
           }}
         >
-          {isSubmitting ? "Sending..." : "Send"}
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Sending...</span>
+            </>
+          ) : (
+            "Send"
+          )}
         </button>
       </div>
     </div>

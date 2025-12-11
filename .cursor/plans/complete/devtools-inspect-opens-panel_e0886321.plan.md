@@ -1,21 +1,3 @@
----
-name: devtools-inspect-opens-panel
-overview: Route the context menu Inspect action to open/focus the Anyclick DevTools panel and stop sending element context payloads elsewhere.
-todos:
-  - id: trace-flow
-    content: Trace current inspect flow across content/background/devtools
-    status: completed
-  - id: stop-send
-    content: Remove inspect element sending to adapters/queue
-    status: completed
-  - id: open-panel
-    content: Open/focus Anyclick DevTools panel on inspect
-    status: completed
-  - id: verify
-    content: Manual test inspect menu opens Anyclick panel
-    status: completed
----
-
 # DevTools Inspect Opens Panel
 
 1) Trace current Inspect flow
