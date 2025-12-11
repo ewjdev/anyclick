@@ -1,72 +1,35 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import * as React from "react";
 import {
-  ArrowRight,
   Camera,
-  Check,
+  Clipboard,
+  Eye,
+  FileText,
   GitBranch,
+  Info,
   Layers,
-  Loader2,
   MousePointerClick,
+  RotateCcw,
+  Sparkles,
   Terminal,
-  X,
+  Target,
   Zap,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import Link from "next/link";
-
-// ============================================================================
-// Types
-// ============================================================================
-
-interface WorkflowStep {
-  label: string;
-  detail: string;
-}
-
-interface FeatureConfig {
-  id: string;
-  icon: ReactNode;
-  title: string;
-  description: string;
-  expandedDescription: string;
-  workflow: WorkflowStep[];
-  linkHref: string;
-  linkText: string;
-  color: string;
-  colorClasses: {
-    border: string;
-    bg: string;
-    text: string;
-    iconBg: string;
-    dot: string;
-    dotMuted: string;
-  };
-}
-
-// ============================================================================
-// Feature Configurations
-// ============================================================================
+import { motion } from "motion/react";
+import { cn } from "@/lib/utils";
+import { FeatureCard } from "@/components/features/FeatureCard";
+import type { FeatureConfig } from "@/components/features/types";
 
 const features: FeatureConfig[] = [
   {
     id: "context-capture",
-    icon: <MousePointerClick className="w-6 h-6" />,
-    title: "Context-Aware Capture",
+    icon: <MousePointerClick className="h-6 w-6" />,
+    title: "Context-aware container",
     description:
-      "Right-click any element to capture its full DOM context, including selectors, data attributes, ancestors, and surrounding page information.",
+      "Click to expand and explore a capture that starts with element + container context (no auto-play).",
     expandedDescription:
-      "When you right-click an element, Anyclick captures comprehensive context about that element and its surroundings—CSS selectors, attributes, parent containers, and more.",
-    workflow: [
-      { label: "Detecting element", detail: "Finding target under cursor..." },
-      {
-        label: "Capturing context",
-        detail: "CSS selector, attributes, ancestors",
-      },
-      { label: "Analyzing hierarchy", detail: "Parent containers, siblings" },
-      { label: "Context ready", detail: "Full element context captured ✓" },
-    ],
+      "Start a capture to see element context, container context, connected data, and how Anyclick metadata is shaped for the next action.",
     linkHref: "/examples/basic",
     linkText: "Try the demo",
     color: "violet",
@@ -78,24 +41,62 @@ const features: FeatureConfig[] = [
       dot: "bg-violet-500",
       dotMuted: "bg-violet-500/50",
     },
+    demo: {
+      defaultPanel: "data",
+      primaryCta: {
+        label: "Start capture",
+        action: { kind: "startCapture", setActivePanel: "data" },
+      },
+      secondaryCta: {
+        label: "Pick a target",
+        action: { kind: "toggleTargetPicker" },
+      },
+      menuItems: [
+        {
+          id: "view-data",
+          label: "View capture data",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "view-next",
+          label: "View next action",
+          icon: <Sparkles className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "next" },
+        },
+        {
+          id: "copy-payload",
+          label: "Copy payload JSON",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "payloadJson" },
+        },
+        {
+          id: "reset",
+          label: "Reset capture",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: false,
+        includeInspectInfo: true,
+      },
+    },
   },
   {
     id: "visual-capture",
-    icon: <Camera className="w-6 h-6" />,
-    title: "Visual Capture",
+    icon: <Camera className="h-6 w-6" />,
+    title: "Visual capture",
     description:
-      "Automatically capture screenshots of the target element, its container, and the full page—all included in the feedback payload.",
+      "Capture element/container/viewport screenshots (when supported) and inspect sizes + errors.",
     expandedDescription:
-      "Anyclick captures multiple screenshots automatically—the clicked element, its container, and the full viewport—providing complete visual context for debugging.",
-    workflow: [
-      {
-        label: "Preparing capture",
-        detail: "Initializing screenshot engine...",
-      },
-      { label: "Capturing element", detail: "Taking element screenshot..." },
-      { label: "Capturing viewport", detail: "Taking full page screenshot..." },
-      { label: "Screenshots ready", detail: "2 screenshots captured ✓" },
-    ],
+      "Run a visual capture to see screenshots (or fallback errors), masking behavior, and how visuals attach to downstream workflows.",
     linkHref: "/examples/basic",
     linkText: "See it in action",
     color: "cyan",
@@ -107,24 +108,62 @@ const features: FeatureConfig[] = [
       dot: "bg-cyan-500",
       dotMuted: "bg-cyan-500/50",
     },
+    demo: {
+      defaultPanel: "data",
+      primaryCta: {
+        label: "Capture screenshots",
+        action: { kind: "startCapture", setActivePanel: "data" },
+      },
+      secondaryCta: {
+        label: "Retake",
+        action: { kind: "retakeScreenshots" },
+      },
+      menuItems: [
+        {
+          id: "view-screenshots",
+          label: "View screenshots",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-mask",
+          label: "View mask list",
+          icon: <FileText className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "copy-sizes",
+          label: "Copy screenshot sizes",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "screenshotSummary" },
+        },
+        {
+          id: "reset",
+          label: "Reset capture",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: true,
+        includeInspectInfo: false,
+      },
+    },
   },
   {
     id: "github-integration",
-    icon: <GitBranch className="w-6 h-6" />,
-    title: "Code Source Integration",
+    icon: <GitBranch className="h-6 w-6" />,
+    title: "Code source integration",
     description:
-      "Automatically create GitHub Issues with rich context, formatted markdown, and embedded screenshots for seamless issue tracking.",
+      "Draft rich GitHub issue content from captured context (no network calls in the demo).",
     expandedDescription:
-      "Connect to GitHub and automatically create issues with all captured context—formatted markdown, embedded screenshots, and element details ready for developers.",
-    workflow: [
-      { label: "Gathering context", detail: "Element data + screenshots..." },
-      {
-        label: "Formatting issue",
-        detail: "Creating markdown with context...",
-      },
-      { label: "Creating issue", detail: "Sending to GitHub API..." },
-      { label: "Issue created", detail: "Issue #234 created ✓" },
-    ],
+      "Capture context and assemble an issue draft (markdown) showing how element + page context become developer-ready artifacts.",
     linkHref: "/examples/github-integration",
     linkText: "View integration",
     color: "emerald",
@@ -136,21 +175,62 @@ const features: FeatureConfig[] = [
       dot: "bg-emerald-500",
       dotMuted: "bg-emerald-500/50",
     },
+    demo: {
+      defaultPanel: "next",
+      primaryCta: {
+        label: "Draft GitHub issue",
+        action: { kind: "startCapture", setActivePanel: "next" },
+      },
+      secondaryCta: {
+        label: "Copy issue markdown",
+        action: { kind: "copy", target: "issueMarkdown" },
+      },
+      menuItems: [
+        {
+          id: "view-issue",
+          label: "View issue draft",
+          icon: <FileText className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "next" },
+        },
+        {
+          id: "view-payload",
+          label: "View payload JSON",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "copy-issue",
+          label: "Copy issue markdown",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "issueMarkdown" },
+        },
+        {
+          id: "reset",
+          label: "Reset",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: true,
+        includeInspectInfo: false,
+      },
+    },
   },
   {
     id: "ai-agent",
-    icon: <Terminal className="w-6 h-6" />,
-    title: "AI Agent",
+    icon: <Terminal className="h-6 w-6" />,
+    title: "AI agent",
     description:
-      "Launch Cursor's AI agent directly from feedback—locally during development or via cloud agent for instant code fixes.",
+      "Shape capture context into a structured agent input for fast debugging and next steps.",
     expandedDescription:
-      "Trigger AI-powered code assistance directly from captured feedback. The AI agent receives full element context to understand and fix issues automatically.",
-    workflow: [
-      { label: "Analyzing context", detail: "AI processing element..." },
-      { label: "Understanding intent", detail: "Determining action type..." },
-      { label: "Generating response", detail: "Creating suggestions..." },
-      { label: "Ready", detail: "AI response ready ✓" },
-    ],
+      "Run capture and see the exact context bundle (prompt + structured data) that an agent would receive.",
     linkHref: "/examples/cursor-local",
     linkText: "Explore AI features",
     color: "amber",
@@ -162,24 +242,62 @@ const features: FeatureConfig[] = [
       dot: "bg-amber-500",
       dotMuted: "bg-amber-500/50",
     },
+    demo: {
+      defaultPanel: "next",
+      primaryCta: {
+        label: "Ask AI about this",
+        action: { kind: "startCapture", setActivePanel: "next" },
+      },
+      secondaryCta: {
+        label: "Copy agent context",
+        action: { kind: "copy", target: "agentContext" },
+      },
+      menuItems: [
+        {
+          id: "view-agent",
+          label: "View agent input",
+          icon: <Sparkles className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "next" },
+        },
+        {
+          id: "view-payload",
+          label: "View payload JSON",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "copy-agent",
+          label: "Copy agent context",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "agentContext" },
+        },
+        {
+          id: "reset",
+          label: "Reset",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: false,
+        includeInspectInfo: false,
+      },
+    },
   },
   {
     id: "framework-agnostic",
-    icon: <Layers className="w-6 h-6" />,
-    title: "Framework Agnostic",
+    icon: <Layers className="h-6 w-6" />,
+    title: "Framework agnostic",
     description:
-      "Core library works with any JavaScript framework. Use the React provider for React apps, or build your own integration.",
+      "Switch between integration modes and copy the right snippet for your stack.",
     expandedDescription:
-      "Anyclick's core is framework-agnostic. Use our React provider for React/Next.js apps, or integrate the core library with Vue, Svelte, or vanilla JavaScript.",
-    workflow: [
-      {
-        label: "Detecting framework",
-        detail: "Checking for React/Vue/Svelte...",
-      },
-      { label: "Loading adapter", detail: "Initializing React adapter..." },
-      { label: "Attaching listeners", detail: "Context menu ready..." },
-      { label: "Active", detail: "Anyclick enabled ✓" },
-    ],
+      "Toggle integration wiring (React vs vanilla, scoped vs global) and see how the same capture payload powers your next action.",
     linkHref: "/docs/react",
     linkText: "View docs",
     color: "rose",
@@ -191,21 +309,68 @@ const features: FeatureConfig[] = [
       dot: "bg-rose-500",
       dotMuted: "bg-rose-500/50",
     },
+    demo: {
+      defaultPanel: "next",
+      primaryCta: {
+        label: "Toggle integration mode",
+        action: { kind: "toggleIntegrationMode" },
+      },
+      secondaryCta: {
+        label: "Copy snippet",
+        action: { kind: "copy", target: "snippet" },
+      },
+      menuItems: [
+        {
+          id: "view-wiring",
+          label: "View wiring",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "next" },
+        },
+        {
+          id: "run-capture",
+          label: "Run sample capture",
+          icon: <Target className="h-4 w-4" />,
+          action: { kind: "startCapture", setActivePanel: "status" },
+        },
+        {
+          id: "view-payload",
+          label: "View payload JSON",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "copy-snippet",
+          label: "Copy snippet",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "snippet" },
+        },
+        {
+          id: "reset",
+          label: "Reset",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: false,
+        includeInspectInfo: false,
+      },
+    },
   },
   {
     id: "zero-config",
-    icon: <Zap className="w-6 h-6" />,
-    title: "Zero Config",
+    icon: <Zap className="h-6 w-6" />,
+    title: "Zero config",
     description:
-      "Works out of the box with sensible defaults. Right-click anywhere in your app and start capturing feedback immediately.",
+      "Copy the minimal setup, then run a sample capture to see what comes out.",
     expandedDescription:
-      "Get started in seconds. Wrap your app with AnyclickProvider, and you're ready to capture feedback. No complex configuration required.",
-    workflow: [
-      { label: "Installing", detail: "npm install @ewjdev/anyclick-react" },
-      { label: "Wrapping app", detail: "Adding AnyclickProvider..." },
-      { label: "Configuring", detail: "Default settings applied..." },
-      { label: "Ready", detail: "Start right-clicking! ✓" },
-    ],
+      "Get started in seconds. Copy the setup snippet, then run a sample capture to see the payload shape and default behavior.",
     linkHref: "/docs/getting-started",
     linkText: "Get started",
     color: "indigo",
@@ -217,227 +382,67 @@ const features: FeatureConfig[] = [
       dot: "bg-indigo-500",
       dotMuted: "bg-indigo-500/50",
     },
+    demo: {
+      defaultPanel: "next",
+      primaryCta: {
+        label: "Copy install + wrap snippet",
+        action: { kind: "copy", target: "commands" },
+      },
+      secondaryCta: {
+        label: "Run sample capture",
+        action: { kind: "startCapture", setActivePanel: "data" },
+      },
+      menuItems: [
+        {
+          id: "copy-snippet",
+          label: "Copy commands + snippet",
+          icon: <Clipboard className="h-4 w-4" />,
+          action: { kind: "copy", target: "commands" },
+        },
+        {
+          id: "view-payload",
+          label: "View payload JSON",
+          icon: <Eye className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "data" },
+        },
+        {
+          id: "view-status",
+          label: "View status",
+          icon: <Info className="h-4 w-4" />,
+          action: { kind: "setPanel", panel: "status" },
+        },
+        {
+          id: "reset",
+          label: "Reset",
+          icon: <RotateCcw className="h-4 w-4" />,
+          action: { kind: "reset" },
+        },
+      ],
+      runner: {
+        enableScreenshots: false,
+        includeInspectInfo: false,
+      },
+    },
   },
 ];
 
-// ============================================================================
-// WorkflowVisualization Component
-// ============================================================================
+export interface FeaturesSectionProps
+  extends React.HTMLAttributes<HTMLDivElement> {}
 
-function WorkflowVisualization({
-  steps,
-  isActive,
-  colorClasses,
-}: {
-  steps: WorkflowStep[];
-  isActive: boolean;
-  colorClasses: FeatureConfig["colorClasses"];
-}) {
-  const [currentStep, setCurrentStep] = useState(0);
+export default function FeaturesSection({
+  className,
+  ...props
+}: FeaturesSectionProps) {
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isActive) {
-      setCurrentStep(0);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => (prev + 1) % steps.length);
-    }, 1500);
-
-    return () => clearInterval(interval);
-  }, [isActive, steps.length]);
-
-  const isLastStep = currentStep === steps.length - 1;
-
-  return (
-    <div className="mt-4">
-      {/* Progress dots */}
-      <div className="flex items-center justify-center gap-3 mb-4">
-        {steps.map((_, i) => (
-          <div
-            key={i}
-            className={`
-              w-2.5 h-2.5 rounded-full transition-all duration-300
-              ${
-                i === currentStep
-                  ? `${colorClasses.dot} scale-125`
-                  : i < currentStep
-                    ? colorClasses.dotMuted
-                    : "bg-white/20"
-              }
-            `}
-          />
-        ))}
-      </div>
-
-      {/* Current step display */}
-      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-        <div className="flex items-center gap-2 mb-1">
-          {isLastStep ? (
-            <Check className={`w-4 h-4 ${colorClasses.text}`} />
-          ) : (
-            <Loader2 className={`w-4 h-4 ${colorClasses.text} animate-spin`} />
-          )}
-          <span className="font-medium text-white">
-            {steps[currentStep].label}
-          </span>
-        </div>
-        <p className="text-sm text-gray-400 pl-6">
-          {steps[currentStep].detail}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================================
-// FeatureCard Component
-// ============================================================================
-
-function FeatureCard({
-  feature,
-  isExpanded,
-  onToggle,
-}: {
-  feature: FeatureConfig;
-  isExpanded: boolean;
-  onToggle: () => void;
-}) {
-  const handleClick = useCallback(() => {
-    if (!isExpanded) {
-      onToggle();
-    }
-  }, [isExpanded, onToggle]);
-
-  const handleClose = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onToggle();
-    },
-    [onToggle],
-  );
-
-  return (
-    <motion.div
-      layout
-      layoutId={feature.id}
-      onClick={handleClick}
-      className={`
-        group p-6 rounded-2xl bg-white/2 border border-white/5 
-        transition-colors cursor-pointer
-        ${isExpanded ? feature.colorClasses.border : `hover:${feature.colorClasses.border}`}
-        ${isExpanded ? "col-span-1 md:col-span-2 lg:col-span-2" : "hover:bg-white/4"}
-      `}
-      transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
-    >
-      <AnimatePresence mode="wait">
-        {!isExpanded ? (
-          // Collapsed content
-          <motion.div
-            key="collapsed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <div
-              className={`w-12 h-12 rounded-xl bg-linear-to-br ${feature.colorClasses.iconBg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
-            >
-              <span className={feature.colorClasses.text}>{feature.icon}</span>
-            </div>
-            <h3 className="text-lg font-semibold mb-2 text-white">
-              {feature.title}
-            </h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-3">
-              {feature.description}
-            </p>
-            <span
-              className={`text-sm ${feature.colorClasses.text} inline-flex items-center gap-1 group-hover:gap-2 transition-all`}
-            >
-              Learn more <ArrowRight className="w-3 h-3" />
-            </span>
-          </motion.div>
-        ) : (
-          // Expanded content
-          <motion.div
-            key="expanded"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15, delay: 0.1 }}
-          >
-            {/* Header with close button */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-10 h-10 rounded-lg bg-linear-to-br ${feature.colorClasses.iconBg} flex items-center justify-center`}
-                >
-                  <span className={feature.colorClasses.text}>
-                    {feature.icon}
-                  </span>
-                </div>
-                <h3 className="text-lg font-semibold text-white">
-                  {feature.title}
-                </h3>
-              </div>
-              <button
-                onClick={handleClose}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Extended description */}
-            <p className="text-gray-300 text-sm leading-relaxed mb-4">
-              {feature.expandedDescription}
-            </p>
-
-            {/* Workflow visualization */}
-            <WorkflowVisualization
-              steps={feature.workflow}
-              isActive={isExpanded}
-              colorClasses={feature.colorClasses}
-            />
-
-            {/* CTA link */}
-            <Link
-              href={feature.linkHref}
-              onClick={(e) => e.stopPropagation()}
-              className={`
-                inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg
-                ${feature.colorClasses.bg} text-white text-sm font-medium
-                hover:opacity-90 transition-opacity
-              `}
-            >
-              {feature.linkText}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// ============================================================================
-// FeaturesSection Component
-// ============================================================================
-
-const FeaturesSection = () => {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const handleToggle = useCallback((id: string) => {
+  const handleToggle = React.useCallback((id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
   }, []);
 
-  // Close expanded card when clicking outside
-  useEffect(() => {
+  // Close expanded card when clicking outside the card area.
+  React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // If clicking on the grid background (not a card), close expanded card
       if (
         expandedId &&
         target.closest("[data-features-grid]") &&
@@ -452,7 +457,7 @@ const FeaturesSection = () => {
   }, [expandedId]);
 
   return (
-    <div className="max-w-7xl mx-auto relative">
+    <div className={cn("max-w-7xl mx-auto relative", className)} {...props}>
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
           Everything you need for UI context
@@ -480,6 +485,4 @@ const FeaturesSection = () => {
       </motion.div>
     </div>
   );
-};
-
-export default FeaturesSection;
+}
