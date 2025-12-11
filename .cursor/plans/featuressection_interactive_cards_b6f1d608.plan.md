@@ -1,178 +1,762 @@
----
-name: FeaturesSection Interactive Cards
-overview: Refactor FeaturesSection component to add interactive left-click expansion and right-click context menus with unique actions for each feature card, including a special context-aware card with expandable context types and notification system for actions.
-todos:
-  - id: "1"
-    content: Refactor FeaturesSection to client component with state management for expanded cards
-    status: pending
-  - id: "2"
-    content: Implement left-click expansion/collapse functionality for all cards
-    status: pending
-  - id: "3"
-    content: Create notification/toast system component with success/warning/error/info types
-    status: pending
-  - id: "4"
-    content: Implement special context-aware card with expandable context types (current element, parent, copy selector)
-    status: pending
-  - id: "5"
-    content: Add scoped AnyclickProvider to each card with unique right-click menu items
-    status: pending
-  - id: "6"
-    content: Implement right-click menu actions (navigation and delayed notifications) for each card
-    status: pending
-  - id: "7"
-    content: Add expanded content sections with animations and visual indicators
-    status: pending
-  - id: "8"
-    content: Add copy-to-clipboard functionality for selector copying in context-aware card
-    status: pending
----
-
-# FeaturesSection Interactive Cards Refactor
+# FeaturesSection Interactive Cards + Global Submission UX
 
 ## Overview
 
-Transform the static feature cards into interactive components with:
+This plan covers two related improvements:
 
-- Left-click: Expand inline to show more information
-- Right-click: Show unique context menu with card-specific actions
-- Special handling for "Context-Aware Capture" card with expandable context types
-- Notification system for action feedback
+1. **FeaturesSection Enhancement** - Expandable feature cards with animated workflow visualizations that demonstrate what each Anyclick capability does
+2. **Global Submission Feedback** - Improve the submission UX across all Anyclick interactions with proper loading states, success/error notifications, and status indicators
 
-## Implementation Details
+---
 
-### 1. Component Structure Refactor
+## Part 1: FeaturesSection Interactive Cards
 
-**File**: `apps/web/src/components/FeaturesSection.tsx`
+### Goals
 
-- Convert to client component (`"use client"`)
-- Add state management for expanded cards (`useState<Set<string>>`)
-- Wrap each card with scoped `AnyclickProvider` for right-click menus
-- Add left-click handlers to toggle expansion
-- Create expanded content sections for each card
+- Each feature card expands on click to show detailed visualization
+- Expanded view demonstrates the workflow with animated status progression
+- Auto-advancing 4-step workflow shows what happens during a real interaction
+- Links lead to examples/docs for implementation details
 
-### 2. Context-Aware Card Special Implementation
+### Component Structure
 
-**Card**: "Context-Aware Capture" (Feature 1)
+```
+FeaturesSection (client component)
+├── FeatureCard (×6)
+│   ├── Collapsed State (default)
+│   │   └── Icon, Title, Description, "Learn more" link
+│   └── Expanded State (on click)
+│       ├── Close button
+│       ├── Extended description
+│       ├── WorkflowVisualization
+│       │   └── 4-step animated progression
+│       └── CTA link to docs/examples
+└── No scoped providers needed (uses global provider)
+```
 
-**Left-click behavior**:
+### Expandable Card Design
 
-- Expand to show context type options:
-- Current Element (with visual indicator)
-- Parent Element (with visual indicator)
-- Copy Selector (button to copy CSS selector)
-- Each option should be interactive and show visual feedback
+**Collapsed State:**
 
-**Right-click menu items**:
+```
+┌──────────────────────────────────┐
+│ [Icon]                           │
+│ Context-Aware Capture            │
+│ Right-click any element to...    │
+│                                  │
+│ Learn more →                     │
+└──────────────────────────────────┘
+```
 
-- "Capture Page Screenshot" → Shows success notification after 1-2s
-- "Save Reference to Element" → Shows success notification after 1-2s
+**Expanded State:**
 
-### 3. Unique Actions Per Card
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ [Icon] Context-Aware Capture                              [×]   │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│ When you right-click an element, Anyclick captures comprehensive │
+│ context about that element and its surroundings.                 │
+│                                                                  │
+│ ┌──────────────────────────────────────────────────────────────┐ │
+│ │  Workflow Visualization                                      │ │
+│ │                                                              │ │
+│ │  ○ ─────── ◉ ─────── ○ ─────── ○                            │ │
+│ │  Step 1   Step 2   Step 3   Step 4                          │ │
+│ │                                                              │ │
+│ │  ┌─────────────────────────────────────┐                    │ │
+│ │  │ [✓] Capturing element context...    │                    │ │
+│ │  │     CSS selector: button.primary    │                    │ │
+│ │  │     Attributes: 3 captured          │                    │ │
+│ │  └─────────────────────────────────────┘                    │ │
+│ └──────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│ Try it in the demo →                                             │
+└──────────────────────────────────────────────────────────────────┘
+```
 
-**Visual Capture** (Feature 2):
+### Workflow Configurations Per Card
 
-- Left-click: Expand to show screenshot examples/preview
-- Right-click menu:
-- "Take Screenshot Now" → Navigate to examples page or show success notification
-- "View Gallery" → Navigate to gallery or show info notification
+Each card has a unique 4-step workflow that auto-advances every ~1.5s:
 
-**Code Source Integration** (Feature 3):
+#### 1. Context-Aware Capture
 
-- Left-click: Expand to show GitHub integration details
-- Right-click menu:
-- "Create GitHub Issue" → Navigate to GitHub integration example
-- "View Integration Docs" → Navigate to docs page
+| Step | Label | Status Detail |
 
-**AI Agent** (Feature 4):
+|------|-------|---------------|
 
-- Left-click: Expand to show AI agent capabilities
-- Right-click menu:
-- "Launch AI Agent" → Show warning notification (feature coming soon)
-- "View Agent Docs" → Navigate to docs
+| 1 | Detecting element | Finding target under cursor... |
 
-**Framework Agnostic** (Feature 5):
+| 2 | Capturing context | CSS selector, attributes, ancestors |
 
-- Left-click: Expand to show framework examples
-- Right-click menu:
-- "View React Example" → Navigate to React example page
-- "View Integration Guide" → Navigate to integration docs
+| 3 | Analyzing hierarchy | Parent containers, siblings |
 
-**Zero Config** (Feature 6):
+| 4 | Context ready | Full element context captured ✓ |
 
-- Left-click: Expand to show setup steps
-- Right-click menu:
-- "Try Demo" → Navigate to demo page
-- "Get Started" → Navigate to getting started page
+#### 2. Visual Capture
 
-### 4. Notification System
+| Step | Label | Status Detail |
 
-**New file**: `apps/web/src/components/Toast.tsx` or integrate into FeaturesSection
+|------|-------|---------------|
 
-Create a simple toast notification component with:
+| 1 | Preparing capture | Initializing screenshot engine... |
 
-- Types: `success`, `warning`, `error`, `info`
-- Auto-dismiss after 3-4 seconds
-- Position: bottom-right or top-right
-- Smooth animations (fade in/out)
-- Support for delayed notifications (1-2 seconds as specified)
+| 2 | Capturing element | Taking element screenshot... |
 
-### 5. Scoped AnyclickProvider Integration
+| 3 | Capturing viewport | Taking full page screenshot... |
 
-Each card needs its own scoped `AnyclickProvider` with:
+| 4 | Screenshots ready | 2 screenshots captured ✓ |
 
-- Unique `menuItems` array per card
-- `onClick` handlers that trigger notifications or navigation
-- Prevent default context menu behavior on cards
-- Custom menu styling to match card theme colors
+#### 3. Code Source Integration
 
-### 6. Expanded Content Design
+| Step | Label | Status Detail |
 
-- Smooth height transition animations
-- Additional details, examples, or interactive elements
-- Visual indicators for context types (for context-aware card)
-- Copy-to-clipboard functionality for selectors
+|------|-------|---------------|
+
+| 1 | Gathering context | Element data + screenshots... |
+
+| 2 | Formatting issue | Creating markdown with context... |
+
+| 3 | Creating issue | Sending to GitHub API... |
+
+| 4 | Issue created | Issue #234 created ✓ |
+
+#### 4. AI Agent
+
+| Step | Label | Status Detail |
+
+|------|-------|---------------|
+
+| 1 | Analyzing context | AI processing element... |
+
+| 2 | Understanding intent | Determining action type... |
+
+| 3 | Generating response | Creating suggestions... |
+
+| 4 | Ready | AI response ready ✓ |
+
+#### 5. Framework Agnostic
+
+| Step | Label | Status Detail |
+
+|------|-------|---------------|
+
+| 1 | Detecting framework | Checking for React/Vue/Svelte... |
+
+| 2 | Loading adapter | Initializing React adapter... |
+
+| 3 | Attaching listeners | Context menu ready... |
+
+| 4 | Active | Anyclick enabled ✓ |
+
+#### 6. Zero Config
+
+| Step | Label | Status Detail |
+
+|------|-------|---------------|
+
+| 1 | Installing | npm install @ewjdev/anyclick-react |
+
+| 2 | Wrapping app | Adding AnyclickProvider... |
+
+| 3 | Configuring | Default settings applied... |
+
+| 4 | Ready | Start right-clicking! ✓ |
+
+### Implementation Details
+
+**File: `apps/web/src/components/FeaturesSection.tsx`**
+
+```tsx
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, X, Check, Loader2 } from "lucide-react";
+// ... other icon imports
+
+interface WorkflowStep {
+  label: string;
+  detail: string;
+}
+
+interface FeatureConfig {
+  id: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  expandedDescription: string;
+  workflow: WorkflowStep[];
+  linkHref: string;
+  linkText: string;
+  color: string; // tailwind color class
+}
+
+// Feature configurations with workflows
+const features: FeatureConfig[] = [
+  {
+    id: "context-capture",
+    icon: <MousePointerClick className="w-6 h-6" />,
+    title: "Context-Aware Capture",
+    description: "Right-click any element to capture its full DOM context...",
+    expandedDescription: "When you right-click an element, Anyclick captures...",
+    workflow: [
+      { label: "Detecting element", detail: "Finding target under cursor..." },
+      { label: "Capturing context", detail: "CSS selector, attributes, ancestors" },
+      { label: "Analyzing hierarchy", detail: "Parent containers, siblings" },
+      { label: "Context ready", detail: "Full element context captured ✓" },
+    ],
+    linkHref: "/examples/basic",
+    linkText: "Try the demo",
+    color: "violet",
+  },
+  // ... other features
+];
+
+function WorkflowVisualization({ 
+  steps, 
+  isActive,
+  color 
+}: { 
+  steps: WorkflowStep[];
+  isActive: boolean;
+  color: string;
+}) {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (!isActive) {
+      setCurrentStep(0);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % steps.length);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [isActive, steps.length]);
+
+  return (
+    <div className="...">
+      {/* Progress dots */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        {steps.map((_, i) => (
+          <div key={i} className={`
+            w-3 h-3 rounded-full transition-all duration-300
+            ${i === currentStep ? `bg-${color}-500 scale-125` : 
+              i < currentStep ? `bg-${color}-500/50` : 'bg-white/20'}
+          `} />
+        ))}
+      </div>
+      
+      {/* Current step display */}
+      <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+        <div className="flex items-center gap-2 mb-1">
+          {currentStep === steps.length - 1 ? (
+            <Check className={`w-4 h-4 text-${color}-400`} />
+          ) : (
+            <Loader2 className={`w-4 h-4 text-${color}-400 animate-spin`} />
+          )}
+          <span className="font-medium">{steps[currentStep].label}</span>
+        </div>
+        <p className="text-sm text-gray-400">{steps[currentStep].detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({ feature }: { feature: FeatureConfig }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <motion.div 
+      layout
+      className={`
+        group p-6 rounded-2xl bg-white/2 border border-white/5 
+        hover:border-${feature.color}-500/30 transition-all hover:bg-white/4
+        ${isExpanded ? 'col-span-2 row-span-2' : ''}
+      `}
+      onClick={() => !isExpanded && setIsExpanded(true)}
+    >
+      <AnimatePresence mode="wait">
+        {!isExpanded ? (
+          // Collapsed content
+          <motion.div key="collapsed" /* ... */>
+            {/* Icon, title, description, learn more link */}
+          </motion.div>
+        ) : (
+          // Expanded content
+          <motion.div key="expanded" /* ... */>
+            <button onClick={(e) => { e.stopPropagation(); setIsExpanded(false); }}>
+              <X className="w-4 h-4" />
+            </button>
+            
+            <h3>{feature.title}</h3>
+            <p>{feature.expandedDescription}</p>
+            
+            <WorkflowVisualization 
+              steps={feature.workflow}
+              isActive={isExpanded}
+              color={feature.color}
+            />
+            
+            <Link href={feature.linkHref}>
+              {feature.linkText} <ArrowRight />
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+```
+
+### Link Destinations
+
+| Feature | Link | Target |
+
+|---------|------|--------|
+
+| Context-Aware Capture | `/examples/basic` | Basic example with context capture |
+
+| Visual Capture | `/examples/basic` | Basic example (has screenshot demo) |
+
+| Code Source Integration | `/examples/github-integration` | GitHub integration example |
+
+| AI Agent | `/examples/cursor-local` | Cursor local AI integration |
+
+| Framework Agnostic | `/docs/react` | React integration docs |
+
+| Zero Config | `/docs/getting-started` | Getting started guide |
+
+---
+
+## Part 2: Global Submission Feedback System
+
+### Current Problems
+
+1. **No success notification** - Menu closes, user doesn't know if feedback was received
+2. **No error notification** - Errors are silent unless developer adds `onSubmitError` callback
+3. **Submitting state** - Only shows "Sending..." text, no clear loading indicator
+4. **No persistence** - User loses all feedback if something fails
+
+### Existing Pattern: `showToast` in anyclick-extension
+
+The extension already has a well-established toast pattern in two places:
+
+**`content.ts` (vanilla JS):**
+
+```typescript
+function showToast(
+  message: string,
+  type: "success" | "error" | "warning" | "info" = "info",
+): void {
+  // Creates DOM element, positions bottom-right
+  // Auto-hides after 4000ms
+}
+```
+
+**`PopupApp.tsx` (React):**
+
+```typescript
+const showToast = useCallback((message: string, error = false) => {
+  setToast({ message, error });
+  setTimeout(() => setToast(null), 2500);
+}, []);
+```
+
+**Standard colors across the codebase:**
+
+- success: `#10b981` (emerald)
+- error: `#ef4444` (red)
+- warning: `#f59e0b` (amber)
+- info: `#3b82f6` (blue)
+
+### Proposed Solution: Unified Toast System
+
+Add a toast system to `@ewjdev/anyclick-react` that:
+
+- Follows the existing `showToast(message, type)` API pattern
+- Uses the same 4 types and colors as the extension
+- Auto-dismisses after 4 seconds (matching `content.ts`)
+- Exports a `showToast` function for imperative use
+- Auto-triggers on submission success/error by default
+
+### Implementation Architecture
+
+```
+packages/anyclick-react/src/
+├── Toast/
+│   ├── index.ts
+│   ├── Toast.tsx           # Individual toast component
+│   ├── ToastContainer.tsx  # Portal container for toasts
+│   ├── toastStore.ts       # Zustand store for toast state
+│   ├── types.ts            # Toast types
+│   └── styles.ts           # Toast styles (using standard colors)
+├── AnyclickProvider.tsx    # Add ToastContainer + auto-toast on submit
+└── index.ts                # Export showToast + toast utilities
+```
+
+### Toast Types
+
+```typescript
+/** Toast type - matches extension pattern */
+type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+/** Internal toast state */
+interface Toast {
+  id: string;
+  type: ToastType;
+  message: string;
+  duration?: number; // ms, default 4000
+}
+
+/** Configuration for automatic toasts */
+interface ToastConfig {
+  enabled?: boolean;           // default: true
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+  maxToasts?: number;          // default: 3
+  successMessage?: string;     // default: "Feedback sent!"
+  errorMessage?: string;       // default: "Failed to send feedback"
+}
+
+/** Standard colors - matching extension */
+const TOAST_COLORS = {
+  success: { bg: "#10b981", border: "#059669" },
+  error: { bg: "#ef4444", border: "#dc2626" },
+  warning: { bg: "#f59e0b", border: "#d97706" },
+  info: { bg: "#3b82f6", border: "#2563eb" },
+} as const;
+```
+
+### Public API
+
+```typescript
+// Imperative API - matches extension pattern
+import { showToast } from "@ewjdev/anyclick-react";
+
+showToast("Settings saved!", "success");
+showToast("Upload failed", "error");
+showToast("Feature coming soon", "warning");
+showToast("Processing...", "info");
+
+// Provider config for automatic toasts
+<AnyclickProvider
+  adapter={adapter}
+  toastConfig={{
+    enabled: true,
+    position: "bottom-right",
+    successMessage: "Thanks for your feedback!",
+  }}
+>
+```
+
+### Provider Integration
+
+```tsx
+// In AnyclickProvider.tsx
+import { showToast, ToastContainer } from "./Toast";
+
+export function AnyclickProvider({
+  // ... existing props
+  toastConfig = { enabled: true },
+}: AnyclickProviderProps) {
+  
+  const submitAnyclick = useCallback(async (...) => {
+    setIsSubmitting(true);
+    try {
+      await client.submitAnyclick(...);
+      
+      // Show success toast - uses imperative API like extension
+      if (toastConfig.enabled !== false) {
+        showToast(
+          toastConfig.successMessage ?? "Feedback sent!",
+          "success"
+        );
+      }
+      
+      onSubmitSuccess?.(payload);
+    } catch (error) {
+      // Show error toast
+      if (toastConfig.enabled !== false) {
+        showToast(
+          toastConfig.errorMessage ?? "Failed to send feedback",
+          "error"
+        );
+      }
+      
+      onSubmitError?.(error, payload);
+    } finally {
+      setIsSubmitting(false);
+      // ... close menu
+    }
+  }, [...]);
+
+  return (
+    <AnyclickContext.Provider value={contextValue}>
+      {/* Toast container renders via portal - only one needed */}
+      <ToastContainer position={toastConfig.position ?? "bottom-right"} />
+      {/* ... rest of provider */}
+    </AnyclickContext.Provider>
+  );
+}
+```
+
+### Usage Examples
+
+```tsx
+// Automatic toasts on submission (default behavior)
+<AnyclickProvider adapter={adapter}>
+  <App />
+</AnyclickProvider>
+
+// Custom messages
+<AnyclickProvider 
+  adapter={adapter}
+  toastConfig={{
+    successMessage: "Thanks for the feedback!",
+    errorMessage: "Oops, something went wrong",
+  }}
+>
+  <App />
+</AnyclickProvider>
+
+// Disable automatic toasts (handle manually)
+<AnyclickProvider 
+  adapter={adapter}
+  toastConfig={{ enabled: false }}
+  onSubmitSuccess={() => showToast("Custom success!", "success")}
+>
+  <App />
+</AnyclickProvider>
+
+// Imperative use anywhere in the app
+import { showToast } from "@ewjdev/anyclick-react";
+
+function MyComponent() {
+  const handleAction = () => {
+    // Do something
+    showToast("Action completed", "success");
+  };
+}
+```
+
+### Toast Component Design
+
+Follows the extension's visual style - simple, colored background, single message:
+
+```tsx
+import { motion, AnimatePresence } from "motion/react";
+
+const TOAST_COLORS = {
+  success: { bg: "#10b981", border: "#059669" },
+  error: { bg: "#ef4444", border: "#dc2626" },
+  warning: { bg: "#f59e0b", border: "#d97706" },
+  info: { bg: "#3b82f6", border: "#2563eb" },
+} as const;
+
+function Toast({ 
+  toast, 
+  onDismiss 
+}: { 
+  toast: { id: string; type: ToastType; message: string }; 
+  onDismiss: () => void;
+}) {
+  const { bg, border } = TOAST_COLORS[toast.type];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 10 }}
+      style={{
+        background: bg,
+        borderLeft: `3px solid ${border}`,
+      }}
+      className="px-4 py-3 rounded-lg text-white text-sm font-medium 
+                 shadow-lg backdrop-blur flex items-center gap-2"
+    >
+      <span className="flex-1">{toast.message}</span>
+      <button 
+        onClick={onDismiss}
+        className="opacity-70 hover:opacity-100 transition-opacity"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </motion.div>
+  );
+}
+
+/** Zustand store for toast state */
+const useToastStore = create<{
+  toasts: Toast[];
+  addToast: (message: string, type: ToastType) => void;
+  removeToast: (id: string) => void;
+}>((set) => ({
+  toasts: [],
+  addToast: (message, type) => {
+    const id = Math.random().toString(36).slice(2);
+    set((state) => ({
+      toasts: [...state.toasts.slice(-2), { id, message, type }], // max 3
+    }));
+    // Auto-dismiss after 4 seconds (matching extension)
+    setTimeout(() => {
+      set((state) => ({
+        toasts: state.toasts.filter((t) => t.id !== id),
+      }));
+    }, 4000);
+  },
+  removeToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
+    })),
+}));
+
+/** Public imperative API - matches extension pattern */
+export function showToast(
+  message: string, 
+  type: ToastType = "info"
+): void {
+  useToastStore.getState().addToast(message, type);
+}
+```
+
+### Enhanced Loading States in ContextMenu
+
+Update the submission UI to be clearer:
+
+**Current:**
+
+```
+[Send] → "Sending..."
+```
+
+**Proposed:**
+
+```
+[Send] → [Spinner] Sending... → [Success] ✓ Sent!
+```
+```tsx
+// In CommentForm
+<button disabled={isSubmitting} onClick={handleSubmit}>
+  {isSubmitting ? (
+    <>
+      <Loader2 className="w-4 h-4 animate-spin" />
+      Sending...
+    </>
+  ) : (
+    'Send'
+  )}
+</button>
+```
+
+---
+
+## File Changes Summary
+
+### Part 1: FeaturesSection
+
+| File | Action | Description |
+
+|------|--------|-------------|
+
+| `apps/web/src/components/FeaturesSection.tsx` | **Modify** | Convert to client component, add expandable cards with workflow visualization |
+
+### Part 2: Toast System
+
+| File | Action | Description |
+
+|------|--------|-------------|
+
+| `packages/anyclick-react/src/Toast/Toast.tsx` | **Create** | Toast component |
+
+| `packages/anyclick-react/src/Toast/ToastContainer.tsx` | **Create** | Container with portal |
+
+| `packages/anyclick-react/src/Toast/toastStore.ts` | **Create** | Zustand store |
+
+| `packages/anyclick-react/src/Toast/types.ts` | **Create** | Type definitions |
+
+| `packages/anyclick-react/src/Toast/styles.ts` | **Create** | Style constants |
+
+| `packages/anyclick-react/src/Toast/index.ts` | **Create** | Barrel export |
+
+| `packages/anyclick-react/src/AnyclickProvider.tsx` | **Modify** | Add toast on submit |
+
+| `packages/anyclick-react/src/types.ts` | **Modify** | Add ToastConfig type |
+
+| `packages/anyclick-react/src/index.ts` | **Modify** | Export `showToast`, `ToastContainer`, `ToastConfig` |
+
+| `packages/anyclick-react/src/ContextMenu.tsx` | **Modify** | Improve loading UI |
+
+---
+
+## Implementation Order
+
+### Phase 1: Global Toast System (Do First)
+
+1. Create Toast component and store
+2. Integrate into AnyclickProvider
+3. Test submission flow end-to-end
+
+### Phase 2: FeaturesSection Enhancement
+
+1. Create WorkflowVisualization component  
+2. Define feature configurations with workflows
+3. Implement expandable FeatureCard
+4. Add animation with framer-motion
+5. Test all cards expand/collapse properly
+
+---
 
 ## Technical Considerations
 
-- Use `useState` for managing expanded state
-- Use `useCallback` for event handlers to prevent re-renders
-- Implement proper TypeScript types for card configurations
-- Ensure accessibility (keyboard navigation, ARIA labels)
-- Handle edge cases (clicking outside to collapse, preventing menu on left-click)
-- Use Tailwind classes for styling and animations
-- Leverage existing `AnyclickProvider` from `@ewjdev/anyclick-react`
+### Dependencies
 
-## File Changes
+- **framer-motion** - Already in project, use for animations
+- **zustand** - Already in project, use for toast store
+- No new dependencies required
 
-1. **Modify**: `apps/web/src/components/FeaturesSection.tsx`
+### Accessibility
 
-- Add state management
-- Add left/right click handlers
-- Add expanded content sections
-- Integrate scoped AnyclickProvider per card
-- Add notification triggers
+- Toast announcements via `aria-live="polite"`
+- Escape key to dismiss
+- Focus management when cards expand
+- Reduced motion support
 
-2. **Create** (optional): `apps/web/src/components/Toast.tsx`
+### Performance
 
-- Simple toast notification component
-- Or use inline notification state within FeaturesSection
+- Toast store is minimal (just array of toasts)
+- WorkflowVisualization uses `setInterval`, cleanup on unmount
+- Card expansion uses CSS Grid layout shift (GPU accelerated)
 
-3. **Create** (optional): `apps/web/src/components/FeatureCard.tsx`
+---
 
-- Extract card logic into reusable component
-- Handle expansion, menu, and notifications
+## Success Criteria
 
-## Navigation Targets
+### FeaturesSection
 
-- GitHub integration: `/examples/github-integration` or `/examples/jira-integration`
-- Docs: `/docs` or `/docs/react`
-- Examples: `/examples` or specific example pages
-- Getting started: `/getting-started` or homepage
+- [ ] All 6 cards expand on click
+- [ ] Workflow visualization auto-advances through 4 steps
+- [ ] Animation is smooth (60fps)
+- [ ] "Learn more" links navigate correctly
+- [ ] Cards collapse when clicking X or clicking outside
 
-## Notification Messages Examples
+### Toast System  
 
-- Success: "Screenshot captured successfully", "Element reference saved"
-- Warning: "Feature coming soon", "This action requires setup"
-- Error: "Failed to capture screenshot", "Unable to save reference"
-- Info: "Navigating to documentation...", "Opening example..."
+- [ ] Success toast appears after feedback submission
+- [ ] Error toast appears on submission failure
+- [ ] Toasts auto-dismiss after 4 seconds
+- [ ] Multiple toasts stack properly
+- [ ] Toast can be manually dismissed
+- [ ] Works in all browsers
+
+---
+
+## Out of Scope
+
+- Toast persistence across page navigation
+- Toast action buttons (undo, retry)
+- Custom toast themes per provider
+- Sound effects on toast
