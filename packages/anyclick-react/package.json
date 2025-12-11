@@ -55,6 +55,7 @@
     "@ai-sdk/react": "^2.0.114",
     "@ewjdev/anyclick-core": "^1.4.0",
     "@ewjdev/anyclick-pointer": "^3.0.0",
+    "ai": "^5.0.112",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2",
     "tailwindcss": "4.1.17"

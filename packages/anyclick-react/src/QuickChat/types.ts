@@ -172,7 +172,7 @@ export const DEFAULT_QUICK_CHAT_CONFIG: Required<QuickChatConfig> = {
   endpoint: "/api/anyclick/chat",
   model: "gpt-5-nano",
   prePassModel: "gpt-5-nano",
-  maxResponseLength: 500,
+  maxResponseLength: 10000,
   showRedactionUI: true,
   showSuggestions: true,
   systemPrompt:

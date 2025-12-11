@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UIMessage, useChat } from "@ai-sdk/react";
 import { getElementInspectInfo } from "@ewjdev/anyclick-core";
+import { DefaultChatTransport } from "ai";
 import {
   generateMessageId,
   useActiveMessages,
@@ -136,14 +137,38 @@ function buildContextString(chunks: ContextChunk[]): string {
 }
 
 /**
- * Convert ai-sdk Message to our ChatMessage format.
+ * Extract text content from UIMessage parts array.
+ */
+function getMessageText(msg: UIMessage): string {
+  // Prefer v2 format (parts), but fall back to legacy/interop `content` if present.
+  // NOTE: After SDK upgrades, part shapes/types can vary (e.g. "text", "output_text").
+  // We treat any part with a string `text` field as displayable text.
+  const partsText =
+    msg.parts
+      ?.map((p) => {
+        const maybeText = (p as unknown as { text?: unknown }).text;
+        if (typeof maybeText === "string") return maybeText;
+        const maybeContent = (p as unknown as { content?: unknown }).content;
+        if (typeof maybeContent === "string") return maybeContent;
+        return "";
+      })
+      .join("") ?? "";
+
+  if (partsText) return partsText;
+
+  const maybeContent = (msg as unknown as { content?: unknown }).content;
+  return typeof maybeContent === "string" ? maybeContent : "";
+}
+
+/**
+ * Convert ai-sdk UIMessage to our ChatMessage format.
  */
 function aiMessageToChatMessage(msg: UIMessage): ChatMessage {
   return {
     id: msg.id,
     role: msg.role as "user" | "assistant" | "system",
-    content: msg.parts
-    timestamp: msg.message?.createdAt?.getTime() ?? Date.now(),
+    content: getMessageText(msg),
+    timestamp: Date.now(),
   };
 }
 
@@ -226,40 +251,179 @@ export function useQuickChat(
   );
 
   // ai-sdk-ui useChat hook
-  console.log("[useQuickChat] Initializing useChat hook", {
-    endpoint: mergedConfig.endpoint,
-    contextChunks: contextChunks.length,
-    contextString: contextString.substring(0, 100),
-    bodyHash: JSON.stringify(chatBody),
-  });
+  console.count("[useQuickChat] Initializing useChat hook");
+
+  // Memoize transport to prevent re-creation
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: mergedConfig.endpoint,
+        body: chatBody,
+        fetch: async (input, init) => {
+          const start = Date.now();
+          const res = await fetch(input, init);
+
+          try {
+            console.log("[useQuickChat] Chat fetch response", {
+              url: typeof input === "string" ? input : String(input),
+              status: res.status,
+              ok: res.ok,
+              contentType: res.headers.get("content-type"),
+              cacheControl: res.headers.get("cache-control"),
+              requestId: res.headers.get("x-anyclick-request-id"),
+            });
+          } catch {
+            // ignore
+          }
+
+          // Clone for inspection so we don't consume the real stream.
+          // We parse the SSE payload to see which event types are actually arriving.
+          try {
+            const clone = res.clone();
+            if (!clone.body) {
+              console.log(
+                "[useQuickChat] Response body is null (not streaming)",
+                {
+                  ms: Date.now() - start,
+                },
+              );
+              return res;
+            }
+
+            void (async () => {
+              const reader = clone.body!.getReader();
+              const decoder = new TextDecoder();
+              const seenTypes: string[] = [];
+              let buffer = "";
+              let chunks = 0;
+              let totalBytes = 0;
+              let firstLogged = false;
+
+              try {
+                while (
+                  chunks < 30 &&
+                  totalBytes < 16_000 &&
+                  seenTypes.length < 12
+                ) {
+                  const { value, done } = await reader.read();
+                  if (done) break;
+                  if (!value) continue;
+                  chunks += 1;
+                  totalBytes += value.byteLength;
+                  const text = decoder.decode(value, { stream: true });
+                  buffer += text;
+
+                  if (!firstLogged) {
+                    firstLogged = true;
+                    console.log("[useQuickChat] First stream bytes observed", {
+                      ms: Date.now() - start,
+                      bytes: value.byteLength,
+                      preview: text.slice(0, 200),
+                    });
+                  }
+
+                  // SSE events are separated by blank lines.
+                  const events = buffer.split("\n\n");
+                  buffer = events.pop() ?? "";
+
+                  for (const evt of events) {
+                    const dataLines = evt
+                      .split("\n")
+                      .filter((l) => l.startsWith("data:"))
+                      .map((l) => l.slice(5).trim());
+                    for (const data of dataLines) {
+                      // Most ai-sdk UI streams send JSON payloads per data line.
+                      try {
+                        const parsed = JSON.parse(data) as { type?: unknown };
+                        const t =
+                          typeof parsed?.type === "string"
+                            ? parsed.type
+                            : "unknown";
+                        if (seenTypes.length < 12) seenTypes.push(t);
+                      } catch {
+                        // Non-JSON data; capture a compact marker.
+                        if (seenTypes.length < 12) seenTypes.push("non-json");
+                      }
+                    }
+                  }
+                }
+
+                console.log("[useQuickChat] SSE event types observed", {
+                  ms: Date.now() - start,
+                  chunks,
+                  totalBytes,
+                  types: seenTypes,
+                });
+              } catch (e) {
+                console.log("[useQuickChat] SSE inspection failed", {
+                  ms: Date.now() - start,
+                  error: e instanceof Error ? e.message : String(e),
+                });
+              } finally {
+                try {
+                  reader.releaseLock();
+                } catch {
+                  // ignore
+                }
+              }
+            })();
+          } catch (e) {
+            console.log("[useQuickChat] Stream inspection setup failed", {
+              ms: Date.now() - start,
+              error: e instanceof Error ? e.message : String(e),
+            });
+          }
+
+          return res;
+        },
+      }),
+    [mergedConfig.endpoint, chatBody],
+  );
 
   const {
     messages: aiMessages,
-    append,
-    isLoading: aiIsSending,
+    sendMessage: aiSendMessage,
+    status,
     stop,
     setMessages: setAiMessages,
   } = useChat({
-    api: mergedConfig.endpoint,
-    body: chatBody,
-    onFinish: (message) => {
+    transport,
+    onFinish: ({ message }) => {
       // Log full message object to see all properties including parts
       console.log(
         "[useQuickChat] onFinish callback fired - RAW MESSAGE:",
         message,
       );
+      try {
+        console.log("[useQuickChat] onFinish parts summary", {
+          partsLength: message.parts?.length ?? 0,
+          parts: message.parts?.map((p) => ({
+            type: (p as unknown as { type?: unknown }).type,
+            keys: Object.keys(p as unknown as Record<string, unknown>),
+            textPreview:
+              typeof (p as unknown as { text?: unknown }).text === "string"
+                ? (p as unknown as { text: string }).text.slice(0, 80)
+                : null,
+            contentPreview:
+              typeof (p as unknown as { content?: unknown }).content ===
+              "string"
+                ? (p as unknown as { content: string }).content.slice(0, 80)
+                : null,
+          })),
+        });
+      } catch {
+        // ignore
+      }
+      const messageText = getMessageText(message);
       console.log("[useQuickChat] onFinish callback fired", {
         messageId: message.id,
         role: message.role,
-        contentLength: message.content.length,
-        contentPreview: message.content.substring(0, 100),
-        fullContent: message.content,
+        contentLength: messageText.length,
+        contentPreview: messageText.substring(0, 100),
+        fullContent: messageText,
         messageKeys: Object.keys(message),
-        // Check if parts exist (ai-sdk v4 format)
-        hasParts: "parts" in message,
-        parts: (message as unknown as { parts?: unknown[] }).parts,
-        partsLength: (message as unknown as { parts?: unknown[] }).parts
-          ?.length,
+        hasParts: !!message.parts,
+        partsLength: message.parts?.length,
       });
       // Sync completed message to store for persistence
       const existingMsg = storedMessages.find((m) => m.id === message.id);
@@ -271,11 +435,11 @@ export function useQuickChat(
         console.log("[useQuickChat] Adding message to store", {
           messageId: message.id,
           role: message.role,
-          contentLength: message.content.length,
+          contentLength: messageText.length,
         });
         addMessage({
           role: message.role as "user" | "assistant" | "system",
-          content: message.content,
+          content: messageText,
           isStreaming: false,
         });
       } else {
@@ -324,71 +488,67 @@ export function useQuickChat(
     console.log("[useQuickChat] aiMessages changed - RAW:", aiMessages);
     console.log("[useQuickChat] aiMessages changed", {
       count: aiMessages.length,
+      status,
       messages: aiMessages.map((m) => {
-        const msg = m as unknown as {
-          id: string;
-          role: string;
-          content: string;
-          parts?: unknown[];
-          createdAt?: Date;
-        };
+        const messageText = getMessageText(m);
+        const maybeContent = (m as unknown as { content?: unknown }).content;
         return {
-          id: msg.id,
-          role: msg.role,
-          contentLength: msg.content?.length || 0,
-          contentPreview: msg.content?.substring(0, 100) || "",
-          fullContent: msg.content || "",
-          createdAt: msg.createdAt?.toISOString(),
-          hasParts: !!msg.parts,
-          partsLength: msg.parts?.length,
-          parts: msg.parts,
+          id: m.id,
+          role: m.role,
+          contentLength: messageText.length,
+          contentPreview: messageText.substring(0, 100),
+          fullContent: messageText,
+          hasParts: !!m.parts,
+          partsLength: m.parts?.length,
+          hasContent: typeof maybeContent === "string",
+          rawContentLength:
+            typeof maybeContent === "string" ? maybeContent.length : null,
+          messageKeys: Object.keys(m as unknown as Record<string, unknown>),
         };
       }),
-      isSending: aiIsSending,
       lastMessage: aiMessages[aiMessages.length - 1]
         ? (() => {
-            const last = aiMessages[aiMessages.length - 1] as unknown as {
-              id: string;
-              role: string;
-              content: string;
-              parts?: unknown[];
-            };
+            const last = aiMessages[aiMessages.length - 1];
+            const lastText = getMessageText(last);
+            const maybeContent = (last as unknown as { content?: unknown })
+              .content;
             return {
               id: last.id,
               role: last.role,
-              contentLength: last.content?.length || 0,
-              fullContent: last.content || "",
+              contentLength: lastText.length,
+              fullContent: lastText,
               hasParts: !!last.parts,
-              parts: last.parts,
+              hasContent: typeof maybeContent === "string",
             };
           })()
         : null,
     });
-  }, [aiMessages, aiIsSending]);
+  }, [aiMessages, status]);
 
   // Convert ai messages to our ChatMessage format
   const messages: ChatMessage[] = aiMessages.map((msg) => {
+    const messageText = getMessageText(msg);
     const chatMsg = {
       ...aiMessageToChatMessage(msg),
       isStreaming:
-        aiIsSending &&
+        status === "streaming" &&
         msg.role === "assistant" &&
         msg === aiMessages[aiMessages.length - 1],
       actions:
-        msg.role === "assistant" && !aiIsSending
+        msg.role === "assistant" && status === "ready"
           ? [
               {
                 id: "copy",
                 label: "Copy",
                 onClick: () => {
-                  navigator.clipboard.writeText(msg.content);
+                  navigator.clipboard.writeText(messageText);
                 },
               },
               {
                 id: "research",
                 label: "Research more",
                 onClick: () => {
-                  setInput(`Tell me more about: ${msg.content.slice(0, 50)}`);
+                  setInput(`Tell me more about: ${messageText.slice(0, 50)}`);
                 },
               },
             ]
@@ -412,9 +572,10 @@ export function useQuickChat(
     });
   }, [messages]);
 
-  // Determine if streaming/sending
-  const isStreaming = aiIsSending && aiMessages.length > 0;
-  const isSending = aiIsSending || manualSending;
+  // Determine if streaming/sending based on status
+  const isStreaming = status === "streaming";
+  const isSending =
+    status === "submitted" || status === "streaming" || manualSending;
 
   /**
    * Schedule a backend sync after a short delay to batch updates.
@@ -465,11 +626,10 @@ export function useQuickChat(
           // Hydrate store with backend messages
           useQuickChatStore.getState().hydrate(data.messages);
           // Also set ai messages for display
-          const aiMsgs: Message[] = data.messages.map((msg: ChatMessage) => ({
+          const aiMsgs: UIMessage[] = data.messages.map((msg: ChatMessage) => ({
             id: msg.id,
             role: msg.role,
-            content: msg.content,
-            createdAt: new Date(msg.timestamp),
+            parts: [{ type: "text" as const, text: msg.content }],
           }));
           setAiMessages(aiMsgs);
         }
@@ -486,11 +646,10 @@ export function useQuickChat(
 
     // If we have stored messages, restore them to ai-sdk
     if (storedMessages.length > 0) {
-      const aiMsgs: Message[] = storedMessages.map((msg) => ({
+      const aiMsgs: UIMessage[] = storedMessages.map((msg) => ({
         id: msg.id,
         role: msg.role,
-        content: msg.content,
-        createdAt: new Date(msg.timestamp),
+        parts: [{ type: "text" as const, text: msg.content }],
       }));
       setAiMessages(aiMsgs);
     } else {
@@ -606,10 +765,7 @@ export function useQuickChat(
           content: text,
         });
 
-        await append({
-          content: text,
-          role: "user",
-        });
+        await aiSendMessage({ text });
       } catch (err) {
         console.error("[useQuickChat] sendMessage failed", {
           error: err,
@@ -627,7 +783,7 @@ export function useQuickChat(
       setInput,
       setError,
       addMessage,
-      append,
+      aiSendMessage,
       setStoreIsSending,
       setStoreIsStreaming,
       setDebugInfo,
