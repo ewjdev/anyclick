@@ -9,6 +9,11 @@ import { createLogger, generateRequestId } from "@/lib/logger";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText } from "ai";
 
+const DEFAULT_MODEL = "gpt-5-nano";
+const DEFAULT_MODEL_FAST = "gpt-5-mini";
+const DEFAULT_MAX_TOKENS = 10000;
+const CHARACTER_TO_TOKEN_RATIO = 3;
+
 // Initialize OpenAI client
 const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -63,6 +68,152 @@ function buildFallbackRefinePrompt(
   return `Improve or clarify: "${cleanSelected}".${contextPart}`;
 }
 
+/**
+ * Handle ai-sdk useChat format requests.
+ * useChat sends: { messages: [...], ...body options from the body config }
+ */
+async function handleAiSdkChat(
+  request: Request,
+  body: {
+    messages: Array<{ role: string; content: string }>;
+    action?: string;
+    context?: string;
+    model?: string;
+    systemPrompt?: string;
+    maxLength?: number;
+  },
+  requestId: string,
+  requestStartTime: number,
+) {
+  const { messages, context, model, systemPrompt, maxLength } = body;
+
+  logger.info("[BACKEND] Processing ai-sdk chat format", {
+    requestId,
+    messageCount: messages.length,
+    messages: messages.map((m) => ({
+      role: m.role,
+      contentLength: m.content.length,
+    })),
+    model: model || DEFAULT_MODEL,
+    hasContext: !!context,
+    contextLength: context?.length || 0,
+    bodyKeys: Object.keys(body),
+  });
+
+  // Get the last user message
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((m) => m.role === "user");
+  if (!lastUserMessage) {
+    logger.warn("[BACKEND] No user message found in messages array", {
+      requestId,
+      messages: messages.map((m) => m.role),
+    });
+    return Response.json({ error: "No user message found" }, { status: 400 });
+  }
+
+  logger.info("[BACKEND] Found last user message", {
+    requestId,
+    content: lastUserMessage.content.substring(0, 100),
+    contentLength: lastUserMessage.content.length,
+  });
+
+  const maxTokens =
+    typeof maxLength === "number"
+      ? Math.min(maxLength, DEFAULT_MAX_TOKENS)
+      : DEFAULT_MAX_TOKENS;
+  const maxChars = Math.ceil(maxTokens * CHARACTER_TO_TOKEN_RATIO);
+  // Build system prompt with context
+  const effectiveSystemPrompt = `${systemPrompt || DEFAULT_SYSTEM_PROMPT}
+
+Element context:
+${context || "No element context provided."}
+
+Important: Keep your response under ${maxChars} characters.`;
+
+  logger.debug("[BACKEND] ai-sdk chat prompt prepared", {
+    requestId,
+    lastMessageLength: lastUserMessage.content.length,
+    hasContext: !!context,
+    maxTokens,
+    maxChars,
+    systemPromptLength: effectiveSystemPrompt.length,
+  });
+
+  const chatStartTime = Date.now();
+  try {
+    // Get just the last user message for a simple prompt
+    const modelName = model || DEFAULT_MODEL;
+    const maxToks = maxTokens;
+
+    logger.info("[BACKEND] About to call generateText (non-streaming)", {
+      requestId,
+      modelName,
+      maxTokens: maxToks,
+      systemPromptLength: effectiveSystemPrompt.length,
+      lastUserMessage: lastUserMessage.content.substring(0, 200),
+    });
+
+    // Use generateText instead of streamText for simpler debugging
+    const result = await generateText({
+      model: openai(modelName),
+      system: effectiveSystemPrompt,
+      prompt: lastUserMessage.content,
+      maxTokens: maxToks,
+    });
+
+    logger.info("[BACKEND] generateText completed", {
+      requestId,
+      textLength: result.text.length,
+      textPreview: result.text.substring(0, 500),
+      fullText: result.text,
+      finishReason: result.finishReason,
+      usage: result.usage,
+    });
+
+    // Guard: if the model returned no text (common when hitting length limits or safety filters),
+    // return a helpful fallback so the UI shows something instead of nothing.
+    if (!result.text || result.text.trim().length === 0) {
+      const hitLengthLimit = result.finishReason === "length";
+      const fallbackContent = hitLengthLimit
+        ? `The response hit the token limit (maxTokens=${maxToks}). Please increase maxTokens/maxResponseLength and try again.`
+        : "I wasn't able to generate a response. Please try again or rephrase your question.";
+
+      logger.warn("[BACKEND] AI returned empty text, sending fallback", {
+        requestId,
+        finishReason: result.finishReason,
+        usage: result.usage,
+        hitLengthLimit,
+        maxTokens: maxToks,
+      });
+
+      return Response.json({
+        content: fallbackContent,
+        finishReason: result.finishReason ?? "empty_text",
+        usage: result.usage,
+      });
+    }
+
+    logger.performance("generateText time", chatStartTime, { requestId });
+
+    // Return as plain JSON - the frontend will need to handle this
+    return Response.json({
+      content: result.text,
+      finishReason: result.finishReason,
+      usage: result.usage,
+    });
+  } catch (aiError) {
+    logger.error("[BACKEND] AI generateText failed", aiError, {
+      requestId,
+      model: model || "gpt-5-nano",
+      errorMessage:
+        aiError instanceof Error ? aiError.message : String(aiError),
+      errorStack: aiError instanceof Error ? aiError.stack : undefined,
+    });
+    throw aiError;
+  }
+}
+
 export async function POST(request: Request) {
   const requestId = generateRequestId();
   const requestStartTime = Date.now();
@@ -81,9 +232,39 @@ export async function POST(request: Request) {
     const body = await request.json();
     logger.performance("Request body parsed", bodyStartTime, { requestId });
 
+    // Handle ai-sdk useChat format (messages array)
+    // useChat sends: { messages: [...], ...body options }
+    logger.info("[BACKEND] Checking request format", {
+      requestId,
+      hasMessages: !!body.messages,
+      isMessagesArray: Array.isArray(body.messages),
+      bodyKeys: Object.keys(body),
+      bodySample: JSON.stringify(body).substring(0, 500),
+    });
+
+    if (body.messages && Array.isArray(body.messages)) {
+      logger.info(
+        "[BACKEND] Detected ai-sdk format, routing to handleAiSdkChat",
+        {
+          requestId,
+          messageCount: body.messages.length,
+        },
+      );
+      return handleAiSdkChat(request, body, requestId, requestStartTime);
+    }
+
+    logger.info("[BACKEND] Using legacy action-based format", { requestId });
+
     const { action, context, message, model, systemPrompt, maxLength } = body;
 
+    const maxTokens =
+      typeof maxLength === "number"
+        ? Math.min(maxLength, DEFAULT_MAX_TOKENS)
+        : DEFAULT_MAX_TOKENS;
+    const maxChars = Math.ceil(maxTokens * CHARACTER_TO_TOKEN_RATIO);
+
     logger.debug("Request body parsed", {
+      message: JSON.stringify(message),
       requestId,
       action,
       hasContext: !!context,
@@ -92,7 +273,8 @@ export async function POST(request: Request) {
       messageLength: message?.length || 0,
       model: model || "default",
       hasSystemPrompt: !!systemPrompt,
-      maxLength: maxLength || "default",
+      maxTokens: maxTokens || "default",
+      maxChars: maxChars || "default",
     });
 
     if (!action) {
@@ -109,21 +291,21 @@ export async function POST(request: Request) {
     if (action === "suggest") {
       logger.info("Processing suggest action", {
         requestId,
-        model: model || "gpt-5-nano",
+        model: model || DEFAULT_MODEL,
       });
 
       const suggestStartTime = Date.now();
       try {
         const result = await generateText({
-          model: openai(model || "gpt-5-nano"),
+          model: openai(model || DEFAULT_MODEL),
           system: SUGGESTION_SYSTEM_PROMPT,
           prompt: `Element context:\n${context || "No context provided"}\n\nGenerate question suggestions:`,
-          maxTokens: 1000,
+          maxTokens: Math.min(DEFAULT_MAX_TOKENS, 4000),
         });
 
         logger.performance("AI generateText (suggest)", suggestStartTime, {
           requestId,
-          model: model || "gpt-5-nano",
+          model: model || DEFAULT_MODEL,
           responseLength: result.text.length,
         });
 
@@ -136,6 +318,7 @@ export async function POST(request: Request) {
             logger.info("Suggestions generated successfully", {
               requestId,
               count: finalSuggestions.length,
+              suggestions: JSON.stringify(finalSuggestions),
             });
             logger.performance(
               "Total request time (suggest)",
@@ -187,7 +370,7 @@ export async function POST(request: Request) {
       } catch (aiError) {
         logger.error("AI generation failed for suggest action", aiError, {
           requestId,
-          model: model || "gpt-5-nano",
+          model: model || DEFAULT_MODEL,
         });
         throw aiError;
       }
@@ -231,15 +414,15 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
       const refineStartTime = Date.now();
       try {
         const result = await generateText({
-          model: openai("gpt-5-mini"),
+          model: openai(DEFAULT_MODEL),
           system: effectiveSystemPrompt,
           prompt,
-          maxTokens: 500,
+          maxTokens: Math.min(DEFAULT_MAX_TOKENS, 4000),
         });
 
         logger.performance("AI generateText (refine)", refineStartTime, {
           requestId,
-          model: "gpt-5-mini",
+          model: DEFAULT_MODEL,
           responseLength: result.text.length,
         });
 
@@ -273,7 +456,7 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
       } catch (aiError) {
         logger.error("AI generation failed for refine action", aiError, {
           requestId,
-          model: "gpt-5-mini",
+          model: DEFAULT_MODEL,
         });
         throw aiError;
       }
@@ -282,8 +465,9 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
     if (action === "chat") {
       logger.info("Processing chat action", {
         requestId,
-        model: model || "gpt-5-nano",
-        maxLength: maxLength || 500,
+        model: model || DEFAULT_MODEL,
+        maxTokens,
+        maxChars,
       });
 
       if (!message) {
@@ -300,29 +484,30 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
 Element context:
 ${context || "No element context provided."}
 
-Important: Keep your response under ${maxLength || 500} characters.`;
+Important: Keep your response under ${maxChars} characters.`;
 
       logger.debug("Chat prompt prepared", {
         requestId,
         messageLength: message.length,
         hasContext: !!context,
-        maxLength: maxLength || 500,
+        maxTokens,
+        maxChars,
         usingCustomSystemPrompt: !!systemPrompt,
       });
 
       const chatStartTime = Date.now();
       try {
         const result = streamText({
-          model: openai(model || "gpt-5-nano"),
+          model: openai(model || DEFAULT_MODEL),
           system: effectiveSystemPrompt,
           prompt: message,
-          maxTokens: Math.min(Math.ceil((maxLength || 500) / 3), 300),
+          maxTokens,
         });
 
         logger.info("Chat stream initiated", {
           requestId,
-          model: model || "gpt-5-nano",
-          maxTokens: Math.min(Math.ceil((maxLength || 500) / 3), 300),
+          model: model || DEFAULT_MODEL,
+          maxTokens,
         });
         logger.performance("Stream initialization time", chatStartTime, {
           requestId,

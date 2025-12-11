@@ -1,112 +1,26 @@
 /**
- * Hook for managing QuickChat state and logic.
+ * Hook for managing QuickChat state and logic using ai-sdk-ui and zustand.
  *
  * @module QuickChat/useQuickChat
- * @since 2.0.0
+ * @since 3.1.0
  */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type Message, useChat } from "@ai-sdk/react";
 import { getElementInspectInfo } from "@ewjdev/anyclick-core";
+import {
+  generateMessageId,
+  useActiveMessages,
+  useQuickChatStore,
+} from "./store";
 import type {
   ChatMessage,
   ContextChunk,
   QuickChatConfig,
-  QuickChatState,
   SuggestedPrompt,
 } from "./types";
 import { DEFAULT_QUICK_CHAT_CONFIG } from "./types";
-
-const PINNED_STATE_KEY = "anyclick-quick-chat-pinned";
-const CHAT_HISTORY_KEY = "anyclick-quick-chat-history";
-
-/**
- * Generates a unique ID.
- */
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-/**
- * Get pinned state from session storage.
- */
-function getPinnedState(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return sessionStorage.getItem(PINNED_STATE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Set pinned state in session storage.
- */
-function setPinnedState(pinned: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (pinned) {
-      sessionStorage.setItem(PINNED_STATE_KEY, "true");
-    } else {
-      sessionStorage.removeItem(PINNED_STATE_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-/**
- * Get chat history from session storage.
- */
-function getChatHistory(): ChatMessage[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = sessionStorage.getItem(CHAT_HISTORY_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Remove streaming flags and actions from stored messages
-      return parsed.map((msg: ChatMessage) => ({
-        ...msg,
-        isStreaming: false,
-        actions: undefined,
-      }));
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return [];
-}
-
-/**
- * Save chat history to session storage.
- */
-function saveChatHistory(messages: ChatMessage[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    // Only store last 10 messages to avoid storage limits
-    const toStore = messages.slice(-10).map((msg) => ({
-      id: msg.id,
-      role: msg.role,
-      content: msg.content,
-      timestamp: msg.timestamp,
-    }));
-    sessionStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toStore));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-/**
- * Clear chat history from session storage.
- */
-function clearChatHistory(): void {
-  if (typeof window === "undefined") return;
-  try {
-    sessionStorage.removeItem(CHAT_HISTORY_KEY);
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 /**
  * Extracts context chunks from target element.
@@ -148,7 +62,6 @@ function extractContextChunks(
 
     // Add computed styles summary
     if (info.computedStyles) {
-      // Get a few key styles from different categories
       const styleEntries: string[] = [];
       for (const [category, styles] of Object.entries(info.computedStyles)) {
         if (styles && typeof styles === "object") {
@@ -223,7 +136,32 @@ function buildContextString(chunks: ContextChunk[]): string {
 }
 
 /**
+ * Convert ai-sdk Message to our ChatMessage format.
+ */
+function aiMessageToChatMessage(msg: Message): ChatMessage {
+  return {
+    id: msg.id,
+    role: msg.role as "user" | "assistant" | "system",
+    content: msg.content,
+    timestamp: msg.createdAt?.getTime() ?? Date.now(),
+  };
+}
+
+type DebugInfo = {
+  status: number;
+  ok: boolean;
+  contentType: string | null;
+  rawTextPreview: string;
+  parsedKeys?: string[];
+  contentPreview?: string;
+  payloadPreview?: string;
+  timestamp: number;
+  error?: string;
+};
+
+/**
  * Hook for managing QuickChat state and interactions.
+ * Uses ai-sdk-ui for streaming and zustand for persistence.
  */
 export function useQuickChat(
   targetElement: Element | null,
@@ -231,59 +169,336 @@ export function useQuickChat(
   config: QuickChatConfig = {},
 ) {
   const mergedConfig = { ...DEFAULT_QUICK_CHAT_CONFIG, ...config };
-  const abortControllerRef = useRef<AbortController | null>(null);
   const initializedRef = useRef(false);
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [manualSending, setManualSending] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
 
-  const [state, setState] = useState<QuickChatState>({
-    input: "",
-    messages: [],
-    isLoadingSuggestions: false,
-    isSending: false,
-    isStreaming: false,
-    suggestedPrompts: [],
-    contextChunks: [],
-    error: null,
+  // Zustand store
+  const {
+    input,
+    setInput,
+    isPinned,
+    setIsPinned,
+    contextChunks,
+    setContextChunks,
+    toggleChunk,
+    toggleAllChunks,
+    suggestedPrompts,
+    setSuggestedPrompts,
+    isLoadingSuggestions,
+    setIsLoadingSuggestions,
+    error,
+    setError,
+    addMessage,
+    updateMessage,
+    clearMessages: storeClearMessages,
+    setLastSyncedAt,
+    lastSyncedAt,
+    setIsSending: setStoreIsSending,
+    setIsStreaming: setStoreIsStreaming,
+  } = useQuickChatStore();
+
+  // Get active (non-expired) messages from store
+  const storedMessages = useActiveMessages();
+
+  // Memoize the context string to prevent useChat from re-initializing
+  const contextString = useMemo(
+    () => buildContextString(contextChunks),
+    [contextChunks],
+  );
+
+  // Memoize the body object to prevent useChat from re-initializing
+  const chatBody = useMemo(
+    () => ({
+      action: "chat",
+      context: contextString,
+      model: mergedConfig.model,
+      systemPrompt: mergedConfig.systemPrompt,
+      maxLength: mergedConfig.maxResponseLength,
+    }),
+    [
+      contextString,
+      mergedConfig.model,
+      mergedConfig.systemPrompt,
+      mergedConfig.maxResponseLength,
+    ],
+  );
+
+  // ai-sdk-ui useChat hook
+  console.log("[useQuickChat] Initializing useChat hook", {
+    endpoint: mergedConfig.endpoint,
+    contextChunks: contextChunks.length,
+    contextString: contextString.substring(0, 100),
+    bodyHash: JSON.stringify(chatBody),
   });
 
-  // Initialize from session storage on mount
+  const {
+    messages: aiMessages,
+    isLoading: aiIsSending,
+    stop,
+    setMessages: setAiMessages,
+  } = useChat({
+    api: mergedConfig.endpoint,
+    body: chatBody,
+    onFinish: (message) => {
+      // Log full message object to see all properties including parts
+      console.log(
+        "[useQuickChat] onFinish callback fired - RAW MESSAGE:",
+        message,
+      );
+      console.log("[useQuickChat] onFinish callback fired", {
+        messageId: message.id,
+        role: message.role,
+        contentLength: message.content.length,
+        contentPreview: message.content.substring(0, 100),
+        fullContent: message.content,
+        messageKeys: Object.keys(message),
+        // Check if parts exist (ai-sdk v4 format)
+        hasParts: "parts" in message,
+        parts: (message as unknown as { parts?: unknown[] }).parts,
+        partsLength: (message as unknown as { parts?: unknown[] }).parts
+          ?.length,
+      });
+      // Sync completed message to store for persistence
+      const existingMsg = storedMessages.find((m) => m.id === message.id);
+      console.log("[useQuickChat] Checking existing message", {
+        messageId: message.id,
+        exists: !!existingMsg,
+      });
+      if (!existingMsg) {
+        console.log("[useQuickChat] Adding message to store", {
+          messageId: message.id,
+          role: message.role,
+          contentLength: message.content.length,
+        });
+        addMessage({
+          role: message.role as "user" | "assistant" | "system",
+          content: message.content,
+          isStreaming: false,
+        });
+      } else {
+        console.log(
+          "[useQuickChat] Message already exists in store, skipping add",
+        );
+      }
+      // Schedule backend sync
+      scheduleBackendSync();
+    },
+    onError: (err) => {
+      console.error("[useQuickChat] onError callback fired", {
+        error: err,
+        errorMessage: err.message,
+        errorStack: err.stack,
+      });
+      setError(err.message);
+    },
+  });
+
+  // Log aiMessages changes
+  useEffect(() => {
+    // Log raw messages to see full structure including parts
+    console.log("[useQuickChat] aiMessages changed - RAW:", aiMessages);
+    console.log("[useQuickChat] aiMessages changed", {
+      count: aiMessages.length,
+      messages: aiMessages.map((m) => {
+        const msg = m as unknown as {
+          id: string;
+          role: string;
+          content: string;
+          parts?: unknown[];
+          createdAt?: Date;
+        };
+        return {
+          id: msg.id,
+          role: msg.role,
+          contentLength: msg.content?.length || 0,
+          contentPreview: msg.content?.substring(0, 100) || "",
+          fullContent: msg.content || "",
+          createdAt: msg.createdAt?.toISOString(),
+          hasParts: !!msg.parts,
+          partsLength: msg.parts?.length,
+          parts: msg.parts,
+        };
+      }),
+      isSending: aiIsSending,
+      lastMessage: aiMessages[aiMessages.length - 1]
+        ? (() => {
+            const last = aiMessages[aiMessages.length - 1] as unknown as {
+              id: string;
+              role: string;
+              content: string;
+              parts?: unknown[];
+            };
+            return {
+              id: last.id,
+              role: last.role,
+              contentLength: last.content?.length || 0,
+              fullContent: last.content || "",
+              hasParts: !!last.parts,
+              parts: last.parts,
+            };
+          })()
+        : null,
+    });
+  }, [aiMessages, aiIsSending]);
+
+  // Convert ai messages to our ChatMessage format
+  const messages: ChatMessage[] = aiMessages.map((msg) => {
+    const chatMsg = {
+      ...aiMessageToChatMessage(msg),
+      isStreaming:
+        aiIsSending &&
+        msg.role === "assistant" &&
+        msg === aiMessages[aiMessages.length - 1],
+      actions:
+        msg.role === "assistant" && !aiIsSending
+          ? [
+              {
+                id: "copy",
+                label: "Copy",
+                onClick: () => {
+                  navigator.clipboard.writeText(msg.content);
+                },
+              },
+              {
+                id: "research",
+                label: "Research more",
+                onClick: () => {
+                  setInput(`Tell me more about: ${msg.content.slice(0, 50)}`);
+                },
+              },
+            ]
+          : undefined,
+    };
+    return chatMsg;
+  });
+
+  // Log converted messages
+  useEffect(() => {
+    console.log("[useQuickChat] Converted messages", {
+      count: messages.length,
+      messages: messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        contentLength: m.content.length,
+        contentPreview: m.content.substring(0, 100),
+        isStreaming: m.isStreaming,
+        hasActions: !!m.actions,
+      })),
+    });
+  }, [messages]);
+
+  // Determine if streaming/sending
+  const isStreaming = aiIsSending && aiMessages.length > 0;
+  const isSending = aiIsSending || manualSending;
+
+  /**
+   * Schedule a backend sync after a short delay to batch updates.
+   */
+  const scheduleBackendSync = useCallback(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        const currentMessages = useQuickChatStore
+          .getState()
+          .getActiveMessages();
+        if (currentMessages.length === 0) return;
+
+        await fetch(`${mergedConfig.endpoint}/history`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save",
+            messages: currentMessages,
+          }),
+        });
+        setLastSyncedAt(Date.now());
+      } catch (err) {
+        console.error("Failed to sync chat history to backend:", err);
+      }
+    }, 1000);
+  }, [mergedConfig.endpoint, setLastSyncedAt]);
+
+  /**
+   * Load chat history from backend on initial mount.
+   */
+  const loadFromBackend = useCallback(async () => {
+    try {
+      const response = await fetch(`${mergedConfig.endpoint}/history`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "load" }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (
+          data.messages &&
+          Array.isArray(data.messages) &&
+          data.messages.length > 0
+        ) {
+          // Hydrate store with backend messages
+          useQuickChatStore.getState().hydrate(data.messages);
+          // Also set ai messages for display
+          const aiMsgs: Message[] = data.messages.map((msg: ChatMessage) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            createdAt: new Date(msg.timestamp),
+          }));
+          setAiMessages(aiMsgs);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load chat history from backend:", err);
+    }
+  }, [mergedConfig.endpoint, setAiMessages]);
+
+  // Initialize: load from backend if store is empty, or restore from store
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const isPinned = getPinnedState();
-    if (isPinned) {
-      const history = getChatHistory();
-      if (history.length > 0) {
-        setState((prev) => ({ ...prev, messages: history }));
-      }
+    // If we have stored messages, restore them to ai-sdk
+    if (storedMessages.length > 0) {
+      const aiMsgs: Message[] = storedMessages.map((msg) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        createdAt: new Date(msg.timestamp),
+      }));
+      setAiMessages(aiMsgs);
+    } else {
+      // Try to load from backend
+      loadFromBackend();
     }
-  }, []);
+  }, [storedMessages, setAiMessages, loadFromBackend]);
 
   // Extract context when target element changes
-  // When pinned, preserve the last context if targetElement becomes null
   useEffect(() => {
     if (targetElement) {
       const chunks = extractContextChunks(targetElement, containerElement);
-      setState((prev) => ({ ...prev, contextChunks: chunks }));
+      setContextChunks(chunks);
     }
-    // Don't clear context when targetElement is null - preserve last context for pinned state
-  }, [targetElement, containerElement]);
+  }, [targetElement, containerElement, setContextChunks]);
 
   // Fetch suggested prompts when context is available
   useEffect(() => {
     if (
       !mergedConfig.showSuggestions ||
-      state.contextChunks.length === 0 ||
-      state.suggestedPrompts.length > 0
+      contextChunks.length === 0 ||
+      suggestedPrompts.length > 0
     ) {
       return;
     }
 
     const fetchSuggestions = async () => {
-      setState((prev) => ({ ...prev, isLoadingSuggestions: true }));
+      setIsLoadingSuggestions(true);
 
       try {
-        const contextString = buildContextString(state.contextChunks);
+        const contextString = buildContextString(contextChunks);
         const response = await fetch(mergedConfig.endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -297,261 +512,253 @@ export function useQuickChat(
         if (response.ok) {
           const data = await response.json();
           if (data.suggestions && Array.isArray(data.suggestions)) {
-            setState((prev) => ({
-              ...prev,
-              suggestedPrompts: data.suggestions.map(
-                (text: string, i: number) => ({
-                  id: `suggestion-${i}`,
-                  text,
-                }),
-              ),
-              isLoadingSuggestions: false,
-            }));
+            setSuggestedPrompts(
+              data.suggestions.map((text: string, i: number) => ({
+                id: `suggestion-${i}`,
+                text,
+              })),
+            );
+            setIsLoadingSuggestions(false);
             return;
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
       }
 
       // Fallback default suggestions
-      setState((prev) => ({
-        ...prev,
-        suggestedPrompts: [
-          { id: "s1", text: "What is this element?" },
-          { id: "s2", text: "How can I style this?" },
-          { id: "s3", text: "Is this accessible?" },
-        ],
-        isLoadingSuggestions: false,
-      }));
+      setSuggestedPrompts([
+        { id: "s1", text: "What is this element?" },
+        { id: "s2", text: "How can I style this?" },
+        { id: "s3", text: "Is this accessible?" },
+      ]);
+      setIsLoadingSuggestions(false);
     };
 
     fetchSuggestions();
   }, [
-    state.contextChunks,
-    state.suggestedPrompts.length,
+    contextChunks,
+    suggestedPrompts.length,
     mergedConfig.showSuggestions,
     mergedConfig.endpoint,
     mergedConfig.prePassModel,
+    setIsLoadingSuggestions,
+    setSuggestedPrompts,
   ]);
 
-  // Set input value
-  const setInput = useCallback((value: string) => {
-    setState((prev) => ({ ...prev, input: value }));
-  }, []);
-
-  // Toggle context chunk inclusion
-  const toggleChunk = useCallback((chunkId: string) => {
-    setState((prev) => ({
-      ...prev,
-      contextChunks: prev.contextChunks.map((chunk) =>
-        chunk.id === chunkId ? { ...chunk, included: !chunk.included } : chunk,
-      ),
-    }));
-  }, []);
-
-  // Toggle all chunks
-  const toggleAllChunks = useCallback((included: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      contextChunks: prev.contextChunks.map((chunk) => ({
-        ...chunk,
-        included,
-      })),
-    }));
-  }, []);
-
   // Select a suggested prompt
-  const selectSuggestion = useCallback((prompt: SuggestedPrompt) => {
-    setState((prev) => ({ ...prev, input: prompt.text }));
-  }, []);
+  const selectSuggestion = useCallback(
+    (prompt: SuggestedPrompt) => {
+      setInput(prompt.text);
+    },
+    [setInput],
+  );
 
-  // Send a message
+  // Send a message using simple fetch (non-streaming for debugging)
   const sendMessage = useCallback(
     async (messageText?: string) => {
-      const text = (messageText || state.input).trim();
-      if (!text) return;
+      const text = (messageText || input).trim();
+      console.log("[useQuickChat] sendMessage called", {
+        text: text.substring(0, 100),
+        textLength: text.length,
+        hasText: !!text,
+      });
 
-      // Abort any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      if (!text) {
+        console.log("[useQuickChat] sendMessage: empty text, returning early");
+        return;
       }
-      abortControllerRef.current = new AbortController();
 
-      const userMessage: ChatMessage = {
-        id: generateId(),
+      setInput("");
+      setError(null);
+      setManualSending(true);
+      setStoreIsSending(true);
+      setStoreIsStreaming(false);
+      setDebugInfo(null);
+
+      console.log("[useQuickChat] Adding user message to aiMessages");
+      // Add user message to display
+      const userMsg: Message = {
+        id: generateMessageId(),
         role: "user",
         content: text,
-        timestamp: Date.now(),
+        createdAt: new Date(),
       };
+      setAiMessages((prev) => [...prev, userMsg]);
 
-      const assistantMessageId = generateId();
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: "assistant",
-        content: "",
-        timestamp: Date.now(),
-        isStreaming: true,
+      // Add user message to store for persistence
+      addMessage({
+        role: "user",
+        content: text,
+      });
+
+      console.log(
+        "[useQuickChat] Fetching response from",
+        mergedConfig.endpoint,
+      );
+
+      const payload = {
+        messages: [...aiMessages, userMsg].map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        context: contextString,
+        model: mergedConfig.model,
+        systemPrompt: mergedConfig.systemPrompt,
+        maxLength: mergedConfig.maxResponseLength,
       };
-
-      setState((prev) => ({
-        ...prev,
-        input: "",
-        messages: [...prev.messages, userMessage, assistantMessage],
-        isSending: true,
-        isStreaming: true,
-        error: null,
-      }));
 
       try {
-        const contextString = buildContextString(state.contextChunks);
+        // Use simple fetch instead of useChat
         const response = await fetch(mergedConfig.endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "chat",
-            message: text,
-            context: contextString,
-            model: mergedConfig.model,
-            systemPrompt: mergedConfig.systemPrompt,
-            maxLength: mergedConfig.maxResponseLength,
-          }),
-          signal: abortControllerRef.current.signal,
+          body: JSON.stringify(payload),
+        });
+
+        console.log("[useQuickChat] Response status:", response.status);
+
+        const rawText = await response.text();
+        let data: unknown = null;
+        try {
+          data = rawText ? JSON.parse(rawText) : null;
+        } catch (parseErr) {
+          console.warn("[useQuickChat] Failed to parse JSON response", {
+            parseErr,
+            rawTextSnippet: rawText.substring(0, 200),
+          });
+        }
+
+        const parsed =
+          data && typeof data === "object"
+            ? (data as Record<string, unknown>)
+            : null;
+        const content =
+          typeof parsed?.content === "string"
+            ? parsed.content
+            : typeof parsed?.text === "string"
+              ? parsed.text
+              : null;
+
+        setDebugInfo({
+          status: response.status,
+          ok: response.ok,
+          contentType: response.headers.get("content-type"),
+          rawTextPreview: rawText.substring(0, 500),
+          parsedKeys: parsed ? Object.keys(parsed) : undefined,
+          contentPreview: content?.substring(0, 120) || undefined,
+          payloadPreview: JSON.stringify(payload).substring(0, 400),
+          timestamp: Date.now(),
+          error: !response.ok
+            ? `Request failed: ${response.status}`
+            : content
+              ? undefined
+              : "No content field in response",
         });
 
         if (!response.ok) {
+          console.error("[useQuickChat] Response error (non-OK)", rawText);
           throw new Error(`Request failed: ${response.status}`);
         }
 
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response body");
+        if (content) {
+          // Add assistant message
+          const assistantMsg: Message = {
+            id: generateMessageId(),
+            role: "assistant",
+            content,
+            createdAt: new Date(),
+          };
+          setAiMessages((prev) => [...prev, assistantMsg]);
+
+          // Add to store for persistence
+          addMessage({
+            role: "assistant",
+            content,
+          });
+          scheduleBackendSync();
+
+          console.log(
+            "[useQuickChat] Assistant message added:",
+            content.substring(0, 100),
+          );
+        } else {
+          console.warn("[useQuickChat] No content in response:", data);
+          setError("No content returned from chat endpoint");
         }
-
-        const decoder = new TextDecoder();
-        let fullContent = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          fullContent += chunk;
-
-          // Truncate if exceeds max length
-          if (fullContent.length > mergedConfig.maxResponseLength) {
-            fullContent =
-              fullContent.slice(0, mergedConfig.maxResponseLength) + "...";
-          }
-
-          setState((prev) => ({
-            ...prev,
-            messages: prev.messages.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: fullContent }
-                : msg,
-            ),
-          }));
-        }
-
-        // Finalize message with actions
-        setState((prev) => ({
-          ...prev,
-          messages: prev.messages.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content: fullContent,
-                  isStreaming: false,
-                  actions: [
-                    {
-                      id: "copy",
-                      label: "Copy",
-                      onClick: () => {
-                        navigator.clipboard.writeText(fullContent);
-                      },
-                    },
-                    {
-                      id: "research",
-                      label: "Research more",
-                      onClick: () => {
-                        setState((p) => ({
-                          ...p,
-                          input: `Tell me more about: ${text}`,
-                        }));
-                      },
-                    },
-                  ],
-                }
-              : msg,
-          ),
-          isSending: false,
-          isStreaming: false,
+      } catch (err) {
+        console.error("[useQuickChat] sendMessage failed", {
+          error: err,
+          errorMessage: err instanceof Error ? err.message : String(err),
+        });
+        setError(err instanceof Error ? err.message : String(err));
+        setDebugInfo((prev) => ({
+          status: prev?.status ?? -1,
+          ok: false,
+          contentType: prev?.contentType ?? "unknown",
+          rawTextPreview: prev?.rawTextPreview ?? "",
+          parsedKeys: prev?.parsedKeys,
+          contentPreview: prev?.contentPreview,
+          payloadPreview: prev?.payloadPreview,
+          timestamp: Date.now(),
+          error: err instanceof Error ? err.message : String(err),
         }));
-      } catch (error) {
-        if ((error as Error).name === "AbortError") {
-          return;
-        }
-
-        console.error("Chat error:", error);
-        setState((prev) => ({
-          ...prev,
-          messages: prev.messages.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content:
-                    "Sorry, I couldn't process your request. Please try again.",
-                  isStreaming: false,
-                }
-              : msg,
-          ),
-          isSending: false,
-          isStreaming: false,
-          error: (error as Error).message,
-        }));
+      } finally {
+        setManualSending(false);
+        setStoreIsSending(false);
+        setStoreIsStreaming(false);
       }
     },
-    [state.input, state.contextChunks, mergedConfig],
+    [
+      input,
+      setInput,
+      setError,
+      addMessage,
+      aiMessages,
+      setAiMessages,
+      contextString,
+      mergedConfig,
+      setStoreIsSending,
+      setStoreIsStreaming,
+      setDebugInfo,
+      scheduleBackendSync,
+    ],
   );
 
   // Clear messages
   const clearMessages = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    clearChatHistory();
-    setState((prev) => ({
-      ...prev,
-      messages: [],
-      error: null,
-    }));
-  }, []);
-
-  // Save messages to session storage when they change (if pinned)
-  useEffect(() => {
-    if (state.messages.length > 0 && getPinnedState()) {
-      // Only save completed messages (not streaming)
-      const completedMessages = state.messages.filter(
-        (msg) => !msg.isStreaming,
-      );
-      if (completedMessages.length > 0) {
-        saveChatHistory(completedMessages);
-      }
-    }
-  }, [state.messages]);
+    stop();
+    storeClearMessages();
+    setAiMessages([]);
+    // Also clear from backend
+    fetch(`${mergedConfig.endpoint}/history`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clear" }),
+    }).catch((err) => console.error("Failed to clear backend history:", err));
+  }, [stop, storeClearMessages, setAiMessages, mergedConfig.endpoint]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
       }
     };
   }, []);
 
   return {
-    ...state,
+    input,
+    messages,
+    isLoadingSuggestions,
+    isSending,
+    isStreaming,
+    suggestedPrompts,
+    contextChunks,
+    error,
+    debugInfo,
+    isPinned,
+    lastSyncedAt,
     config: mergedConfig,
     setInput,
     toggleChunk,
@@ -559,5 +766,6 @@ export function useQuickChat(
     selectSuggestion,
     sendMessage,
     clearMessages,
+    setIsPinned,
   };
 }

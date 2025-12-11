@@ -2,10 +2,11 @@
  * QuickChat component - Lightweight AI chat in the context menu.
  *
  * Provides a minimal chat interface that auto-focuses when opened,
- * streams AI responses, and offers quick actions.
+ * streams AI responses using ai-sdk-ui, and offers quick actions.
+ * Chat history persists for 24h via zustand store.
  *
  * @module QuickChat/QuickChat
- * @since 2.0.0
+ * @since 3.1.0
  */
 "use client";
 
@@ -32,36 +33,6 @@ import {
 import { quickChatKeyframes, quickChatStyles } from "./styles";
 import type { QuickChatProps } from "./types";
 import { useQuickChat } from "./useQuickChat";
-
-const PINNED_STATE_KEY = "anyclick-quick-chat-pinned";
-
-/**
- * Get pinned state from session storage.
- */
-function getStoredPinnedState(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return sessionStorage.getItem(PINNED_STATE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Set pinned state in session storage.
- */
-function setStoredPinnedState(pinned: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (pinned) {
-      sessionStorage.setItem(PINNED_STATE_KEY, "true");
-    } else {
-      sessionStorage.removeItem(PINNED_STATE_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 /**
  * Injects keyframe animations into the document.
@@ -118,45 +89,62 @@ export function QuickChat({
     null,
   );
 
-  // Use stored pinned state or prop
-  const [localPinned, setLocalPinned] = useState(() => getStoredPinnedState());
-  const isPinned = isPinnedProp || localPinned;
-
-  // Sync pinned state with session storage
-  const handlePinToggle = useCallback(() => {
-    const newPinned = !isPinned;
-    setLocalPinned(newPinned);
-    setStoredPinnedState(newPinned);
-    onPin?.(newPinned);
-  }, [isPinned, onPin]);
-
-  // Handle close - if pinned, just unpin; otherwise close
-  const handleClose = useCallback(() => {
-    if (isPinned) {
-      setLocalPinned(false);
-      setStoredPinnedState(false);
-      onPin?.(false);
-    }
-    onClose();
-  }, [isPinned, onPin, onClose]);
-
   const {
     input,
     messages,
     isLoadingSuggestions,
     isSending,
     isStreaming,
+    debugInfo,
     suggestedPrompts,
     contextChunks,
     error,
+    isPinned: storePinned,
     setInput,
     toggleChunk,
     toggleAllChunks,
     selectSuggestion,
     sendMessage,
     clearMessages,
+    setIsPinned,
     config: mergedConfig,
   } = useQuickChat(targetElement, containerElement, config);
+
+  // Log messages changes in component
+  useEffect(() => {
+    console.log("[QuickChat] Component received messages", {
+      count: messages.length,
+      messages: messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        contentLength: m.content.length,
+        contentPreview: m.content.substring(0, 100),
+        isStreaming: m.isStreaming,
+      })),
+      isSending,
+      isStreaming,
+      error,
+    });
+  }, [messages, isSending, isStreaming, error]);
+
+  // Use prop or store pinned state
+  const isPinned = isPinnedProp || storePinned;
+
+  // Sync pinned state with store
+  const handlePinToggle = useCallback(() => {
+    const newPinned = !isPinned;
+    setIsPinned(newPinned);
+    onPin?.(newPinned);
+  }, [isPinned, setIsPinned, onPin]);
+
+  // Handle close - if pinned, just unpin; otherwise close
+  const handleClose = useCallback(() => {
+    if (isPinned) {
+      setIsPinned(false);
+      onPin?.(false);
+    }
+    onClose();
+  }, [isPinned, setIsPinned, onPin, onClose]);
 
   // Inject styles on mount
   useEffect(() => {
@@ -231,9 +219,7 @@ export function QuickChat({
     if (typeof window === "undefined") return;
     const query = input.trim();
     const baseUrl = mergedConfig.t3chat?.baseUrl ?? "https://t3.chat";
-    const url = query
-      ? `${baseUrl}/?q=${encodeURIComponent(query)}`
-      : baseUrl;
+    const url = query ? `${baseUrl}/?q=${encodeURIComponent(query)}` : baseUrl;
     window.open(url, "_blank", "noopener,noreferrer");
   }, [input, mergedConfig.t3chat?.baseUrl]);
 
@@ -436,6 +422,50 @@ export function QuickChat({
               <RefreshCw size={10} />
               Retry
             </button>
+          </div>
+        )}
+        {debugInfo && (
+          <div
+            style={{
+              backgroundColor: "#0f172a",
+              color: "#e2e8f0",
+              border: "1px solid #334155",
+              borderRadius: "8px",
+              padding: "8px",
+              margin: "0 0 8px",
+              fontSize: "12px",
+              lineHeight: 1.4,
+              wordBreak: "break-word",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <span>
+                Last request: {debugInfo.status}{" "}
+                {debugInfo.ok ? "(ok)" : "(error)"}
+              </span>
+              <span style={{ opacity: 0.7 }}>
+                {new Date(debugInfo.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            {debugInfo.error && (
+              <div style={{ color: "#f87171", marginTop: "4px" }}>
+                Error: {debugInfo.error}
+              </div>
+            )}
+            {debugInfo.contentPreview && (
+              <div style={{ marginTop: "4px" }}>
+                Content: {debugInfo.contentPreview}
+              </div>
+            )}
+            <div style={{ marginTop: "4px", opacity: 0.8 }}>
+              Raw: {debugInfo.rawTextPreview || "(empty)"}
+            </div>
           </div>
         )}
         {messages.length > 0 &&

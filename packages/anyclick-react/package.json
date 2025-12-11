@@ -52,6 +52,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
+    "@ai-sdk/react": "^1.2.12",
     "@ewjdev/anyclick-core": "^1.4.0",
     "@ewjdev/anyclick-pointer": "^3.0.0",
     "lucide-react": "^0.544.0",

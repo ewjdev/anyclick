@@ -21,6 +21,8 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   // Use chrome preset for developer-focused menu with inspect, copy, etc.
   const chromePreset = useMemo(() => createPresetMenu("chrome"), []);
 
+  console.count("AnyclickProviderWrapper");
+
   return (
     <AnyclickProvider
       adapter={adapter}
