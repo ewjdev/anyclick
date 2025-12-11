@@ -12,7 +12,6 @@ Prioritize
 **Adapter ergonomics**
 
 - Standardize something like:
-
 ```
 interface AnyclickAdapter {
   submit(payload: AnyclickPayload): Promise<{ url?: string }>;

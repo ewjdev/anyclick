@@ -1,22 +1,22 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { CodeBlock } from "@/components/CodePreview";
+import { useCallback, useEffect, useState } from "react";
 import { usePointer } from "@ewjdev/anyclick-pointer";
 import {
   ArrowRight,
-  MousePointer2,
   Check,
   Crosshair,
-  Target,
   Hand,
-  Pointer,
+  MousePointer2,
   Palette,
+  Pointer,
+  RotateCcw,
   Settings,
   Sparkles,
-  RotateCcw,
+  Target,
 } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
+import Link from "next/link";
 
 // Interactive color picker
 function ColorPicker({
@@ -182,7 +182,7 @@ export default function CustomPointerExamplePage() {
           <span>/</span>
           <span className="text-white">Custom Pointer</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Custom Pointer
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -193,7 +193,7 @@ export default function CustomPointerExamplePage() {
       </div>
 
       {/* Live Interactive Demo */}
-      <div className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-violet-400" />
@@ -697,7 +697,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+      <div className="p-6 rounded-xl bg-linear-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
         <h3 className="font-semibold mb-2">Your changes are live!</h3>
         <p className="text-gray-400 text-sm mb-4">
           The customizations you made above are applied to the actual pointer on

@@ -1,7 +1,7 @@
+import { CodeBlock } from "@/components/CodePreview";
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "@ewjdev/anyclick-core",
@@ -39,7 +39,7 @@ export default function CoreDocsPage() {
             @ewjdev/anyclick-core
           </code>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Core Library
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">

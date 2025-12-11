@@ -548,7 +548,7 @@ export function createT3ChatMenuItem(
     label?: string;
     /** Base URL for t3.chat */
     baseUrl?: string;
-  } = {}
+  } = {},
 ): ContextMenuItem {
   const { label = "Ask t3.chat", baseUrl = "https://t3.chat" } = options;
 
@@ -730,7 +730,7 @@ export function createUploadThingMenuItem(
     onUploadComplete?: (result: { url?: string; error?: string }) => void;
     /** Callback when upload fails */
     onUploadError?: (error: Error) => void;
-  } = {}
+  } = {},
 ): ContextMenuItem {
   const {
     label = "Upload to UploadThing",
@@ -796,13 +796,13 @@ export function createUploadThingMenuItem(
           // This requires the screenshot capture functionality
           onUploadError?.(
             new Error(
-              "Element is not an image. Screenshot upload requires anyclick-core."
-            )
+              "Element is not an image. Screenshot upload requires anyclick-core.",
+            ),
           );
         }
       } catch (error) {
         onUploadError?.(
-          error instanceof Error ? error : new Error(String(error))
+          error instanceof Error ? error : new Error(String(error)),
         );
       }
 
@@ -849,7 +849,7 @@ export function createUploadScreenshotMenuItem(
     onUploadComplete?: (result: { url?: string; error?: string }) => void;
     /** Callback when upload fails */
     onUploadError?: (error: Error) => void;
-  } = {}
+  } = {},
 ): ContextMenuItem {
   const {
     label = "Upload Screenshot",
@@ -867,7 +867,7 @@ export function createUploadScreenshotMenuItem(
       // For now, show as coming soon since it requires deep integration
       // with the screenshot preview component
       onUploadError?.(
-        new Error("Screenshot upload will be available in a future release")
+        new Error("Screenshot upload will be available in a future release"),
       );
       closeMenu();
       return false;

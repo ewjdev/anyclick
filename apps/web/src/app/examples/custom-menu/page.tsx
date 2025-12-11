@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import { CodeBlock } from "@/components/CodePreview";
 import {
   ArrowRight,
-  Palette,
   Bug,
-  Lightbulb,
-  Heart,
   Code,
+  Heart,
+  Lightbulb,
+  Palette,
   Shield,
 } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
@@ -29,7 +29,7 @@ export default function CustomMenuExamplePage() {
           <span>/</span>
           <span className="text-white">Custom Menu</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Custom Menu
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -39,7 +39,7 @@ export default function CustomMenuExamplePage() {
       </div>
 
       {/* Demo Area */}
-      <div className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
+      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5 text-cyan-400" />
           Custom Menu Preview
@@ -366,7 +366,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border border-cyan-500/20">
+      <div className="p-6 rounded-xl bg-linear-to-r from-cyan-500/10 to-emerald-500/10 border border-cyan-500/20">
         <h3 className="font-semibold mb-2">Up next</h3>
         <p className="text-gray-400 text-sm mb-4">
           Learn how to integrate with GitHub Issues for automatic issue creation

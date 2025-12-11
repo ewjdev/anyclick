@@ -17,7 +17,7 @@ Implement `logo.png` and `logo.ico` throughout the anyclick web application, rep
 All locations use `MousePointerClick` from lucide-react inside a gradient container:
 
 ```tsx
-<div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
+<div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
   <MousePointerClick className="w-5 h-5 text-white" />
 </div>
 ```
@@ -169,10 +169,10 @@ export function AnyclickLogo({ size = 'md', className }: AnyclickLogoProps) {
 ```tsx
 <Link href="/" className="flex items-center gap-3 group">
   <div className="relative">
-    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
+    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
       <MousePointerClick className="w-5 h-5 text-white" />
     </div>
-    <div className="absolute -inset-1 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur transition-opacity" />
+    <div className="absolute -inset-1 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 opacity-0 group-hover:opacity-20 blur transition-opacity" />
   </div>
   <span className="text-xl font-semibold tracking-tight">anyclick</span>
 </Link>

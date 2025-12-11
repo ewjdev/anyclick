@@ -1,24 +1,3 @@
----
-name: right-click-devtools-integration
-overview: Add a custom right-click experience that overtakes the native menu, reusing the Anyclick React menu when feasible, and sync the selected element with a DevTools panel.
-todos:
-  - id: reuse-menu
-    content: Spike feasibility of bundling anyclick-react ContextMenu
-    status: completed
-  - id: content-overlay
-    content: Intercept contextmenu and show overlay at pointer
-    status: completed
-  - id: devtools-panel
-    content: Add devtools page/panel and message bridge
-    status: completed
-  - id: background-sync
-    content: Align background/types with overlay + panel
-    status: completed
-  - id: testing
-    content: Manual verify overlay, queue, devtools sync
-    status: completed
----
-
 # Right-Click Context + DevTools Sync
 
 - Reuse or fork menu UI: Assess whether `packages/anyclick-react/src/ContextMenu.tsx` and its light dependencies can be bundled into the extension content script; if size/perf is prohibitive, sketch a minimal non-React menu with similar layout.

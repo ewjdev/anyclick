@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Check, Copy, FileCode, Terminal } from "lucide-react";
+import * as React from "react";
+import { CSSProperties, useMemo } from "react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
-import { CSSProperties, useMemo } from "react";
+import { Check, Copy, FileCode, Terminal } from "lucide-react";
 
 // ============================================================================
 // TYPES
@@ -514,7 +514,7 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
         <div
           ref={ref}
           className={cn(
-            "relative rounded-xl overflow-hidden",
+            "relative rounded-none overflow-hidden",
             variant === "hero" && "shadow-2xl",
             className,
           )}
@@ -522,10 +522,10 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
         >
           {/* Glow effect for hero variant */}
           {variant === "hero" && (
-            <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 via-cyan-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-50 -z-10" />
+            <div className="absolute -inset-4 bg-linear-to-r from-violet-500/20 via-cyan-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-50 -z-10" />
           )}
 
-          <div className="relative bg-[#0d1117] border border-white/10 rounded-xl overflow-hidden">
+          <div className="relative bg-[#0d1117] border border-white/10 md:rounded-xl rounded-none overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-white/[0.02]">
               <div className="flex items-center gap-2">

@@ -194,13 +194,13 @@ export type MessageType =
   | "DEVTOOLS_ELEMENT_UPDATE"
   | "TOGGLE_CUSTOM_MENU"
   | "GET_ELEMENT_AT_POINT"
-  // T3Chat and UploadThing message types
-  | "GET_CONFIG"
-  | "SET_CONFIG"
-  | "SEND_TO_T3CHAT"
-  | "UPLOAD_IMAGE"
-  | "UPLOAD_SCREENSHOT"
-  | "REFINE_PROMPT";
+  | "GET_CONFIG" // T3Chat and UploadThing message types
+  | "SET_CONFIG" // T3Chat and UploadThing message types
+  | "SEND_TO_T3CHAT" // T3Chat and UploadThing message types
+  | "UPLOAD_IMAGE" // T3Chat and UploadThing message types
+  | "UPLOAD_SCREENSHOT" // T3Chat and UploadThing message types
+  | "REFINE_PROMPT" // T3Chat and UploadThing message types
+  | "OPEN_POPUP"; // Request to open extension popup from overlay
 
 /**
  * Base message structure
@@ -349,6 +349,24 @@ export interface GetElementAtPointMessage extends BaseMessage {
 }
 
 /**
+ * Request to open extension popup (overlay -> background)
+ */
+export interface OpenPopupMessage extends BaseMessage {
+  type: "OPEN_POPUP";
+}
+
+/**
+ * Request to refine a prompt via AI (content/popup -> background)
+ */
+export interface RefinePromptMessage extends BaseMessage {
+  type: "REFINE_PROMPT";
+  selectedText: string;
+  context: string;
+  systemPrompt?: string;
+  refineEndpoint?: string;
+}
+
+/**
  * Union of all message types
  */
 export type ExtensionMessage =
@@ -367,7 +385,9 @@ export type ExtensionMessage =
   | InspectElementMessage
   | DevToolsElementUpdateMessage
   | ToggleCustomMenuMessage
-  | GetElementAtPointMessage;
+  | GetElementAtPointMessage
+  | OpenPopupMessage
+  | RefinePromptMessage;
 
 /**
  * Helper to create message with timestamp

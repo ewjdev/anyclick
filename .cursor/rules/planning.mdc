@@ -1,0 +1,99 @@
+---
+alwaysApply: true
+---
+
+# Planning orangization
+
+To execute at a high level with a small team planning needs to be automatted. Product owners need to be able to plan, decision make and execute quickly without needing to manualy organize their thoughts.
+
+# Approach
+
+During planning follow some guidelines to stay on the rials
+
+## Product Ideation
+- make sure product/idea has been validated, if not then go do validation before moving forward. @.cursor/rules/prodcut-validation.mdc (needs to be created)
+- get an idea of how this new feature would affect the project / system
+- Try to find and propose small ideas that have big impact
+
+## Build, Buy, Open Source
+
+Getting this right can optimize the work that is planned. A lot of time trade offs are made because this part of planning wasn't done right.
+
+- Building new is quick but can be costly to maintain.
+- Dependencies of third parties are sometimes unstable (new,api changes, security vulenablities)
+- Cost to scale buy options are hard to justify for POC's
+- Will we need to buy when AI can build anything / open source plus AI?
+- If we build what will the true maintance cost be? is it valuable for the cost to be spread out over time and be easier as AI can do more of the matainence?
+
+## Starter Projects
+
+Having a good starter project means you don't have to "reinvent the wheel".
+
+- Make sure the start project aligns with the goal of the POC and can possible handle Phase 1.
+- Currate a list of starter projects for your project/companies use cases (Front End, Server, API, 3rd Party inegrations)
+
+
+## Code Templates & Rules
+
+When you are working on a system there are patterns of implementation that you want to follow. When AI does abitrary tasks it can be influenced by model training data. The best way to avoid this is having strict guidelines for code writing.
+
+- Code Templating / Scaffolding for examples
+- Patterns well defined with decisions / tradeoffs / performance implications documented in the templates
+- Better coding structure wins, optimize for readbility for humans and then context providing for AI
+
+
+## Intent
+
+When building out software the main goal is to allow a user to interface with the world through a digital medium not to stary, scroll and click in a worflow. In order for AI to build good UI it has to be very aware of the intent, rules and restrictions a user workflow is tethered to.
+
+- Describe the feature set or idea with intent
+- Describe actions the user should be able to take if they aren't ovious then you probably need them
+- Helpful to rely on Gherkin script when business decisions need to be thought about
+- AI needs a single graph of all possible intent in order to get UI right no matter what the shift in UX over the next 10 years
+
+## Scoping
+
+Scoping and context are almost synnomous in a AI since so i want to define this well. Scoping defined here is to document the fullness of the work for a team to complete. In the scope is the DOD that defines what being done with the Project/Epic/Feature "Scope" would be.
+
+- Good scopes have a defined problem
+- The problem has been validated (%5 of our customers say they would pay more money for this feature)
+- Good scoping results in a plan that can be executed by most teams.
+- The scope is defined well enough for every stakeholder to feel confident in the execution
+
+# Deadlines
+
+Deadlines in the past have come with a lot of caveats, scope creep and dissatisfaction. To the point where deadlines are now just what do we have done on this date.
+
+- Only define strict dates that you need to hit
+- When scoping with AI estimations will be off for years because we dont' know the turn estimation when humans dont do the work. 
+- Don't rely on AI for estimating time to completion
+
+# Releasing
+
+What does releasing look like when AI is coding all night and feels 100% confident on a sunday morning?
+
+- Think in features shipped not sprints and cycles
+- Release features daily, this might mean you have tiers of release but get into the habbit of failing so fast that you have a system that always recovers.
+- Breaking systems is inevidttable, how do we recover / revert / patch / move foward quickly without a RCA?
+
+# Metrics
+
+When the feature is built and released. How do we validate so we know how the feature is affecting customers. Metrics should be thought about and discussed any dev work but the implementation of them can vary depending on the POC
+
+- Track user behavior (Bigger than POC)
+- Track system metrics (Bigger than POC)
+- Track errors (Bigger than POC)
+
+# Validation
+
+Planning doesn't end after you release, you need to be able to track the progress of users and see if the decisions, assumptions and UX is meeting the mark and hopefully exceeding it.
+
+- Are the metrics giving us accurate data
+- Do the metrics align with our expectations
+- What can we learn
+
+# Feedback
+
+Getting feedback from stakeholds, team members, QA, and customers is a requirement. Without this step you are flying blind and spending money on something that will be hard to itterate on. Feedback needs to be a first class citizen in all software projects
+
+

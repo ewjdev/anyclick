@@ -5,6 +5,8 @@ import {
   isMenuVisible,
   showMenu,
 } from "./contextMenu";
+import { mountOverlay, unmountOverlay } from "./overlay";
+import { mountPointer } from "./pointer/mount";
 import {
   type ActionMetadata,
   type AncestorInfo,
@@ -47,12 +49,16 @@ let mouseMoveTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Whether the custom context menu is enabled */
 let customMenuEnabled = DEFAULTS.CUSTOM_MENU_OVERRIDE;
+/** Whether the custom pointer should be active */
+let pointerEnabled: boolean = DEFAULTS.ENABLED;
 
 // ========== Event Listeners ==========
 
 /**
  * Track mouse position for element targeting (debounced)
  */
+console.log("[Anyclick Content] Adding mousemove listener");
+console.count("[Anyclick Content] mousemove listener added");
 document.addEventListener(
   "mousemove",
   (e) => {
@@ -78,6 +84,34 @@ document.addEventListener(
     rightClickedElement = e.target as Element; // Preserve for menu actions
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
+
+    // Check if clicking on the overlay icon (shadow host)
+    const targetEl = e.target as Element;
+    if (
+      targetEl.id === "anyclick-react-shadow-host" ||
+      targetEl.closest?.("#anyclick-react-shadow-host")
+    ) {
+      // Prevent native and custom context menu on overlay icon
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Toggle Anyclick off if it's currently on
+      if (customMenuEnabled) {
+        chrome.storage.local.set(
+          {
+            [STORAGE_KEYS.ENABLED]: false,
+            [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE]: false,
+          },
+          () => {
+            console.log(
+              "[Anyclick Content] Extension disabled via overlay right-click",
+            );
+            showToast("Anyclick disabled", "info");
+          },
+        );
+      }
+      return;
+    }
 
     // Skip if extension context is invalidated (extension was reloaded)
     if (!isExtensionContextValid()) {
@@ -551,7 +585,12 @@ function handleInspectElement(): void {
  */
 chrome.runtime.onMessage.addListener(
   (
-    message: { type: string; timestamp?: string; payload?: unknown },
+    message: {
+      type: string;
+      timestamp?: string;
+      payload?: unknown;
+      enabled?: boolean;
+    },
     _sender: chrome.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
   ) => {
@@ -615,6 +654,26 @@ chrome.runtime.onMessage.addListener(
           });
         });
       return true; // Async response
+    } else if (message.type === "PING") {
+      // Simple liveness check so popup can show refresh CTA if needed.
+      sendResponse({ ok: true });
+      return true;
+    } else if (message.type === "SET_ENABLED_STATE") {
+      // Update enabled state immediately on the current tab (no refresh)
+      chrome.storage.local.get(
+        [STORAGE_KEYS.CUSTOM_MENU_OVERRIDE],
+        (result) => {
+          const menuOverride =
+            result[STORAGE_KEYS.CUSTOM_MENU_OVERRIDE] ??
+            DEFAULTS.CUSTOM_MENU_OVERRIDE;
+          customMenuEnabled = Boolean(message.enabled) && menuOverride;
+          pointerEnabled = Boolean(message.enabled);
+          syncOverlayMount();
+          syncPointerMount();
+          sendResponse({ enabled: customMenuEnabled });
+        },
+      );
+      return true;
     }
     return false;
   },
@@ -947,7 +1006,10 @@ async function handleCapture(): Promise<void> {
     }
 
     if (!settings.endpoint) {
-      showToast("Configure endpoint in extension popup", "warning");
+      showToast(
+        "No action taken. Configure endpoint in extension popup",
+        "warning",
+      );
       return;
     }
 
@@ -1011,7 +1073,10 @@ async function handleFeedbackCapture(
     }
 
     if (!settings.endpoint) {
-      showToast("Configure endpoint in extension popup", "warning");
+      showToast(
+        "No action taken. Configure endpoint in extension popup",
+        "warning",
+      );
       return;
     }
 
@@ -1345,6 +1410,7 @@ async function requestScreenshot(): Promise<ScreenshotResponseMessage> {
       type: "SCREENSHOT_RESPONSE",
       success: false,
       error: message,
+      timestamp: new Date().toISOString(),
     };
   }
 }
@@ -1641,8 +1707,9 @@ function showToast(
   toastElement.style.cssText = `
     position: fixed !important;
     bottom: 20px !important;
-    right: 20px !important;
+    right: 100px !important; // space for overlay icon
     background: ${bg} !important;
+    backdrop-filter: blur(10px) !important;
     border: 1px solid ${border} !important;
     color: white !important;
     padding: 10px 16px !important;
@@ -1679,7 +1746,7 @@ function showToast(
         toastElement = null;
       }, 200);
     }
-  }, 2500);
+  }, 4000);
 }
 
 // ========== Initialization ==========
@@ -1698,6 +1765,9 @@ function loadCustomMenuSetting(): void {
         DEFAULTS.CUSTOM_MENU_OVERRIDE;
       // Both must be true for context menu override to work
       customMenuEnabled = extensionEnabled && menuOverride;
+      pointerEnabled = extensionEnabled;
+      syncOverlayMount();
+      syncPointerMount();
     },
   );
 }
@@ -1724,6 +1794,9 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
           DEFAULTS.CUSTOM_MENU_OVERRIDE;
         // Both must be true for context menu override to work
         customMenuEnabled = extensionEnabled && menuOverride;
+        pointerEnabled = extensionEnabled;
+        syncOverlayMount();
+        syncPointerMount();
       },
     );
   }
@@ -1731,3 +1804,52 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 // Initialize custom menu setting on load
 loadCustomMenuSetting();
+
+/**
+ * Ensure the React overlay matches current enabled state.
+ * Overlay should always be mounted to show status (ready/inactive/error).
+ * The overlay component itself will handle showing the correct state based on enabled status.
+ */
+function syncOverlayMount(): void {
+  // Always mount overlay so it can show status
+  // The overlay component will check storage and show green (ready), grey (inactive), or red (error)
+  mountOverlay();
+}
+
+/**
+ * Ensure the custom pointer matches the enabled state.
+ */
+function syncPointerMount(): void {
+  console.log("[Anyclick][content] syncPointerMount", { pointerEnabled });
+  mountPointer(pointerEnabled);
+}
+
+/**
+ * Listen for overlay click events (when user clicks overlay icon)
+ */
+document.addEventListener("anyclick-overlay-click", ((e: CustomEvent) => {
+  const action = e.detail?.action;
+  const message = e.detail?.message;
+
+  switch (action) {
+    case "enabled":
+      showToast(
+        "Anyclick enabled! Right-click any element to get started.",
+        "success",
+      );
+      break;
+    case "disabled":
+      showToast("Anyclick disabled", "info");
+      break;
+    case "popup-fallback":
+      showToast(
+        message || "Click the Anyclick extension icon in your toolbar",
+        "info",
+      );
+      break;
+    default:
+      if (message) {
+        showToast(message, "info");
+      }
+  }
+}) as EventListener);

@@ -42,7 +42,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup && node scripts/copy-static.mjs",
+    "build": "tsup && yarn build:css && node scripts/copy-static.mjs",
+    "build:css": "npx @tailwindcss/cli -i src/styles/tailwind.css -o dist/popup.css --minify",
+    "dev:vite": "vite",
+    "build:vite": "vite build",
     "build:types": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
     "clean": "rimraf dist",
     "dev": "tsup --watch"
@@ -50,13 +53,25 @@
   "dependencies": {
     "@ewjdev/anyclick-core": "^1.4.0",
     "@ewjdev/anyclick-t3chat": "^3.0.0",
-    "@ewjdev/anyclick-uploadthing": "^3.0.0"
+    "@ewjdev/anyclick-uploadthing": "^3.0.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "tailwindcss": "4.1.17",
+    "@tailwindcss/cli": "4.1.17",
+    "@tailwindcss/vite": "4.1.17"
   },
   "devDependencies": {
+    "@types/node": "^20.17.32",
     "@types/chrome": "^0.0.287",
+    "@types/react": "^19.2.1",
+    "@types/react-dom": "^19.2.1",
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "@vitejs/plugin-react": "^4.3.0",
+    "vite": "^5.2.0",
+    "postcss": "^8.4.38",
+    "autoprefixer": "^10.4.19"
   },
   "engines": {
     "node": ">=18.18.0"

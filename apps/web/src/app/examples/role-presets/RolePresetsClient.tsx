@@ -1,25 +1,24 @@
 "use client";
 
 /* eslint-disable no-console */
-
-import Link from "next/link";
 import { CodeBlock } from "@/components/CodePreview";
 import {
-  Sparkles,
-  ShieldCheck,
-  Bug,
-  Lightbulb,
-  Paintbrush,
-  Laptop2,
-  MousePointer2,
-} from "lucide-react";
-import {
-  AnyclickProvider,
-  createPresetMenu,
   type AnyclickAdapter,
   type AnyclickPayload,
+  AnyclickProvider,
   type PresetRole,
+  createPresetMenu,
 } from "@ewjdev/anyclick-react";
+import {
+  Bug,
+  Laptop2,
+  Lightbulb,
+  MousePointer2,
+  Paintbrush,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+import Link from "next/link";
 
 const presetSnippet = `'use client';
 
@@ -138,7 +137,7 @@ export default function RolePresetsClient() {
           <span>/</span>
           <span className="text-white">Role-based Presets</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Role-based presets
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -149,7 +148,7 @@ export default function RolePresetsClient() {
       </div>
 
       <div className="mb-10 p-6 rounded-2xl bg-white/[0.02] border border-white/5 flex gap-4 items-start">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
           <ShieldCheck className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -222,7 +221,7 @@ export default function RolePresetsClient() {
         })}
       </div>
 
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 border border-violet-500/20">
+      <div className="p-6 rounded-2xl bg-linear-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 border border-violet-500/20">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />

@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import {
   ArrowRight,
-  MousePointerClick,
   Camera,
   GitBranch,
+  MousePointerClick,
   Terminal,
   Zap,
 } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Documentation",
@@ -20,7 +20,7 @@ export default function DocsPage() {
     <article className="prose prose-invert max-w-none">
       {/* Header */}
       <div className="not-prose mb-12">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Documentation
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -244,7 +244,7 @@ export default function DocsPage() {
 
       {/* Next steps */}
       <section className="not-prose">
-        <div className="p-6 rounded-xl bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+        <div className="p-6 rounded-xl bg-linear-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
           <h3 className="font-semibold mb-2">Ready to get started?</h3>
           <p className="text-gray-400 text-sm mb-4">
             Follow our step-by-step guide to integrate anyclick into your

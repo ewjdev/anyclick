@@ -29,10 +29,10 @@ export default function UploadThingIntegrationPage() {
           <span className="text-white">UploadThing Integration</span>
         </div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/20 border border-red-500/30">
+          <div className="p-2 rounded-lg bg-linear-to-br from-red-500/20 to-orange-500/20 border border-red-500/30">
             <Upload className="w-6 h-6 text-red-400" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             UploadThing Integration
           </h1>
         </div>
@@ -53,7 +53,7 @@ export default function UploadThingIntegrationPage() {
 
       {/* Demo Area */}
       <UploadThingProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
+        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MousePointerClick className="w-5 h-5 text-red-400" />
             Try It
@@ -63,10 +63,10 @@ export default function UploadThingIntegrationPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-video rounded-lg bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
+            <div className="aspect-video rounded-lg bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
               <span className="text-white/80 text-sm">Sample Gradient 1</span>
             </div>
-            <div className="aspect-video rounded-lg bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center">
+            <div className="aspect-video rounded-lg bg-linear-to-br from-amber-500 to-red-500 flex items-center justify-center">
               <span className="text-white/80 text-sm">Sample Gradient 2</span>
             </div>
             <div className="aspect-video rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
@@ -309,7 +309,7 @@ UPLOADTHING_TOKEN=your-token-here`}
       </div>
 
       {/* Next Steps */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
+      <div className="p-6 rounded-2xl bg-linear-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
         <h2 className="text-xl font-bold mb-3">Next Steps</h2>
         <p className="text-gray-400 mb-4">
           Explore more integrations and features:

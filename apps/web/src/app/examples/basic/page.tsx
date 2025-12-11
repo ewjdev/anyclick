@@ -1,7 +1,7 @@
+import { CodeBlock } from "@/components/CodePreview";
+import { ArrowRight, Check, MousePointerClick } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, MousePointerClick } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Basic Setup Example",
@@ -20,7 +20,7 @@ export default function BasicExamplePage() {
           <span>/</span>
           <span className="text-white">Basic Setup</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Basic Setup
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -30,7 +30,7 @@ export default function BasicExamplePage() {
       </div>
 
       {/* Demo Area */}
-      <div className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <MousePointerClick className="w-5 h-5 text-violet-400" />
           Try It
@@ -178,7 +178,7 @@ export async function POST(request: Request) {
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+      <div className="p-6 rounded-xl bg-linear-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
         <h3 className="font-semibold mb-2">Ready for more?</h3>
         <p className="text-gray-400 text-sm mb-4">
           Check out the custom menu example to learn how to customize the

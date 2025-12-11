@@ -927,7 +927,7 @@ export default function RoadmapPage() {
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       {/* Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0d1117] via-[#0a0a0f] to-[#1a0a2e]" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#0d1117] via-[#0a0a0f] to-[#1a0a2e]" />
         <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-violet-500/5 rounded-full blur-[150px] animate-pulse-slow" />
         <div
           className="absolute bottom-1/4 right-0 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse-slow"
@@ -944,7 +944,7 @@ export default function RoadmapPage() {
               <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-medium">
                 anyclick
               </p>
-              <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <h1 className="text-lg sm:text-xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 Release Timeline
               </h1>
             </div>
@@ -997,7 +997,7 @@ export default function RoadmapPage() {
               {/* Ruler */}
               <div className="relative h-24">
                 {/* Main ruler line */}
-                <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-gray-700 via-cyan-500/50 to-violet-500/50 transform -translate-y-1/2" />
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-linear-to-r from-gray-700 via-cyan-500/50 to-violet-500/50 transform -translate-y-1/2" />
 
                 {/* Ruler ticks background */}
                 <div className="absolute top-1/2 left-0 right-0 flex justify-between transform -translate-y-1/2 px-2">
@@ -1113,7 +1113,7 @@ export default function RoadmapPage() {
 
             <div className="relative pl-10">
               {/* Vertical ruler line with gradient */}
-              <div className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-gray-600 via-cyan-500/40 to-violet-500/40" />
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 rounded-full bg-linear-to-b from-gray-600 via-cyan-500/40 to-violet-500/40" />
 
               {/* Releases by era */}
               {(["past", "today", "near-future", "next-major"] as Era[]).map(

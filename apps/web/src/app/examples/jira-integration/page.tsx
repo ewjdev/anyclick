@@ -1,7 +1,9 @@
 "use client";
 
+import { CodeBlock } from "@/components/CodePreview";
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import {
   AlertCircle,
   ArrowRight,
@@ -17,9 +19,7 @@ import {
   Ticket,
   XCircle,
 } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
-import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import Link from "next/link";
 import { JiraFeedbackMenu } from "./JiraFeedbackMenu";
 
 // Create HTTP adapter for Jira submissions
@@ -49,13 +49,11 @@ export default function JiraIntegrationPage() {
     null,
   );
 
-  const [lastSubmission, setLastSubmission] = useState<
-    {
-      success: boolean;
-      results?: Array<{ adapter: string; success: boolean; url?: string }>;
-      error?: string;
-    } | null
-  >(null);
+  const [lastSubmission, setLastSubmission] = useState<{
+    success: boolean;
+    results?: Array<{ adapter: string; success: boolean; url?: string }>;
+    error?: string;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [configStatus, setConfigStatus] = useState<ConfigStatus | null>(null);
   const [configLoading, setConfigLoading] = useState(true);
@@ -85,7 +83,8 @@ export default function JiraIntegrationPage() {
               hint: "",
             },
           },
-          ready: jiraStatus.configured ||
+          ready:
+            jiraStatus.configured ||
             feedbackStatus.adapters?.github?.configured,
         });
       } catch (error) {
@@ -243,9 +242,8 @@ export default function JiraIntegrationPage() {
         throw new Error(JSON.stringify(errorData));
       }
     } catch (error) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Failed to submit";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit";
       setLastSubmission({
         success: false,
         error: errorMessage,
@@ -268,7 +266,7 @@ export default function JiraIntegrationPage() {
           <span>/</span>
           <span className="text-white">Jira Integration</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Jira Integration with Custom Forms
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -279,34 +277,38 @@ export default function JiraIntegrationPage() {
       </div>
 
       {/* Configuration Status */}
-      {!configLoading && configStatus &&
+      {!configLoading &&
+        configStatus &&
         !configStatus.adapters.jira.configured && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-          <div className="flex items-start gap-3">
-            <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold mb-2 text-red-300">
-                Jira Not Configured
-              </h3>
-              <p className="text-sm text-gray-400 mb-3">
-                The following environment variables are missing from your{" "}
-                <code className="text-cyan-400">.env.local</code> file:
-              </p>
-              <ul className="space-y-1 mb-3">
-                {configStatus.adapters.jira.missing.map((varName) => (
-                  <li key={varName} className="text-sm font-mono text-red-300">
-                    • {varName}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-sm text-gray-400">
-                Add these variables and restart the dev server to test the Jira
-                integration.
-              </p>
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold mb-2 text-red-300">
+                  Jira Not Configured
+                </h3>
+                <p className="text-sm text-gray-400 mb-3">
+                  The following environment variables are missing from your{" "}
+                  <code className="text-cyan-400">.env.local</code> file:
+                </p>
+                <ul className="space-y-1 mb-3">
+                  {configStatus.adapters.jira.missing.map((varName) => (
+                    <li
+                      key={varName}
+                      className="text-sm font-mono text-red-300"
+                    >
+                      • {varName}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-sm text-gray-400">
+                  Add these variables and restart the dev server to test the
+                  Jira integration.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {!configLoading && configStatus?.adapters.jira.configured && (
         <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
@@ -336,13 +338,11 @@ export default function JiraIntegrationPage() {
           }`}
         >
           <div className="flex items-start gap-3">
-            {lastSubmission.success
-              ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-              )
-              : (
-                <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              )}
+            {lastSubmission.success ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+            ) : (
+              <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            )}
             <div className="flex-1">
               <h3 className="font-semibold mb-2">
                 {lastSubmission.success
@@ -357,23 +357,21 @@ export default function JiraIntegrationPage() {
                       className="flex items-center gap-2 text-sm text-gray-300"
                     >
                       <span className="font-medium">{result.adapter}:</span>
-                      {result.url
-                        ? (
-                          <a
-                            href={result.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:underline flex items-center gap-1"
-                          >
-                            View Issue
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )
-                        : (
-                          <span className="text-emerald-400">
-                            Created successfully
-                          </span>
-                        )}
+                      {result.url ? (
+                        <a
+                          href={result.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:underline flex items-center gap-1"
+                        >
+                          View Issue
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-emerald-400">
+                          Created successfully
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -405,7 +403,7 @@ export default function JiraIntegrationPage() {
           } as React.CSSProperties,
         }}
       >
-        <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
+        <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
           <div className="flex items-center gap-2 mb-4">
             <MousePointer2 className="w-5 h-5 text-blue-400" />
             <h2 className="text-lg font-semibold">
@@ -451,7 +449,7 @@ export default function JiraIntegrationPage() {
 
             {/* Demo Card */}
             <div
-              className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all"
+              className="p-4 rounded-xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 hover:border-emerald-500/40 transition-all"
               data-testid="demo-card"
             >
               <h3 className="font-semibold mb-2">Interactive Card</h3>
@@ -499,7 +497,7 @@ export default function JiraIntegrationPage() {
       )}
 
       {/* Features Section */}
-      <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Ticket className="w-5 h-5 text-blue-400" />
           What&apos;s Included in This Example
@@ -635,10 +633,8 @@ const fields = [
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20">
-        <h3 className="font-semibold mb-2">
-          Next: Explore More Examples
-        </h3>
+      <div className="p-6 rounded-xl bg-linear-to-r from-blue-500/10 to-emerald-500/10 border border-blue-500/20">
+        <h3 className="font-semibold mb-2">Next: Explore More Examples</h3>
         <p className="text-gray-400 text-sm mb-4">
           Check out other integration examples and customization options.
         </p>

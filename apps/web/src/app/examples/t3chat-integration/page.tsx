@@ -28,10 +28,10 @@ export default function T3ChatIntegrationPage() {
           <span className="text-white">t3.chat Integration</span>
         </div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30">
+          <div className="p-2 rounded-lg bg-linear-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30">
             <MessageSquare className="w-6 h-6 text-violet-400" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             t3.chat Integration
           </h1>
         </div>
@@ -51,7 +51,7 @@ export default function T3ChatIntegrationPage() {
 
       {/* Demo Area */}
       <T3ChatProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
+        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MousePointerClick className="w-5 h-5 text-violet-400" />
             Try It
@@ -272,7 +272,7 @@ adapter.sendSelectedText();`}
       </div>
 
       {/* Next Steps */}
-      <div className="p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
+      <div className="p-6 rounded-2xl bg-linear-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
         <h2 className="text-xl font-bold mb-3">Next Steps</h2>
         <p className="text-gray-400 mb-4">
           Explore more integrations and features:
