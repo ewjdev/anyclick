@@ -7,7 +7,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type Message, useChat } from "@ai-sdk/react";
+import { UIMessage, useChat } from "@ai-sdk/react";
 import { getElementInspectInfo } from "@ewjdev/anyclick-core";
 import {
   generateMessageId,
@@ -138,12 +138,12 @@ function buildContextString(chunks: ContextChunk[]): string {
 /**
  * Convert ai-sdk Message to our ChatMessage format.
  */
-function aiMessageToChatMessage(msg: Message): ChatMessage {
+function aiMessageToChatMessage(msg: UIMessage): ChatMessage {
   return {
     id: msg.id,
     role: msg.role as "user" | "assistant" | "system",
-    content: msg.content,
-    timestamp: msg.createdAt?.getTime() ?? Date.now(),
+    content: msg.parts
+    timestamp: msg.message?.createdAt?.getTime() ?? Date.now(),
   };
 }
 
@@ -235,6 +235,7 @@ export function useQuickChat(
 
   const {
     messages: aiMessages,
+    append,
     isLoading: aiIsSending,
     stop,
     setMessages: setAiMessages,
@@ -284,6 +285,8 @@ export function useQuickChat(
       }
       // Schedule backend sync
       scheduleBackendSync();
+      setStoreIsStreaming(false);
+      setStoreIsSending(false);
     },
     onError: (err) => {
       console.error("[useQuickChat] onError callback fired", {
@@ -292,6 +295,26 @@ export function useQuickChat(
         errorStack: err.stack,
       });
       setError(err.message);
+      setDebugInfo({
+        status:
+          (err as unknown as { status?: number }).status ??
+          (err as unknown as { response?: { status?: number } }).response
+            ?.status ??
+          -1,
+        ok: false,
+        contentType:
+          (
+            err as unknown as { response?: { headers?: Headers } }
+          ).response?.headers?.get?.("content-type") ?? null,
+        rawTextPreview:
+          (err as unknown as { responseText?: string }).responseText ??
+          (err as unknown as { message?: string }).message ??
+          "",
+        timestamp: Date.now(),
+        error: err.message,
+      });
+      setStoreIsStreaming(false);
+      setStoreIsSending(false);
     },
   });
 
@@ -554,7 +577,7 @@ export function useQuickChat(
     [setInput],
   );
 
-  // Send a message using simple fetch (non-streaming for debugging)
+  // Send a message using streaming (ai-sdk useChat)
   const sendMessage = useCallback(
     async (messageText?: string) => {
       const text = (messageText || input).trim();
@@ -573,136 +596,26 @@ export function useQuickChat(
       setError(null);
       setManualSending(true);
       setStoreIsSending(true);
-      setStoreIsStreaming(false);
+      setStoreIsStreaming(true);
       setDebugInfo(null);
 
-      console.log("[useQuickChat] Adding user message to aiMessages");
-      // Add user message to display
-      const userMsg: Message = {
-        id: generateMessageId(),
-        role: "user",
-        content: text,
-        createdAt: new Date(),
-      };
-      setAiMessages((prev) => [...prev, userMsg]);
-
-      // Add user message to store for persistence
-      addMessage({
-        role: "user",
-        content: text,
-      });
-
-      console.log(
-        "[useQuickChat] Fetching response from",
-        mergedConfig.endpoint,
-      );
-
-      const payload = {
-        messages: [...aiMessages, userMsg].map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        context: contextString,
-        model: mergedConfig.model,
-        systemPrompt: mergedConfig.systemPrompt,
-        maxLength: mergedConfig.maxResponseLength,
-      };
-
       try {
-        // Use simple fetch instead of useChat
-        const response = await fetch(mergedConfig.endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        // Persist user message immediately (ai-sdk handles UI state)
+        addMessage({
+          role: "user",
+          content: text,
         });
 
-        console.log("[useQuickChat] Response status:", response.status);
-
-        const rawText = await response.text();
-        let data: unknown = null;
-        try {
-          data = rawText ? JSON.parse(rawText) : null;
-        } catch (parseErr) {
-          console.warn("[useQuickChat] Failed to parse JSON response", {
-            parseErr,
-            rawTextSnippet: rawText.substring(0, 200),
-          });
-        }
-
-        const parsed =
-          data && typeof data === "object"
-            ? (data as Record<string, unknown>)
-            : null;
-        const content =
-          typeof parsed?.content === "string"
-            ? parsed.content
-            : typeof parsed?.text === "string"
-              ? parsed.text
-              : null;
-
-        setDebugInfo({
-          status: response.status,
-          ok: response.ok,
-          contentType: response.headers.get("content-type"),
-          rawTextPreview: rawText.substring(0, 500),
-          parsedKeys: parsed ? Object.keys(parsed) : undefined,
-          contentPreview: content?.substring(0, 120) || undefined,
-          payloadPreview: JSON.stringify(payload).substring(0, 400),
-          timestamp: Date.now(),
-          error: !response.ok
-            ? `Request failed: ${response.status}`
-            : content
-              ? undefined
-              : "No content field in response",
+        await append({
+          content: text,
+          role: "user",
         });
-
-        if (!response.ok) {
-          console.error("[useQuickChat] Response error (non-OK)", rawText);
-          throw new Error(`Request failed: ${response.status}`);
-        }
-
-        if (content) {
-          // Add assistant message
-          const assistantMsg: Message = {
-            id: generateMessageId(),
-            role: "assistant",
-            content,
-            createdAt: new Date(),
-          };
-          setAiMessages((prev) => [...prev, assistantMsg]);
-
-          // Add to store for persistence
-          addMessage({
-            role: "assistant",
-            content,
-          });
-          scheduleBackendSync();
-
-          console.log(
-            "[useQuickChat] Assistant message added:",
-            content.substring(0, 100),
-          );
-        } else {
-          console.warn("[useQuickChat] No content in response:", data);
-          setError("No content returned from chat endpoint");
-        }
       } catch (err) {
         console.error("[useQuickChat] sendMessage failed", {
           error: err,
           errorMessage: err instanceof Error ? err.message : String(err),
         });
         setError(err instanceof Error ? err.message : String(err));
-        setDebugInfo((prev) => ({
-          status: prev?.status ?? -1,
-          ok: false,
-          contentType: prev?.contentType ?? "unknown",
-          rawTextPreview: prev?.rawTextPreview ?? "",
-          parsedKeys: prev?.parsedKeys,
-          contentPreview: prev?.contentPreview,
-          payloadPreview: prev?.payloadPreview,
-          timestamp: Date.now(),
-          error: err instanceof Error ? err.message : String(err),
-        }));
       } finally {
         setManualSending(false);
         setStoreIsSending(false);
@@ -714,14 +627,10 @@ export function useQuickChat(
       setInput,
       setError,
       addMessage,
-      aiMessages,
-      setAiMessages,
-      contextString,
-      mergedConfig,
+      append,
       setStoreIsSending,
       setStoreIsStreaming,
       setDebugInfo,
-      scheduleBackendSync,
     ],
   );
 

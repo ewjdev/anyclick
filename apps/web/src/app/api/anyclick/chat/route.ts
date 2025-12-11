@@ -142,70 +142,38 @@ Important: Keep your response under ${maxChars} characters.`;
 
   const chatStartTime = Date.now();
   try {
-    // Get just the last user message for a simple prompt
+    // Stream just the last user message for a simple prompt
     const modelName = model || DEFAULT_MODEL;
-    const maxToks = maxTokens;
 
-    logger.info("[BACKEND] About to call generateText (non-streaming)", {
+    logger.info("[BACKEND] About to call streamText (streaming)", {
       requestId,
       modelName,
-      maxTokens: maxToks,
+      maxTokens,
       systemPromptLength: effectiveSystemPrompt.length,
       lastUserMessage: lastUserMessage.content.substring(0, 200),
     });
 
-    // Use generateText instead of streamText for simpler debugging
-    const result = await generateText({
+    const result = streamText({
       model: openai(modelName),
       system: effectiveSystemPrompt,
       prompt: lastUserMessage.content,
-      maxTokens: maxToks,
+      maxTokens,
     });
 
-    logger.info("[BACKEND] generateText completed", {
+    logger.info("[BACKEND] streamText started", {
       requestId,
-      textLength: result.text.length,
-      textPreview: result.text.substring(0, 500),
-      fullText: result.text,
-      finishReason: result.finishReason,
-      usage: result.usage,
+      modelName,
+      maxTokens,
     });
 
-    // Guard: if the model returned no text (common when hitting length limits or safety filters),
-    // return a helpful fallback so the UI shows something instead of nothing.
-    if (!result.text || result.text.trim().length === 0) {
-      const hitLengthLimit = result.finishReason === "length";
-      const fallbackContent = hitLengthLimit
-        ? `The response hit the token limit (maxTokens=${maxToks}). Please increase maxTokens/maxResponseLength and try again.`
-        : "I wasn't able to generate a response. Please try again or rephrase your question.";
+    logger.performance("streamText init time", chatStartTime, { requestId });
 
-      logger.warn("[BACKEND] AI returned empty text, sending fallback", {
-        requestId,
-        finishReason: result.finishReason,
-        usage: result.usage,
-        hitLengthLimit,
-        maxTokens: maxToks,
-      });
-
-      return Response.json({
-        content: fallbackContent,
-        finishReason: result.finishReason ?? "empty_text",
-        usage: result.usage,
-      });
-    }
-
-    logger.performance("generateText time", chatStartTime, { requestId });
-
-    // Return as plain JSON - the frontend will need to handle this
-    return Response.json({
-      content: result.text,
-      finishReason: result.finishReason,
-      usage: result.usage,
-    });
+    // Return streaming response in ai-sdk data stream format (useChat expects this)
+    return result.toDataStreamResponse();
   } catch (aiError) {
-    logger.error("[BACKEND] AI generateText failed", aiError, {
+    logger.error("[BACKEND] AI stream failed (ai-sdk path)", aiError, {
       requestId,
-      model: model || "gpt-5-nano",
+      model: model || DEFAULT_MODEL,
       errorMessage:
         aiError instanceof Error ? aiError.message : String(aiError),
       errorStack: aiError instanceof Error ? aiError.stack : undefined,
