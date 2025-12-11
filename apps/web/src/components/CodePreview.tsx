@@ -522,7 +522,7 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
         >
           {/* Glow effect for hero variant */}
           {variant === "hero" && (
-            <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 via-cyan-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-50 -z-10" />
+            <div className="absolute -inset-4 bg-linear-to-r from-violet-500/20 via-cyan-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-50 -z-10" />
           )}
 
           <div className="relative bg-[#0d1117] border border-white/10 md:rounded-xl rounded-none overflow-hidden">

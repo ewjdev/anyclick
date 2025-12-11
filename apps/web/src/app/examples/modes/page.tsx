@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
-import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { createGameModeAdapter } from "@ewjdev/anyclick-adapters";
-import { usePointer } from "@ewjdev/anyclick-pointer";
 import { CodeBlock } from "@/components/CodePreview";
-import { ArrowRight, Car, Keyboard, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createGameModeAdapter } from "@ewjdev/anyclick-adapters";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { usePointer } from "@ewjdev/anyclick-pointer";
+import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
+import { ArrowRight, Car, Keyboard, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 const demoAdapter = createHttpAdapter({
   endpoint: "/api/feedback",
@@ -120,7 +120,7 @@ export default function PointerModesPage() {
           <span className="text-white">Pointer Modes</span>
         </div>
         <div className="flex items-center gap-3">
-          <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-3 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             Pointer Modes (Normal ↔ Fun)
           </h1>
           <span className="text-xs uppercase tracking-[0.15em] px-2 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/40">
@@ -156,7 +156,7 @@ export default function PointerModesPage() {
           <div
             ref={trackRef}
             onContextMenuCapture={handleTrackContextMenuCapture}
-            className="relative p-6 rounded-2xl border border-pink-500/30 bg-gradient-to-br from-pink-500/10 to-purple-500/10 shadow-lg overflow-hidden"
+            className="relative p-6 rounded-2xl border border-pink-500/30 bg-linear-to-br from-pink-500/10 to-purple-500/10 shadow-lg overflow-hidden"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

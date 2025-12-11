@@ -1,7 +1,14 @@
+import { CodeBlock } from "@/components/CodePreview";
+import {
+  ArrowRight,
+  Cloud,
+  GitBranch,
+  Monitor,
+  Terminal,
+  Ticket,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, GitBranch, Terminal, Monitor, Cloud, Ticket } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Adapters",
@@ -14,7 +21,7 @@ export default function AdaptersDocsPage() {
     <article className="prose prose-invert max-w-none">
       {/* Header */}
       <div className="not-prose mb-12">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Adapters
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -259,21 +266,40 @@ export async function POST(request: Request) {
   }
 }`}</CodeBlock>
 
-        <h3 className="text-lg font-semibold mb-3 mt-8">Environment Variables</h3>
+        <h3 className="text-lg font-semibold mb-3 mt-8">
+          Environment Variables
+        </h3>
         <CodeBlock filename=".env.local">{`JIRA_URL=https://your-company.atlassian.net
 JIRA_EMAIL=your-email@company.com
 JIRA_API_TOKEN=your-api-token-here
 JIRA_PROJECT_KEY=PROJ`}</CodeBlock>
 
-        <h3 className="text-lg font-semibold mb-3 mt-8">Getting Your Jira API Token</h3>
+        <h3 className="text-lg font-semibold mb-3 mt-8">
+          Getting Your Jira API Token
+        </h3>
         <ol className="space-y-2 mb-4 text-gray-300 text-sm list-decimal list-inside">
-          <li>Go to <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">id.atlassian.com/manage-profile/security/api-tokens</a></li>
+          <li>
+            Go to{" "}
+            <a
+              href="https://id.atlassian.com/manage-profile/security/api-tokens"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline"
+            >
+              id.atlassian.com/manage-profile/security/api-tokens
+            </a>
+          </li>
           <li>Click &quot;Create API token&quot;</li>
           <li>Give it a label (e.g., &quot;Anyclick Feedback&quot;)</li>
-          <li>Copy the token and add it to your <code className="text-cyan-400">.env.local</code> file</li>
+          <li>
+            Copy the token and add it to your{" "}
+            <code className="text-cyan-400">.env.local</code> file
+          </li>
         </ol>
 
-        <h3 className="text-lg font-semibold mb-3 mt-8">Multi-Adapter Setup (GitHub + Jira)</h3>
+        <h3 className="text-lg font-semibold mb-3 mt-8">
+          Multi-Adapter Setup (GitHub + Jira)
+        </h3>
         <p className="text-gray-400 mb-4">
           Submit feedback to both GitHub and Jira simultaneously:
         </p>

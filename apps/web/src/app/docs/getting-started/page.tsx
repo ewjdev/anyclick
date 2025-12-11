@@ -1,7 +1,7 @@
+import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
+import { ArrowRight, Box, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Check, Box } from "lucide-react";
-import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Getting Started",
@@ -14,7 +14,7 @@ export default function GettingStartedPage() {
     <article className="prose prose-invert max-w-none">
       {/* Header */}
       <div className="not-prose mb-12">
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Getting Started
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -196,7 +196,7 @@ export default function RootLayout({
         </p>
         <TerminalBlock code="npm run dev" />
 
-        <div className="p-6 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 mt-6">
+        <div className="p-6 rounded-xl bg-linear-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 mt-6">
           <h4 className="font-semibold mb-2 flex items-center gap-2">
             <Check className="w-5 h-5 text-emerald-400" />
             You&apos;re all set!

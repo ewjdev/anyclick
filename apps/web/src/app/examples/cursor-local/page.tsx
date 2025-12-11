@@ -1,7 +1,7 @@
+import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
+import { ArrowRight, FolderOpen, Monitor, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Monitor, Zap, FolderOpen } from "lucide-react";
-import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
 
 export const metadata: Metadata = {
   title: "Cursor Local Example",
@@ -21,7 +21,7 @@ export default function CursorLocalPage() {
           <span>/</span>
           <span className="text-white">Cursor Local</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           Cursor Local Workflow
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -31,7 +31,7 @@ export default function CursorLocalPage() {
       </div>
 
       {/* How it works */}
-      <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 to-rose-500/10 border border-amber-500/20">
+      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-amber-500/10 to-rose-500/10 border border-amber-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-amber-400" />
           How It Works
@@ -351,7 +351,7 @@ Always:
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-amber-500/10 to-violet-500/10 border border-amber-500/20">
+      <div className="p-6 rounded-xl bg-linear-to-r from-amber-500/10 to-violet-500/10 border border-amber-500/20">
         <h3 className="font-semibold mb-2">Explore More</h3>
         <p className="text-gray-400 text-sm mb-4">
           Check out the documentation for advanced configuration options and

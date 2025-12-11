@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import { CodeBlock } from "@/components/CodePreview";
 import {
   ArrowRight,
-  GitBranch,
   Check,
+  ExternalLink,
+  GitBranch,
   Image,
   Tag,
-  ExternalLink,
 } from "lucide-react";
-import { CodeBlock } from "@/components/CodePreview";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "GitHub Integration Example",
@@ -28,7 +28,7 @@ export default function GitHubIntegrationPage() {
           <span>/</span>
           <span className="text-white">GitHub Integration</span>
         </div>
-        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-bold mb-4 bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
           GitHub Integration
         </h1>
         <p className="text-lg text-gray-400 leading-relaxed">
@@ -38,7 +38,7 @@ export default function GitHubIntegrationPage() {
       </div>
 
       {/* What's included */}
-      <div className="mb-12 p-6 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
+      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <GitBranch className="w-5 h-5 text-emerald-400" />
           What&apos;s Included
@@ -398,7 +398,7 @@ const payload: FeedbackPayload = {
       </div>
 
       {/* Next steps */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/20">
+      <div className="p-6 rounded-xl bg-linear-to-r from-emerald-500/10 to-amber-500/10 border border-emerald-500/20">
         <h3 className="font-semibold mb-2">Next: Local Development Workflow</h3>
         <p className="text-gray-400 text-sm mb-4">
           Learn how to integrate with Cursor for instant AI-powered code fixes

@@ -149,10 +149,10 @@ export default function ExamplesPage() {
       {/* Header */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500/20 to-cyan-500/20">
+          <div className="p-2 rounded-lg bg-linear-to-br from-violet-500/20 to-cyan-500/20">
             <Sparkles className="w-5 h-5 text-violet-400" />
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
             Examples
           </h1>
         </div>
@@ -163,9 +163,9 @@ export default function ExamplesPage() {
       </div>
 
       {/* Try it callout */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 border border-violet-500/20 mb-12">
+      <div className="p-6 rounded-2xl bg-linear-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 border border-violet-500/20 mb-12">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
