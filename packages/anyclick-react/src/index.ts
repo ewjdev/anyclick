@@ -429,6 +429,52 @@ export type {
 } from "./AnyclickLogo";
 
 // ============================================================================
+// Toast Notifications
+// ============================================================================
+
+/**
+ * Show a toast notification.
+ * Matches the `showToast(message, type)` pattern from anyclick-extension.
+ *
+ * @param message - The message to display
+ * @param type - Toast type: 'success' | 'error' | 'warning' | 'info'
+ * @param duration - Optional duration in ms (default: 4000)
+ *
+ * @example
+ * ```ts
+ * import { showToast } from "@ewjdev/anyclick-react";
+ *
+ * showToast("Settings saved!", "success");
+ * showToast("Upload failed", "error");
+ * showToast("Feature coming soon", "warning");
+ * showToast("Processing...", "info");
+ * ```
+ *
+ * @since 1.6.0
+ */
+export { showToast, dismissToast, clearToasts } from "./Toast";
+
+/**
+ * Toast container component.
+ * Automatically included by AnyclickProvider, but can be used standalone.
+ */
+export { ToastContainer } from "./Toast";
+
+/**
+ * Toast store hook for advanced use cases.
+ */
+export { useToastStore } from "./Toast";
+
+export type {
+  /** Toast notification type */
+  ToastType,
+  /** Toast configuration for AnyclickProvider */
+  ToastConfig,
+  /** Internal toast data structure */
+  ToastData,
+} from "./Toast";
+
+// ============================================================================
 // QuickChat
 // ============================================================================
 
