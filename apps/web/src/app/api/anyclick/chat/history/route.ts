@@ -48,7 +48,8 @@ const chatStore = new Map<string, StoredSession>();
  */
 function pruneExpiredSessions(): void {
   const now = Date.now();
-  for (const [key, session] of chatStore.entries()) {
+  const entries = Array.from(chatStore.entries());
+  for (const [key, session] of entries) {
     if (session.expiresAt < now) {
       chatStore.delete(key);
       logger.debug("Pruned expired session", { key });

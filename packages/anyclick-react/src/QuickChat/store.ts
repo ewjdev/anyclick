@@ -76,7 +76,12 @@ export interface QuickChatStore {
 /**
  * Custom storage that handles 24h expiry on rehydration.
  */
-const storage = createJSONStorage<QuickChatStore>(() => localStorage);
+type PersistedQuickChatState = Pick<
+  QuickChatStore,
+  "messages" | "isPinned" | "lastSyncedAt"
+>;
+
+const storage = createJSONStorage<PersistedQuickChatState>(() => localStorage);
 
 /**
  * Filter out expired messages.
@@ -90,7 +95,7 @@ function filterExpiredMessages(messages: StoredMessage[]): StoredMessage[] {
  * Create the QuickChat store with persistence.
  */
 export const useQuickChatStore = create<QuickChatStore>()(
-  persist<QuickChatStore>(
+  persist<QuickChatStore, [], [], PersistedQuickChatState>(
     (set, get) => ({
       messages: [],
       isPinned: false,
