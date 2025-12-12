@@ -32,6 +32,7 @@ import {
  * CSS style IDs
  */
 const CURSOR_HIDE_STYLE_ID = "anyclick-pointer-cursor-hide";
+const RIPPLE_KEYFRAMES_STYLE_ID = "anyclick-pointer-ripple-keyframes";
 
 /**
  * Fully merged theme with required values
@@ -98,24 +99,23 @@ function mergeConfig(config?: PointerConfig): Required<PointerConfig> {
  * Simple implementation that uses direct DOM manipulation for position
  * to avoid React re-renders on every mouse move.
  */
-export function CustomPointer({
+function CustomPointerImpl({
   theme,
   config,
   enabled = true,
   onInteractionChange,
 }: CustomPointerProps) {
-  // console.count("CustomPointer RENDER");
+  if (process.env.NODE_ENV === "development") {
+    console.count("CustomPointer RENDER");
+  }
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
   const mergedConfig = useMemo(() => mergeConfig(config), [config]);
 
   // Ref for direct DOM manipulation (no re-renders for position)
   const pointerRef = useRef<HTMLDivElement>(null);
-
-  // Track visibility and interaction state
-  const [isVisible, setIsVisible] = useState(false);
-  const [interactionState, setInteractionState] =
-    useState<PointerInteractionState>("normal");
-  const [showRipple, setShowRipple] = useState(false);
+  const iconRef = useRef<HTMLDivElement>(null);
+  const circleRef = useRef<HTMLDivElement>(null);
+  const rippleRef = useRef<HTMLDivElement>(null);
 
   // Track if pointer should be shown based on device type
   const [shouldRender, setShouldRender] = useState(true);
@@ -123,6 +123,12 @@ export function CustomPointer({
   const rippleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isVisibleRef = useRef(false);
   const interactionStateRef = useRef<PointerInteractionState>("normal");
+  const rightClickActiveRef = useRef(false);
+  const rippleActiveRef = useRef(false);
+  const onInteractionChangeRef = useRef(onInteractionChange);
+
+  const rafIdRef = useRef<number | null>(null);
+  const latestMousePosRef = useRef<{ x: number; y: number } | null>(null);
 
   const { colors, sizes } = mergedTheme;
   const { zIndex, offset } = mergedConfig;
@@ -139,10 +145,68 @@ export function CustomPointer({
     [offset],
   );
 
-  // Sync interaction state changes to parent via useEffect
   useEffect(() => {
-    onInteractionChange?.(interactionState);
-  }, [interactionState, onInteractionChange]);
+    onInteractionChangeRef.current = onInteractionChange;
+  }, [onInteractionChange]);
+
+  const setVisible = useCallback((visible: boolean) => {
+    if (!pointerRef.current) return;
+    pointerRef.current.style.opacity = visible ? "1" : "0";
+  }, []);
+
+  const showRipple = useCallback(() => {
+    const el = rippleRef.current;
+    if (!el) return;
+
+    // display + restart animation (so it can retrigger if it was hidden)
+    el.style.display = "block";
+    el.style.animation = "none";
+    // Force reflow to restart animation reliably
+    void el.offsetHeight;
+    el.style.animation = "anyclick-ripple 0.5s ease-out forwards";
+  }, []);
+
+  const hideRipple = useCallback(() => {
+    const el = rippleRef.current;
+    if (!el) return;
+    el.style.display = "none";
+    el.style.animation = "";
+  }, []);
+
+  const applyVisualState = useCallback(
+    (state: PointerInteractionState) => {
+      const iconEl = iconRef.current;
+      const circleEl = circleRef.current;
+      if (!iconEl || !circleEl) return;
+
+      const isRightClick = state === "rightClick";
+      const isPressing = state === "pressing";
+
+      iconEl.style.transform = `scale(${isRightClick ? 0 : isPressing ? 0.9 : 1}) rotate(${isRightClick ? "-15deg" : "0deg"})`;
+      iconEl.style.opacity = isRightClick ? "0" : "1";
+
+      circleEl.style.transform = `scale(${isRightClick ? 1 : isPressing ? 0.6 : 0})`;
+      circleEl.style.opacity = isRightClick ? "1" : isPressing ? "0.6" : "0";
+
+      // Match previous behavior: ripple only renders while visually in rightClick
+      if (isRightClick && rippleActiveRef.current) {
+        showRipple();
+      } else {
+        hideRipple();
+      }
+    },
+    [hideRipple, showRipple],
+  );
+
+  const setInteractionState = useCallback(
+    (next: PointerInteractionState) => {
+      if (interactionStateRef.current === next) return;
+      interactionStateRef.current = next;
+      onInteractionChangeRef.current?.(next);
+      applyVisualState(next);
+    },
+    [applyVisualState],
+  );
 
   // Detect device type on mount and update shouldRender
   useEffect(() => {
@@ -164,6 +228,38 @@ export function CustomPointer({
     window.addEventListener("resize", checkDevice);
     return () => window.removeEventListener("resize", checkDevice);
   }, []);
+
+  // Inject ripple keyframes once (avoid <style> in render)
+  useEffect(() => {
+    let styleEl = document.getElementById(
+      RIPPLE_KEYFRAMES_STYLE_ID,
+    ) as HTMLStyleElement | null;
+
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = RIPPLE_KEYFRAMES_STYLE_ID;
+      styleEl.textContent = `
+        @keyframes anyclick-ripple {
+          0% {
+            transform: scale(0.8);
+            opacity: 0.6;
+          }
+          100% {
+            transform: scale(1.4);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(styleEl);
+    }
+  }, []);
+
+  // Apply initial visuals once mounted (no React state needed)
+  useEffect(() => {
+    applyVisualState(interactionStateRef.current);
+    // If ripple element exists, ensure it starts hidden
+    hideRipple();
+  }, [applyVisualState, hideRipple]);
 
   // Set up event listeners
   useEffect(() => {
@@ -193,33 +289,35 @@ export function CustomPointer({
         return;
       }
 
-      updatePosition(event.clientX, event.clientY);
+      latestMousePosRef.current = { x: event.clientX, y: event.clientY };
+      if (rafIdRef.current === null) {
+        rafIdRef.current = window.requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          const pos = latestMousePosRef.current;
+          if (!pos) return;
+          updatePosition(pos.x, pos.y);
+        });
+      }
 
-      // Only update state if visibility changed
+      // Only update DOM if visibility changed
       if (!isVisibleRef.current) {
         isVisibleRef.current = true;
-        setIsVisible(true);
+        setVisible(true);
       }
 
       // When in rightClick state, check if cursor is over a menu
       // Show pointer icon over menus, circle elsewhere
-      if (interactionStateRef.current === "rightClick") {
-        const target = event.target as HTMLElement;
-        const isOverMenu = target.closest('[role="menu"]') !== null;
-
-        if (isOverMenu) {
-          // Temporarily show pointer when over menu
-          setInteractionState("normal");
-        } else {
-          // Keep showing circle when outside menu
-          setInteractionState("rightClick");
-        }
+      if (rightClickActiveRef.current) {
+        const target = event.target;
+        const isOverMenu =
+          target instanceof Element && target.closest('[role="menu"]') !== null;
+        setInteractionState(isOverMenu ? "normal" : "rightClick");
       }
     };
 
     const handleMouseLeave = () => {
       isVisibleRef.current = false;
-      setIsVisible(false);
+      setVisible(false);
       // Clear touch interaction flag on mouse leave
       clearTouchInteraction();
     };
@@ -241,15 +339,16 @@ export function CustomPointer({
         return;
       }
 
-      interactionStateRef.current = "rightClick";
+      rightClickActiveRef.current = true;
+      rippleActiveRef.current = true;
       setInteractionState("rightClick");
-      setShowRipple(true);
 
       if (rippleTimeoutRef.current) {
         clearTimeout(rippleTimeoutRef.current);
       }
       rippleTimeoutRef.current = setTimeout(() => {
-        setShowRipple(false);
+        rippleActiveRef.current = false;
+        hideRipple();
       }, 600);
     };
 
@@ -259,8 +358,8 @@ export function CustomPointer({
         return;
       }
 
-      if (interactionStateRef.current === "rightClick") {
-        interactionStateRef.current = "normal";
+      if (rightClickActiveRef.current) {
+        rightClickActiveRef.current = false;
         setInteractionState("normal");
       }
     };
@@ -271,8 +370,11 @@ export function CustomPointer({
         return;
       }
 
-      if (event.button === 0 && interactionStateRef.current === "normal") {
-        interactionStateRef.current = "pressing";
+      if (
+        event.button === 0 &&
+        !rightClickActiveRef.current &&
+        interactionStateRef.current === "normal"
+      ) {
         setInteractionState("pressing");
       }
     };
@@ -283,8 +385,10 @@ export function CustomPointer({
         return;
       }
 
-      if (interactionStateRef.current === "pressing") {
-        interactionStateRef.current = "normal";
+      if (
+        !rightClickActiveRef.current &&
+        interactionStateRef.current === "pressing"
+      ) {
         setInteractionState("normal");
       }
     };
@@ -331,6 +435,11 @@ export function CustomPointer({
       document.removeEventListener("mousedown", handleMouseDown);
       document.removeEventListener("mouseup", handleMouseUp);
 
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+
       if (rippleTimeoutRef.current) {
         clearTimeout(rippleTimeoutRef.current);
       }
@@ -342,7 +451,15 @@ export function CustomPointer({
       // Clear touch interaction state on cleanup
       clearTouchInteraction();
     };
-  }, [enabled, shouldRender, updatePosition, mergedConfig.hideDefaultCursor]);
+  }, [
+    enabled,
+    shouldRender,
+    updatePosition,
+    mergedConfig.hideDefaultCursor,
+    hideRipple,
+    setInteractionState,
+    setVisible,
+  ]);
 
   // Don't render if not enabled, visibility is never, or device shouldn't show pointer
   if (!enabled || !shouldRender || mergedConfig.visibility === "never") {
@@ -350,8 +467,6 @@ export function CustomPointer({
   }
 
   const { pointerIcon, circleElement } = mergedTheme;
-  const isRightClick = interactionState === "rightClick";
-  const isPressing = interactionState === "pressing";
 
   return (
     <div
@@ -363,22 +478,25 @@ export function CustomPointer({
         zIndex,
         pointerEvents: "none",
         transform: "translate3d(-100px, -100px, 0)",
-        opacity: isVisible ? 1 : 0,
+        opacity: 0,
         transition: "opacity 0.15s ease-out",
+        willChange: "transform, opacity",
       }}
     >
       {/* Pointer Icon */}
       <div
+        ref={iconRef}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           color: colors.pointerColor,
           filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15))",
-          transform: `scale(${isRightClick ? 0 : isPressing ? 0.9 : 1}) rotate(${isRightClick ? "-15deg" : "0deg"})`,
-          opacity: isRightClick ? 0 : 1,
+          transform: "scale(1) rotate(0deg)",
+          opacity: 1,
           transition: "transform 0.15s ease-out, opacity 0.15s ease-out",
           transformOrigin: "top left",
+          willChange: "transform, opacity",
         }}
       >
         {pointerIcon ?? (
@@ -393,6 +511,7 @@ export function CustomPointer({
 
       {/* Circle (Touch Indicator) */}
       <div
+        ref={circleRef}
         style={{
           position: "absolute",
           top: -(sizes.circleSize / 2) + 2,
@@ -402,9 +521,10 @@ export function CustomPointer({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          transform: `scale(${isRightClick ? 1 : isPressing ? 0.6 : 0})`,
-          opacity: isRightClick ? 1 : isPressing ? 0.6 : 0,
+          transform: "scale(0)",
+          opacity: 0,
           transition: "transform 0.15s ease-out, opacity 0.15s ease-out",
+          willChange: "transform, opacity",
         }}
       >
         {circleElement ?? (
@@ -422,37 +542,25 @@ export function CustomPointer({
       </div>
 
       {/* Ripple Effect */}
-      {showRipple && isRightClick && (
-        <div
-          style={{
-            position: "absolute",
-            top: -(sizes.circleSize / 2) + 2,
-            left: -(sizes.circleSize / 2) + 2,
-            width: sizes.circleSize,
-            height: sizes.circleSize,
-            borderRadius: "50%",
-            border: `${sizes.circleBorderWidth}px solid ${colors.circleBorderColor}`,
-            pointerEvents: "none",
-            animation: "anyclick-ripple 0.5s ease-out forwards",
-          }}
-        />
-      )}
-
-      {/* Ripple keyframes - inject once */}
-      <style>{`
-        @keyframes anyclick-ripple {
-          0% {
-            transform: scale(0.8);
-            opacity: 0.6;
-          }
-          100% {
-            transform: scale(1.4);
-            opacity: 0;
-          }
-        }
-      `}</style>
+      <div
+        ref={rippleRef}
+        style={{
+          display: "none",
+          position: "absolute",
+          top: -(sizes.circleSize / 2) + 2,
+          left: -(sizes.circleSize / 2) + 2,
+          width: sizes.circleSize,
+          height: sizes.circleSize,
+          borderRadius: "50%",
+          border: `${sizes.circleBorderWidth}px solid ${colors.circleBorderColor}`,
+          pointerEvents: "none",
+        }}
+      />
     </div>
   );
 }
+
+export const CustomPointer = React.memo(CustomPointerImpl);
+CustomPointer.displayName = "CustomPointer";
 
 export default CustomPointer;
