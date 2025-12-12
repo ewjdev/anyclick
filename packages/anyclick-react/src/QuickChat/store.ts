@@ -183,15 +183,9 @@ export const useQuickChatStore = create<QuickChatStore>()(
       getActiveMessages: () => {
         const state = get();
         const now = Date.now();
-        const active = state.messages
+        return state.messages
           .filter((msg) => msg.expiresAt > now)
           .map(({ expiresAt, ...msg }) => msg);
-        console.log("[store] getActiveMessages", {
-          totalMessages: state.messages.length,
-          activeMessages: active.length,
-          activeIds: active.map((m) => m.id),
-        });
-        return active;
       },
 
       hydrate: (messages) => {

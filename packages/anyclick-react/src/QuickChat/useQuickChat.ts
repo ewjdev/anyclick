@@ -32,16 +32,88 @@ import {
 export type { RateLimitNotice } from "./useQuickChat.rateLimit";
 
 /**
+ * Return type for useQuickChat hook.
+ */
+export interface UseQuickChatReturn {
+  /** Current input value */
+  input: string;
+  /** Array of chat messages */
+  messages: ChatMessage[];
+  /** Whether suggestions are being loaded */
+  isLoadingSuggestions: boolean;
+  /** Whether a message is being sent */
+  isSending: boolean;
+  /** Whether a response is currently streaming */
+  isStreaming: boolean;
+  /** Suggested prompts from AI pre-pass */
+  suggestedPrompts: SuggestedPrompt[];
+  /** Context chunks extracted from target element */
+  contextChunks: import("./types").ContextChunk[];
+  /** Error message if any */
+  error: string | null;
+  /** Debug information for troubleshooting */
+  debugInfo: DebugInfo | null;
+  /** Rate limit notice if rate limited */
+  rateLimitNotice: RateLimitNotice | null;
+  /** Whether chat is pinned */
+  isPinned: boolean;
+  /** Last sync timestamp with backend */
+  lastSyncedAt: number | null;
+  /** Merged configuration */
+  config: Required<QuickChatConfig>;
+  /** Set input value */
+  setInput: (value: string) => void;
+  /** Toggle a context chunk's included state */
+  toggleChunk: (chunkId: string) => void;
+  /** Toggle all context chunks */
+  toggleAllChunks: (included: boolean) => void;
+  /** Select a suggested prompt (sets it as input) */
+  selectSuggestion: (prompt: SuggestedPrompt) => void;
+  /** Send a message (uses current input if no messageText provided) */
+  sendMessage: (messageText?: string) => Promise<void>;
+  /** Clear all messages */
+  clearMessages: () => void;
+  /** Set pinned state */
+  setIsPinned: (pinned: boolean) => void;
+  /** Clear rate limit notice */
+  clearRateLimitNotice: () => void;
+}
+
+/**
  * Hook for managing QuickChat state and interactions.
- * Uses ai-sdk-ui for streaming and zustand for persistence.
+ *
+ * Provides a complete chat interface with:
+ * - AI-powered streaming responses via ai-sdk
+ * - Context extraction from DOM elements
+ * - Message persistence (24h localStorage)
+ * - Suggested prompts
+ * - Rate limiting handling
+ * - Backend synchronization
+ *
+ * @param targetElement - The DOM element to extract context from (e.g., right-clicked element)
+ * @param containerElement - Optional container element for scoped context extraction
+ * @param config - Configuration options (endpoint, model, systemPrompt, etc.)
+ *
+ * @returns Object containing chat state and control functions
+ *
+ * @example
+ * ```tsx
+ * const { messages, input, sendMessage, isSending } = useQuickChat(
+ *   targetElement,
+ *   containerElement,
+ *   { endpoint: '/api/chat', model: 'gpt-4' }
+ * );
+ * ```
  */
 export function useQuickChat(
   targetElement: Element | null,
   containerElement: Element | null,
   config: QuickChatConfig = {},
-) {
-  console.count("useQuickChat");
-  const mergedConfig = { ...DEFAULT_QUICK_CHAT_CONFIG, ...config };
+): UseQuickChatReturn {
+  const mergedConfig = useMemo(
+    () => ({ ...DEFAULT_QUICK_CHAT_CONFIG, ...config }),
+    [config],
+  );
 
   const initializedRef = useRef(false);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,6 +155,7 @@ export function useQuickChat(
     [contextChunks],
   );
 
+  // Memoize chat body - only recreate when dependencies change
   const chatBody = useMemo(
     () => ({
       action: "chat",
@@ -99,7 +172,8 @@ export function useQuickChat(
     ],
   );
 
-  // Memoize transport to prevent re-creation (and avoid re-initializing useChat)
+  // Memoize transport - recreate only when endpoint or body structure changes
+  // Note: useChat will handle transport changes gracefully
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
@@ -276,11 +350,15 @@ export function useQuickChat(
     } else {
       void loadFromBackend();
     }
-  }, [loadFromBackend, setAiMessages, storedMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Extract context when target element changes
   useEffect(() => {
-    if (!targetElement) return;
+    if (!targetElement) {
+      setContextChunks([]);
+      return;
+    }
     const chunks = extractContextChunks(targetElement, containerElement);
     setContextChunks(chunks);
   }, [targetElement, containerElement, setContextChunks]);
@@ -308,6 +386,7 @@ export function useQuickChat(
         });
 
         if (await handleRateLimitResponse(response, mergedConfig.endpoint)) {
+          if (!cancelled) setIsLoadingSuggestions(false);
           return;
         }
 
@@ -330,10 +409,13 @@ export function useQuickChat(
           }
         }
       } catch (err) {
-        console.error("[useQuickChat] Failed to fetch suggestions:", err);
+        if (!cancelled) {
+          console.error("[useQuickChat] Failed to fetch suggestions:", err);
+        }
       }
 
       if (!cancelled) {
+        // Fallback suggestions
         setSuggestedPrompts([
           { id: "s1", text: "What is this element?" },
           { id: "s2", text: "How can I style this?" },
@@ -460,5 +542,5 @@ export function useQuickChat(
     clearMessages,
     setIsPinned,
     clearRateLimitNotice: () => setRateLimitNotice(null),
-  };
+  } satisfies UseQuickChatReturn;
 }
