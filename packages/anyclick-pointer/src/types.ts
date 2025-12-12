@@ -108,15 +108,6 @@ export interface FunModeConfig {
 }
 
 /**
- * Internal state for go-kart pointer
- */
-export interface GoKartState {
-  position: { x: number; y: number };
-  velocity: { x: number; y: number };
-  angle: number;
-}
-
-/**
  * Internal pointer state
  */
 export interface PointerState {

@@ -1,32 +1,31 @@
 "use client";
 
-import React, {
+import {
   createContext,
   useCallback,
   useContext,
-  useMemo,
-  useState,
-  useRef,
   useId,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
+import { CustomPointer } from "./CustomPointer";
 import type {
-  PointerProviderProps,
+  PointerConfig,
   PointerContextValue,
   PointerInteractionState,
+  PointerProviderProps,
   PointerState,
   PointerTheme,
-  PointerConfig,
   PointerThemeColors,
   PointerThemeSizes,
 } from "./types";
 import {
+  defaultPointerConfig,
   defaultPointerTheme,
   defaultPointerThemeColors,
   defaultPointerThemeSizes,
-  defaultPointerConfig,
 } from "./types";
-import { CustomPointer } from "./CustomPointer";
-import { GoKartPointer } from "./GoKartPointer";
 
 /**
  * Fully merged theme with required values
@@ -397,22 +396,14 @@ function RootPointerProvider({
           <div className={className} style={style}>
             {children}
           </div>
-          {shouldShowPointer &&
-            (activeConfig.mode === "fun" ? (
-              <GoKartPointer
-                theme={activeTheme}
-                config={activeConfig}
-                enabled={enabled}
-                onInteractionChange={handleInteractionChange}
-              />
-            ) : (
-              <CustomPointer
-                theme={activeTheme}
-                config={activeConfig}
-                enabled={enabled}
-                onInteractionChange={handleInteractionChange}
-              />
-            ))}
+          {shouldShowPointer && (
+            <CustomPointer
+              theme={activeTheme}
+              config={activeConfig}
+              enabled={enabled}
+              onInteractionChange={handleInteractionChange}
+            />
+          )}
         </PointerContext.Provider>
       </ParentThemeContext.Provider>
     </RootPointerContext.Provider>
