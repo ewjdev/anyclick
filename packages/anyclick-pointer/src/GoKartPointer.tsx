@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
-import { MousePointer2 } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -9,6 +7,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { motion } from "motion/react";
+import MousePointer from "./MousePointer2";
 import type {
   CustomPointerProps,
   GoKartState,
@@ -393,7 +393,7 @@ export function GoKartPointer({
         }}
       >
         {pointerIcon ?? (
-          <MousePointer2
+          <MousePointer
             size={sizes.pointerSize}
             strokeWidth={2}
             fill="white"

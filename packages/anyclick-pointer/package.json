@@ -45,10 +45,6 @@
     "clean": "rimraf dist",
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
-  "dependencies": {
-    "lucide-react": "^0.544.0",
-    "motion": "^12.0.0"
-  },
   "peerDependencies": {
     "react": ">=19.2.1",
     "react-dom": ">=19.2.1"

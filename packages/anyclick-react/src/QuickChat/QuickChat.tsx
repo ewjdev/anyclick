@@ -113,23 +113,6 @@ export function QuickChat({
     config: mergedConfig,
   } = useQuickChat(targetElement, containerElement, config);
 
-  // Log messages changes in component
-  useEffect(() => {
-    console.log("[QuickChat] Component received messages", {
-      count: messages.length,
-      messages: messages.map((m) => ({
-        id: m.id,
-        role: m.role,
-        contentLength: m.content.length,
-        contentPreview: m.content.substring(0, 100),
-        isStreaming: m.isStreaming,
-      })),
-      isSending,
-      isStreaming,
-      error,
-    });
-  }, [messages, isSending, isStreaming, error]);
-
   // Use prop or store pinned state
   const isPinned = isPinnedProp || storePinned;
 

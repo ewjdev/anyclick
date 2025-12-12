@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { MousePointer2 } from "lucide-react";
+import MousePointer from "./MousePointer2";
 import {
   clearTouchInteraction,
   getDeviceType,
@@ -382,7 +382,7 @@ export function CustomPointer({
         }}
       >
         {pointerIcon ?? (
-          <MousePointer2
+          <MousePointer
             size={sizes.pointerSize}
             strokeWidth={2}
             fill="white"
