@@ -79,14 +79,12 @@ export function shouldShowPointer(): boolean {
     result = hasFine;
   }
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("[Anyclick:DeviceDetection] shouldShowPointer", {
-      result,
-      deviceType,
-      hasTouchSupport: hasTouch,
-      hasFinePointer: hasFine,
-    });
-  }
+  console.log("[Anyclick:DeviceDetection] shouldShowPointer", {
+    result,
+    deviceType,
+    hasTouchSupport: hasTouch,
+    hasFinePointer: hasFine,
+  });
 
   return result;
 }

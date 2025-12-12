@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import MousePointer from "./MousePointer2";
+import MousePointerIcon from "./MousePointerIcon";
 import {
   clearTouchInteraction,
   getDeviceType,
@@ -265,10 +265,12 @@ function CustomPointerImpl({
   useEffect(() => {
     // Don't attach listeners if disabled or device shouldn't show pointer
     if (!enabled || !shouldRender) {
-      // Make sure to remove cursor hide style if it exists
-      if (mergedConfig.hideDefaultCursor) {
-        document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
-      }
+      // TEMPORARILY DISABLED: Make sure to remove cursor hide style if it exists
+      // if (mergedConfig.hideDefaultCursor) {
+      //   document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
+      // }
+      // Always clean up cursor hiding for debugging
+      document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
       return;
     }
 
@@ -303,6 +305,20 @@ function CustomPointerImpl({
       if (!isVisibleRef.current) {
         isVisibleRef.current = true;
         setVisible(true);
+        // TEMPORARILY DISABLED: Update cursor hiding when pointer becomes visible
+        // if (mergedConfig.hideDefaultCursor) {
+        //   const styleElement = document.getElementById(
+        //     CURSOR_HIDE_STYLE_ID,
+        //   ) as HTMLStyleElement | null;
+        //   if (!styleElement) {
+        //     const newStyleElement = document.createElement("style");
+        //     newStyleElement.id = CURSOR_HIDE_STYLE_ID;
+        //     document.head.appendChild(newStyleElement);
+        //     newStyleElement.textContent = "* { cursor: none !important; }";
+        //   } else {
+        //     styleElement.textContent = "* { cursor: none !important; }";
+        //   }
+        // }
       }
 
       // When in rightClick state, check if cursor is over a menu
@@ -318,6 +334,10 @@ function CustomPointerImpl({
     const handleMouseLeave = () => {
       isVisibleRef.current = false;
       setVisible(false);
+      // TEMPORARILY DISABLED: Remove cursor hiding when mouse leaves document
+      // if (mergedConfig.hideDefaultCursor) {
+      //   document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
+      // }
       // Clear touch interaction flag on mouse leave
       clearTouchInteraction();
     };
@@ -407,20 +427,28 @@ function CustomPointerImpl({
     document.addEventListener("mousedown", handleMouseDown);
     document.addEventListener("mouseup", handleMouseUp);
 
-    // Hide default cursor only if we're showing custom pointer
-    if (mergedConfig.hideDefaultCursor) {
-      let styleElement = document.getElementById(
-        CURSOR_HIDE_STYLE_ID,
-      ) as HTMLStyleElement | null;
+    // TEMPORARILY DISABLED: Initial cursor hiding state
+    // Initial cursor hiding state - only apply if pointer is already visible
+    // (For nested providers, cursor hiding will be applied when mouse enters their area)
+    // if (mergedConfig.hideDefaultCursor && isVisibleRef.current) {
+    //   let styleElement = document.getElementById(
+    //     CURSOR_HIDE_STYLE_ID,
+    //   ) as HTMLStyleElement | null;
 
-      if (!styleElement) {
-        styleElement = document.createElement("style");
-        styleElement.id = CURSOR_HIDE_STYLE_ID;
-        document.head.appendChild(styleElement);
-      }
+    //   if (!styleElement) {
+    //     styleElement = document.createElement("style");
+    //     styleElement.id = CURSOR_HIDE_STYLE_ID;
+    //     document.head.appendChild(styleElement);
+    //   }
 
-      styleElement.textContent = "* { cursor: none !important; }";
-    }
+    //   styleElement.textContent = "* { cursor: none !important; }";
+    // } else if (!mergedConfig.hideDefaultCursor) {
+    //   // Remove cursor hiding if config doesn't require it
+    //   document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
+    // }
+
+    // Clean up any existing cursor hiding styles for debugging
+    document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
 
     return () => {
       document.removeEventListener("touchstart", handleTouchStart);
@@ -444,9 +472,8 @@ function CustomPointerImpl({
         clearTimeout(rippleTimeoutRef.current);
       }
 
-      if (mergedConfig.hideDefaultCursor) {
-        document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
-      }
+      // Always remove cursor hiding on cleanup
+      document.getElementById(CURSOR_HIDE_STYLE_ID)?.remove();
 
       // Clear touch interaction state on cleanup
       clearTouchInteraction();
@@ -499,14 +526,16 @@ function CustomPointerImpl({
           willChange: "transform, opacity",
         }}
       >
-        {pointerIcon ?? (
-          <MousePointer
-            size={sizes.pointerSize}
-            strokeWidth={2}
-            fill="white"
-            stroke={colors.pointerColor}
-          />
-        )}
+        {pointerIcon}
+        <MousePointerIcon
+          size={sizes.pointerSize}
+          strokeWidth={2}
+          fill="white"
+          stroke={colors.pointerColor}
+          style={{
+            display: pointerIcon ? "none" : "block",
+          }}
+        />
       </div>
 
       {/* Circle (Touch Indicator) */}

@@ -2,8 +2,8 @@ import { useCallback, useState } from "react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import type { ContextMenuItem } from "@ewjdev/anyclick-react";
-import { MousePointer2, Terminal } from "lucide-react";
-import { type MotionValue, motion, useTransform } from "motion/react";
+import { MousePointer2 } from "lucide-react";
+import { type MotionValue, motion } from "motion/react";
 import { FloatingIcon } from "../FloatingIcon";
 import { adapter } from "../adapter";
 import { SoftwareEditorCard } from "../cards/SoftwareEditorCard";
@@ -42,9 +42,9 @@ export function SoftwareDevelopmentSection({
 
       <div
         className="absolute inset-0 -z-15 opacity-20"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff41' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
+        // style={{
+        //   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff41' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        // }}
       />
 
       {theme.gridPattern && (
@@ -81,29 +81,29 @@ export function SoftwareDevelopmentSection({
           <p className="text-lg text-[#00ff41]/60 font-mono">{theme.tagline}</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={
-            isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }
-          }
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-        >
-          <AnyclickProvider
-            adapter={adapter}
-            menuItems={menuItems}
-            metadata={{ workstream: theme.id }}
-            theme={{
-              menuStyle: theme.menuStyle,
-              highlightConfig: {
-                enabled: true,
-                colors: {
-                  targetColor: theme.primaryColor,
-                  containerColor: `${theme.primaryColor}40`,
-                },
+        <AnyclickProvider
+          adapter={adapter}
+          menuItems={menuItems}
+          metadata={{ workstream: theme.id }}
+          theme={{
+            menuStyle: theme.menuStyle,
+            highlightConfig: {
+              enabled: true,
+              colors: {
+                targetColor: theme.primaryColor,
+                containerColor: `${theme.primaryColor}40`,
               },
-            }}
-            header={<></>}
-            scoped
+            },
+          }}
+          header={<></>}
+          scoped
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={
+              isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }
+            }
+            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           >
             <PointerProvider
               theme={{
@@ -113,9 +113,8 @@ export function SoftwareDevelopmentSection({
                 },
                 pointerIcon: theme.pointerIcon,
               }}
-              config={{ visibility: "always", hideDefaultCursor: true }}
             >
-              <div className="group cursor-none">
+              <div>
                 <SoftwareEditorCard onMenuItemsChange={handleMenuItemsChange} />
 
                 <motion.div
@@ -129,8 +128,8 @@ export function SoftwareDevelopmentSection({
                 </motion.div>
               </div>
             </PointerProvider>
-          </AnyclickProvider>
-        </motion.div>
+          </motion.div>
+        </AnyclickProvider>
       </div>
 
       <div
