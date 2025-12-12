@@ -20,6 +20,10 @@ Scope here does **not** block the error ingestion stack.
 - ✅ **Cursor AI Agent**: Local and cloud agent integrations for AI-assisted
   code fixes. See
   [packages/anyclick-cursor](../packages/anyclick-cursor/CHANGELOG.md)
+- ✅ **Quick Chat (AI Assistant)**: Inline AI chat in context menu with
+  type-to-chat, element context extraction, suggested prompts, and pinnable
+  drawer mode. See
+  [packages/anyclick-react v3.0.0](../packages/anyclick-react/CHANGELOG.md)
 - ✅ **Menu Theming**: CSS custom properties for comprehensive menu
   customization, scoped providers with theme inheritance. See
   [packages/anyclick-react v1.1.0](../packages/anyclick-react/CHANGELOG.md)
@@ -33,7 +37,7 @@ Scope here does **not** block the error ingestion stack.
 
 - ✅ **Chrome Extension**: Standalone Chrome extension with DOM capture, screenshots, custom context menu, DevTools panel, and ... [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-extension)
 - ✅ **Jira Integration**: Create Jira tickets directly from anyclick context menu with screenshot and DOM context. [plan](https://github.com/ewjdev/anyclick/tree/main/packages/anyclick-jira)
-- **Quick Chat (AI Assistant)**: Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnabl...
+- ✅ **Quick Chat (AI Assistant)**: Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnabl... [plan](https://github.com/ewjdev/anyclick/blob/main/packages/anyclick-react/CHANGELOG.md)
 - **Notifications Package**: Toast → Banner → Inline → Indicator, with NotificationContainer mount point.
 - **Accessibility & UX**: Focus management, ARIA labels, reduced-motion, theme hooks shared with AnyclickProvider.
 - **Noise Controls**: Coalescing identical errors, per-severity rate limits, dismissal persistence, opt-in feedback prompt...
@@ -44,11 +48,11 @@ Scope here does **not** block the error ingestion stack.
 ## Mid-term
 
 - ✅ **No Buttons??** [plan](https://github.com/ewjdev/anyclick/blob/main/.cursor/plans/no-buttons.plan.md) `Plan`
+- **Workflow Recording**: Record complete user workflows with manual and event-based recording modes. Capture sequences of use...
 - **Error Dashboard**: Self-hostable dashboard for viewing grouped errors, filters (project, release, env, tag, severity, d...
 - **Authentication**: Project-level API keys + dashboard session auth (passwordless/link-based), project scoping, audit lo...
 - **Alerting**: Webhook destinations with signing + retry/backoff, threshold-based triggers (count, rate, new finger...
 - **Playwright Test Generation**: Generate Playwright test code from captured interactions and DOM context.
-- **Workflow Recording**: Record complete user workflows with manual and event-based recording modes. Capture sequences of use...
 
 ## Later
 
