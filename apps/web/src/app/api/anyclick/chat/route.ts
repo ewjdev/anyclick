@@ -5,6 +5,7 @@
  *
  * @module api/anyclick/chat
  */
+import { rateLimitByIp } from "@/app/api/utils";
 import { createLogger, generateRequestId } from "@/lib/logger";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText } from "ai";
@@ -367,6 +368,34 @@ export async function POST(request: Request) {
     method: "POST",
     url: requestUrl,
     userAgent: isDev ? userAgent : userAgent.substring(0, 50),
+  });
+
+  // Check rate limit before processing
+  const rateLimitResult = await rateLimitByIp(
+    request,
+    "24 h",
+    undefined,
+    requestId,
+  );
+  if (!rateLimitResult.allowed) {
+    logger.warn("[BACKEND] Rate limit exceeded", {
+      requestId,
+      remaining: rateLimitResult.remaining,
+      count: rateLimitResult.count,
+    });
+    return (
+      rateLimitResult.response ||
+      Response.json(
+        { error: "Rate limit exceeded. Try again later." },
+        { status: 429 },
+      )
+    );
+  }
+
+  logger.info("[BACKEND] Rate limit check passed", {
+    requestId,
+    remaining: rateLimitResult.remaining,
+    count: rateLimitResult.count,
   });
 
   try {

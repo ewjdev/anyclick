@@ -1,21 +1,28 @@
 /**
  * API route for QuickChat history persistence.
  *
- * Provides KV-style storage for chat history with 24h TTL.
- * In production, this should be backed by a proper KV store (Redis, Vercel KV, etc.)
+ * Provides Redis-backed storage for chat history with 24h TTL.
+ * Uses Upstash Redis with IP address as the key.
  *
  * @module api/anyclick/chat/history
  */
 import { createLogger, generateRequestId } from "@/lib/logger";
+import { Redis } from "@upstash/redis";
 
 // Create logger instance for this route
 const logger = createLogger("AnyClickChatHistory");
 
 const isDev = process.env.NODE_ENV === "development";
 
-// 24 hours in milliseconds
+// 24 hours in seconds (for Redis TTL)
+const TWENTY_FOUR_HOURS_SEC = 24 * 60 * 60;
+// 24 hours in milliseconds (for timestamp comparisons)
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
+const redis = new Redis({
+  url: process.env.QUICKCHAT_KV_REST_API_URL,
+  token: process.env.QUICKCHAT_KV_REST_API_TOKEN,
+});
 /**
  * Chat message structure
  */
@@ -27,71 +34,42 @@ interface ChatMessage {
 }
 
 /**
- * Stored chat session with expiry
+ * Stored chat session
  */
 interface StoredSession {
   messages: ChatMessage[];
   createdAt: number;
-  expiresAt: number;
 }
 
 /**
- * In-memory KV store for chat history.
- * In production, replace with Vercel KV, Redis, or similar.
- *
- * Key format: `chat:${sessionId}` where sessionId is derived from user/client identifier
+ * Get IP address from request headers
  */
-const chatStore = new Map<string, StoredSession>();
-
-/**
- * Prune expired sessions from the store.
- */
-function pruneExpiredSessions(): void {
-  const now = Date.now();
-  const entries = Array.from(chatStore.entries());
-  for (const [key, session] of entries) {
-    if (session.expiresAt < now) {
-      chatStore.delete(key);
-      logger.debug("Pruned expired session", { key });
-    }
-  }
-}
-
-/**
- * Get session ID from request headers or generate a default.
- * In production, this should be tied to user authentication.
- */
-function getSessionId(request: Request): string {
-  // Try to get session from header or cookie
-  const sessionHeader = request.headers.get("x-anyclick-session");
-  if (sessionHeader) return sessionHeader;
-
-  // Fallback to IP-based session (not ideal for production)
+function getIpFromRequest(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
-  const ip = forwarded?.split(",")[0]?.trim() || "anonymous";
+  return forwarded?.split(",")[0]?.trim() || "anonymous";
+}
 
-  // Create a simple hash for the session
-  return `session:${ip}`;
+/**
+ * Get Redis key for chat history based on IP address
+ */
+function getChatKey(ip: string): string {
+  return `chat:${ip}`;
 }
 
 export async function POST(request: Request) {
   const requestId = generateRequestId();
   const requestStartTime = Date.now();
 
-  // Periodic cleanup of expired sessions
-  if (Math.random() < 0.1) {
-    pruneExpiredSessions();
-  }
-
   try {
     const body = await request.json();
     const { action, messages } = body;
-    const sessionId = getSessionId(request);
+    const ip = getIpFromRequest(request);
+    const chatKey = getChatKey(ip);
 
     logger.debug("History request", {
       requestId,
       action,
-      sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
+      ip: isDev ? ip : ip.slice(0, 20) + "...",
       messageCount: messages?.length || 0,
     });
 
@@ -108,7 +86,10 @@ export async function POST(request: Request) {
       }
 
       const now = Date.now();
-      const existingSession = chatStore.get(sessionId);
+
+      // Get existing session from Redis
+      const existingData = await redis.get<StoredSession>(chatKey);
+      const existingSession = existingData || null;
 
       // Merge with existing messages, keeping unique by id
       const existingMessages = existingSession?.messages || [];
@@ -130,49 +111,41 @@ export async function POST(request: Request) {
       const session: StoredSession = {
         messages: limitedMessages,
         createdAt: existingSession?.createdAt || now,
-        expiresAt: now + TWENTY_FOUR_HOURS_MS,
       };
 
-      chatStore.set(sessionId, session);
+      // Save to Redis with 24h TTL
+      await redis.set(chatKey, session, { ex: TWENTY_FOUR_HOURS_SEC });
 
       logger.info("Chat history saved", {
         requestId,
-        sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
+        ip: isDev ? ip : ip.slice(0, 20) + "...",
         messageCount: limitedMessages.length,
         newMessages: newMessages.length,
       });
 
       logger.performance("Save operation", requestStartTime, { requestId });
 
+      const expiresAt = now + TWENTY_FOUR_HOURS_MS;
+
       return Response.json({
         success: true,
         messageCount: limitedMessages.length,
-        expiresAt: session.expiresAt,
+        expiresAt,
       });
     }
 
     if (action === "load") {
-      const session = chatStore.get(sessionId);
+      const session = await redis.get<StoredSession>(chatKey);
 
       if (!session) {
         logger.debug("No session found for load", {
           requestId,
-          sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
+          ip: isDev ? ip : ip.slice(0, 20) + "...",
         });
         return Response.json({ messages: [], found: false });
       }
 
-      // Check if session has expired
-      if (session.expiresAt < Date.now()) {
-        chatStore.delete(sessionId);
-        logger.debug("Session expired, returning empty", {
-          requestId,
-          sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
-        });
-        return Response.json({ messages: [], found: false, expired: true });
-      }
-
-      // Filter out messages older than 24h
+      // Filter out messages older than 24h (extra safety check)
       const cutoff = Date.now() - TWENTY_FOUR_HOURS_MS;
       const validMessages = session.messages.filter(
         (m) => m.timestamp > cutoff,
@@ -180,27 +153,32 @@ export async function POST(request: Request) {
 
       logger.info("Chat history loaded", {
         requestId,
-        sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
+        ip: isDev ? ip : ip.slice(0, 20) + "...",
         messageCount: validMessages.length,
       });
 
       logger.performance("Load operation", requestStartTime, { requestId });
 
+      // Calculate expiresAt based on TTL remaining
+      const ttl = await redis.ttl(chatKey);
+      const expiresAt =
+        ttl > 0 ? Date.now() + ttl * 1000 : Date.now() + TWENTY_FOUR_HOURS_MS;
+
       return Response.json({
         messages: validMessages,
         found: true,
         createdAt: session.createdAt,
-        expiresAt: session.expiresAt,
+        expiresAt,
       });
     }
 
     if (action === "clear") {
-      const existed = chatStore.has(sessionId);
-      chatStore.delete(sessionId);
+      const existed = (await redis.exists(chatKey)) === 1;
+      await redis.del(chatKey);
 
       logger.info("Chat history cleared", {
         requestId,
-        sessionId: isDev ? sessionId : sessionId.slice(0, 20) + "...",
+        ip: isDev ? ip : ip.slice(0, 20) + "...",
         existed,
       });
 
@@ -239,16 +217,28 @@ export async function POST(request: Request) {
  * GET endpoint for simple session check
  */
 export async function GET(request: Request) {
-  const sessionId = getSessionId(request);
-  const session = chatStore.get(sessionId);
+  const ip = getIpFromRequest(request);
+  const chatKey = getChatKey(ip);
 
-  if (!session || session.expiresAt < Date.now()) {
+  const redis = new Redis({
+    url: process.env.QUICKCHAT_KV_REST_API_URL,
+    token: process.env.QUICKCHAT_KV_REST_API_TOKEN,
+  });
+
+  const session = await redis.get<StoredSession>(chatKey);
+
+  if (!session) {
     return Response.json({ hasHistory: false });
   }
+
+  // Calculate expiresAt based on TTL remaining
+  const ttl = await redis.ttl(chatKey);
+  const expiresAt =
+    ttl > 0 ? Date.now() + ttl * 1000 : Date.now() + TWENTY_FOUR_HOURS_MS;
 
   return Response.json({
     hasHistory: true,
     messageCount: session.messages.length,
-    expiresAt: session.expiresAt,
+    expiresAt,
   });
 }

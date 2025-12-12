@@ -184,6 +184,44 @@ type DebugInfo = {
   error?: string;
 };
 
+type RateLimitPayload = {
+  error?: string;
+  message?: string;
+  retryAfterSeconds?: number;
+  retryAt?: number;
+};
+
+export type RateLimitNotice = {
+  status: 429;
+  message: string;
+  retryAt?: number;
+  retryAfterSeconds?: number;
+  requestId?: string;
+  endpoint?: string;
+  raw?: string;
+};
+
+function safeJsonParse(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function formatRetryAt(retryAtMs: number): string {
+  try {
+    const d = new Date(retryAtMs);
+    // Local time, short + readable
+    return new Intl.DateTimeFormat(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(d);
+  } catch {
+    return new Date(retryAtMs).toLocaleTimeString();
+  }
+}
+
 /**
  * Hook for managing QuickChat state and interactions.
  * Uses ai-sdk-ui for streaming and zustand for persistence.
@@ -198,6 +236,8 @@ export function useQuickChat(
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [manualSending, setManualSending] = useState(false);
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+  const [rateLimitNotice, setRateLimitNotice] =
+    useState<RateLimitNotice | null>(null);
 
   // Zustand store
   const {
@@ -388,6 +428,103 @@ export function useQuickChat(
     setMessages: setAiMessages,
   } = useChat({
     transport,
+    // Helper to surface backend errors as a visible assistant message.
+    // This is critical for cases like 429 where the stream never starts.
+    onError: (err) => {
+      console.error("[useQuickChat] onError callback fired", {
+        error: err,
+        errorMessage: err.message,
+        errorStack: err.stack,
+      });
+
+      const response =
+        (err as unknown as { response?: Response }).response ?? undefined;
+      const statusCode =
+        (err as unknown as { status?: number }).status ??
+        (response ? response.status : undefined) ??
+        -1;
+
+      const responseText =
+        (err as unknown as { responseText?: string }).responseText ??
+        (err as unknown as { message?: string }).message ??
+        "";
+
+      if (statusCode !== 429) {
+        setRateLimitNotice(null);
+      }
+
+      setError(err.message);
+      setDebugInfo({
+        status: statusCode,
+        ok: false,
+        contentType: response?.headers?.get?.("content-type") ?? null,
+        rawTextPreview: responseText,
+        timestamp: Date.now(),
+        error: err.message,
+      });
+      setStoreIsStreaming(false);
+      setStoreIsSending(false);
+
+      // Graceful rate-limit UX: show a sticky banner with retry time.
+      if (statusCode === 429) {
+        const parsed = safeJsonParse(responseText);
+        const payload =
+          parsed && typeof parsed === "object"
+            ? (parsed as RateLimitPayload)
+            : null;
+
+        const headerRetryAfter = response?.headers?.get?.("Retry-After");
+        const retryAfterSeconds =
+          typeof payload?.retryAfterSeconds === "number"
+            ? payload.retryAfterSeconds
+            : headerRetryAfter
+              ? Number(headerRetryAfter)
+              : undefined;
+
+        const retryAt =
+          typeof payload?.retryAt === "number" &&
+          Number.isFinite(payload.retryAt)
+            ? payload.retryAt
+            : typeof retryAfterSeconds === "number" &&
+                Number.isFinite(retryAfterSeconds)
+              ? Date.now() + Math.max(0, retryAfterSeconds) * 1000
+              : undefined;
+
+        const timePart = retryAt
+          ? `Try again at ${formatRetryAt(retryAt)}.`
+          : "";
+        const short = timePart ? `Rate limited. ${timePart}` : "Rate limited.";
+
+        const requestIdFromHeader =
+          response?.headers?.get?.("X-Anyclick-Request-Id") ??
+          response?.headers?.get?.("x-anyclick-request-id") ??
+          undefined;
+
+        const requestIdFromPayload =
+          parsed &&
+          typeof parsed === "object" &&
+          typeof (parsed as { requestId?: unknown }).requestId === "string"
+            ? ((parsed as { requestId: string }).requestId as string)
+            : undefined;
+
+        setRateLimitNotice({
+          status: 429,
+          message: short,
+          retryAt,
+          retryAfterSeconds:
+            typeof retryAfterSeconds === "number" &&
+            Number.isFinite(retryAfterSeconds)
+              ? retryAfterSeconds
+              : undefined,
+          requestId: requestIdFromPayload ?? requestIdFromHeader,
+          endpoint: mergedConfig.endpoint,
+          raw: responseText,
+        });
+
+        // The banner replaces the generic error pill
+        setError(null);
+      }
+    },
     onFinish: ({ message }) => {
       // Log full message object to see all properties including parts
       console.log(
@@ -449,34 +586,6 @@ export function useQuickChat(
       }
       // Schedule backend sync
       scheduleBackendSync();
-      setStoreIsStreaming(false);
-      setStoreIsSending(false);
-    },
-    onError: (err) => {
-      console.error("[useQuickChat] onError callback fired", {
-        error: err,
-        errorMessage: err.message,
-        errorStack: err.stack,
-      });
-      setError(err.message);
-      setDebugInfo({
-        status:
-          (err as unknown as { status?: number }).status ??
-          (err as unknown as { response?: { status?: number } }).response
-            ?.status ??
-          -1,
-        ok: false,
-        contentType:
-          (
-            err as unknown as { response?: { headers?: Headers } }
-          ).response?.headers?.get?.("content-type") ?? null,
-        rawTextPreview:
-          (err as unknown as { responseText?: string }).responseText ??
-          (err as unknown as { message?: string }).message ??
-          "",
-        timestamp: Date.now(),
-        error: err.message,
-      });
       setStoreIsStreaming(false);
       setStoreIsSending(false);
     },
@@ -591,7 +700,7 @@ export function useQuickChat(
           .getActiveMessages();
         if (currentMessages.length === 0) return;
 
-        await fetch(`${mergedConfig.endpoint}/history`, {
+        const res = await fetch(`${mergedConfig.endpoint}/history`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -599,6 +708,33 @@ export function useQuickChat(
             messages: currentMessages,
           }),
         });
+        if (res.status === 429) {
+          const retryAfterHeader = res.headers.get("Retry-After");
+          const retryAfterSeconds = retryAfterHeader
+            ? Number(retryAfterHeader)
+            : undefined;
+          const retryAt =
+            typeof retryAfterSeconds === "number" &&
+            Number.isFinite(retryAfterSeconds)
+              ? Date.now() + Math.max(0, retryAfterSeconds) * 1000
+              : undefined;
+          const raw = await res.text().catch(() => "");
+          setRateLimitNotice({
+            status: 429,
+            message: retryAt
+              ? `Rate limited. Try again at ${formatRetryAt(retryAt)}.`
+              : "Rate limited.",
+            retryAt,
+            retryAfterSeconds:
+              typeof retryAfterSeconds === "number" &&
+              Number.isFinite(retryAfterSeconds)
+                ? retryAfterSeconds
+                : undefined,
+            endpoint: `${mergedConfig.endpoint}/history`,
+            raw,
+          });
+          return;
+        }
         setLastSyncedAt(Date.now());
       } catch (err) {
         console.error("Failed to sync chat history to backend:", err);
@@ -616,6 +752,33 @@ export function useQuickChat(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "load" }),
       });
+      if (response.status === 429) {
+        const retryAfterHeader = response.headers.get("Retry-After");
+        const retryAfterSeconds = retryAfterHeader
+          ? Number(retryAfterHeader)
+          : undefined;
+        const retryAt =
+          typeof retryAfterSeconds === "number" &&
+          Number.isFinite(retryAfterSeconds)
+            ? Date.now() + Math.max(0, retryAfterSeconds) * 1000
+            : undefined;
+        const raw = await response.text().catch(() => "");
+        setRateLimitNotice({
+          status: 429,
+          message: retryAt
+            ? `Rate limited. Try again at ${formatRetryAt(retryAt)}.`
+            : "Rate limited.",
+          retryAt,
+          retryAfterSeconds:
+            typeof retryAfterSeconds === "number" &&
+            Number.isFinite(retryAfterSeconds)
+              ? retryAfterSeconds
+              : undefined,
+          endpoint: `${mergedConfig.endpoint}/history`,
+          raw,
+        });
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         if (
@@ -822,6 +985,7 @@ export function useQuickChat(
     contextChunks,
     error,
     debugInfo,
+    rateLimitNotice,
     isPinned,
     lastSyncedAt,
     config: mergedConfig,
@@ -832,5 +996,6 @@ export function useQuickChat(
     sendMessage,
     clearMessages,
     setIsPinned,
+    clearRateLimitNotice: () => setRateLimitNotice(null),
   };
 }

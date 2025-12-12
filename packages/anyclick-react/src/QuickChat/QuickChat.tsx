@@ -17,6 +17,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { buildAnyclickPayload } from "@ewjdev/anyclick-core";
 import {
   AlertCircle,
   ChevronDown,
@@ -96,6 +97,7 @@ export function QuickChat({
     isSending,
     isStreaming,
     debugInfo,
+    rateLimitNotice,
     suggestedPrompts,
     contextChunks,
     error,
@@ -107,6 +109,7 @@ export function QuickChat({
     sendMessage,
     clearMessages,
     setIsPinned,
+    clearRateLimitNotice,
     config: mergedConfig,
   } = useQuickChat(targetElement, containerElement, config);
 
@@ -233,6 +236,82 @@ export function QuickChat({
     () => contextChunks.filter((c) => c.included).length,
     [contextChunks],
   );
+
+  const [rateLimitExpanded, setRateLimitExpanded] = useState(false);
+  const [reportStatus, setReportStatus] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  // If a new rate-limit notice appears, reset report UI
+  useEffect(() => {
+    if (rateLimitNotice) {
+      setReportStatus("idle");
+      setReportUrl(null);
+      setReportError(null);
+      setRateLimitExpanded(false);
+    }
+  }, [rateLimitNotice]);
+
+  const handleReportIssue = useCallback(async () => {
+    if (!rateLimitNotice) return;
+    if (!targetElement) {
+      setReportStatus("error");
+      setReportError("No target element available to report.");
+      return;
+    }
+
+    setReportStatus("sending");
+    setReportError(null);
+
+    try {
+      const payload = buildAnyclickPayload(targetElement, "issue", {
+        comment: `QuickChat: ${rateLimitNotice.message}`,
+        metadata: {
+          source: "quickchat",
+          kind: "rate_limit",
+          endpoint: rateLimitNotice.endpoint ?? mergedConfig.endpoint,
+          retryAt: rateLimitNotice.retryAt,
+          retryAfterSeconds: rateLimitNotice.retryAfterSeconds,
+          requestId: rateLimitNotice.requestId,
+          debugInfo: debugInfo ?? undefined,
+          raw: rateLimitNotice.raw ?? undefined,
+        },
+      });
+
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = (await res.json().catch(() => null)) as {
+        success?: boolean;
+        results?: Array<{ adapter: string; url?: string }>;
+        partialFailures?: Array<{ adapter: string; error?: string }>;
+        error?: string;
+      } | null;
+
+      if (!res.ok || !json?.success) {
+        const msg =
+          json?.error ||
+          (res.status
+            ? `Failed to create issue (${res.status}).`
+            : "Failed to create issue.");
+        throw new Error(msg);
+      }
+
+      const firstUrl = json.results?.find(
+        (r) => typeof r.url === "string",
+      )?.url;
+      setReportUrl(firstUrl ?? null);
+      setReportStatus("sent");
+    } catch (e) {
+      setReportStatus("error");
+      setReportError(e instanceof Error ? e.message : String(e));
+    }
+  }, [rateLimitNotice, targetElement, mergedConfig.endpoint, debugInfo]);
 
   if (!visible) return null;
 
@@ -410,7 +489,8 @@ export function QuickChat({
             : quickChatStyles.messagesArea
         }
       >
-        {error && (
+        {/* Keep generic errors visible, but rate-limit uses a sticky banner below */}
+        {error && !rateLimitNotice && (
           <div style={quickChatStyles.errorContainer}>
             <AlertCircle size={20} style={quickChatStyles.errorIcon} />
             <span style={quickChatStyles.errorText}>{error}</span>
@@ -523,6 +603,163 @@ export function QuickChat({
           ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Sticky bottom notice for rate limiting */}
+      {rateLimitNotice && (
+        <div
+          style={{
+            borderTop: "1px solid rgba(148, 163, 184, 0.25)",
+            background:
+              "linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.96))",
+            color: "#e2e8f0",
+            padding: "8px 10px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertCircle size={16} style={{ color: "#fbbf24" }} />
+              <span style={{ fontSize: "13px", lineHeight: 1.2 }}>
+                {rateLimitNotice.message}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={() => setRateLimitExpanded((v) => !v)}
+                style={{
+                  border: "1px solid rgba(148, 163, 184, 0.25)",
+                  background: "rgba(30, 41, 59, 0.6)",
+                  color: "#e2e8f0",
+                  borderRadius: "6px",
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                {rateLimitExpanded ? "Hide" : "Details"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReportIssue}
+                disabled={reportStatus === "sending" || reportStatus === "sent"}
+                style={{
+                  border: "1px solid rgba(148, 163, 184, 0.25)",
+                  background:
+                    reportStatus === "sent"
+                      ? "rgba(34, 197, 94, 0.22)"
+                      : "rgba(30, 41, 59, 0.6)",
+                  color: "#e2e8f0",
+                  borderRadius: "6px",
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  cursor:
+                    reportStatus === "sending" || reportStatus === "sent"
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity: reportStatus === "sending" ? 0.7 : 1,
+                }}
+                title="Create a GitHub issue via /api/feedback"
+              >
+                {reportStatus === "sending"
+                  ? "Reporting..."
+                  : reportStatus === "sent"
+                    ? "Reported"
+                    : "Report"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  clearRateLimitNotice();
+                  setRateLimitExpanded(false);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(226, 232, 240, 0.8)",
+                  padding: "4px",
+                  cursor: "pointer",
+                }}
+                title="Dismiss"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+
+          {reportUrl && (
+            <div style={{ marginTop: "6px", fontSize: "12px" }}>
+              Created:{" "}
+              <a
+                href={reportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#93c5fd" }}
+              >
+                Open issue
+              </a>
+            </div>
+          )}
+          {reportError && (
+            <div
+              style={{ marginTop: "6px", fontSize: "12px", color: "#fca5a5" }}
+            >
+              {reportError}
+            </div>
+          )}
+
+          {rateLimitExpanded && (
+            <div
+              style={{
+                marginTop: "8px",
+                fontSize: "12px",
+                lineHeight: 1.4,
+                backgroundColor: "rgba(2, 6, 23, 0.55)",
+                border: "1px solid rgba(148, 163, 184, 0.25)",
+                borderRadius: "8px",
+                padding: "8px",
+                wordBreak: "break-word",
+              }}
+            >
+              <div style={{ opacity: 0.85 }}>
+                Status: {rateLimitNotice.status}
+                {rateLimitNotice.requestId
+                  ? ` • Request: ${rateLimitNotice.requestId}`
+                  : ""}
+              </div>
+              {rateLimitNotice.endpoint && (
+                <div style={{ opacity: 0.75, marginTop: "4px" }}>
+                  Endpoint: {rateLimitNotice.endpoint}
+                </div>
+              )}
+              {rateLimitNotice.retryAt && (
+                <div style={{ opacity: 0.75, marginTop: "4px" }}>
+                  RetryAt: {new Date(rateLimitNotice.retryAt).toLocaleString()}
+                </div>
+              )}
+              {rateLimitNotice.raw && (
+                <div style={{ marginTop: "6px", opacity: 0.85 }}>
+                  Raw: {rateLimitNotice.raw}
+                </div>
+              )}
+              {debugInfo && (
+                <div style={{ marginTop: "6px", opacity: 0.85 }}>
+                  Debug: {debugInfo.rawTextPreview || "(empty)"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Input area */}
       <div style={quickChatStyles.inputContainer}>
