@@ -1,6 +1,7 @@
 import roadmapRawData from "@/data/roadmap-items.json";
 import { memo } from "react";
-import { ArrowRight, Clock, Link } from "lucide-react";
+import { ArrowRight, Clock, Link as LinkIcon } from "lucide-react";
+import Link from "next/link";
 
 type RoadmapData = {
   items: RoadmapItem[];
