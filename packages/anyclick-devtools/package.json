@@ -46,7 +46,6 @@
   },
   "dependencies": {
     "@ewjdev/anyclick-core": "^1.4.0",
-    "@ewjdev/anyclick-react": "^4.0.0",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2"
   },

@@ -2,10 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
-import {
-  InspectDialogManager,
-  ModificationIndicator,
-} from "@ewjdev/anyclick-devtools";
+import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
 
