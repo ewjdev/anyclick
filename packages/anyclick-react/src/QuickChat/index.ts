@@ -2,11 +2,18 @@
  * QuickChat module exports.
  *
  * @module QuickChat
- * @since 2.0.0
+ * @since 3.1.0
  */
 export { QuickChat } from "./QuickChat";
 export { useQuickChat } from "./useQuickChat";
 export { quickChatStyles, quickChatKeyframes } from "./styles";
+export {
+  useQuickChatStore,
+  useActiveMessages,
+  useMessagesCount,
+  generateMessageId,
+} from "./store";
+export type { QuickChatStore } from "./store";
 export type {
   ChatMessage,
   ContextChunk,

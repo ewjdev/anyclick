@@ -939,7 +939,9 @@ export default function RoadmapPage() {
       <header className="border-b border-white/5 backdrop-blur-xl bg-white/[0.02]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <AnyclickLogo size="lg" />
+            <Link href="/">
+              <AnyclickLogo size="lg" />
+            </Link>
             <div>
               <p className="text-[10px] uppercase tracking-[0.25em] text-gray-500 font-medium">
                 anyclick

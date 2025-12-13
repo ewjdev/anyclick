@@ -195,6 +195,7 @@ export const quickChatStyles: Record<string, CSSProperties> = {
   // Suggestions - compact horizontal scroll
   suggestionsContainer: {
     display: "flex",
+    flexDirection: "column" as const,
     gap: "6px",
     padding: "6px 8px",
     overflowX: "auto" as const,

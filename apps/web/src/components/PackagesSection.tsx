@@ -224,7 +224,7 @@ const PackagesSection = () => {
         </h2>
         <p className="text-gray-400 max-w-xl mx-auto">
           Pick only the packages you need. All packages are published under the{" "}
-          <code className="text-cyan-400">@anyclick</code> scope.
+          <code className="text-cyan-400">@ewjdev/anyclick</code> scope.
         </p>
       </div>
 

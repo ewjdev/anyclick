@@ -1,5 +1,20 @@
 # @ewjdev/anyclick-react
 
+## 4.0.0
+
+### Minor Changes
+
+- Remove GoKartPointer export and GoKartState type from anyclick-pointer package. The GoKartPointer component and GoKartState type are no longer exported. This is a breaking change for any code that imports these exports.
+
+  Also removes unused dependencies (lucide-react, motion) from anyclick-pointer for bundle size optimization.
+
+  Adds rate limiting functionality to QuickChat in anyclick-react with proper error handling and retry-after support.
+
+### Patch Changes
+
+- Updated dependencies
+  - @ewjdev/anyclick-pointer@4.0.0
+
 ## 3.0.0
 
 ### Minor Changes

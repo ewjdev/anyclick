@@ -394,23 +394,31 @@ export type {
 /**
  * Manager component that listens for inspect events and renders InspectSimple.
  * Place this component once in your app to enable inspect functionality.
+ *
+ * @deprecated Moved to `@ewjdev/anyclick-devtools`. Import from there instead.
  */
 export { InspectDialogManager } from "./InspectDialog/InspectDialogManager";
 
 /**
  * Opens the inspect dialog for a given element.
+ *
+ * @deprecated Moved to `@ewjdev/anyclick-devtools`. Import from there instead.
  */
 export { openInspectDialog } from "./InspectDialog/InspectDialogManager";
 
 /**
  * Event name for inspect dialog events.
+ *
+ * @deprecated Moved to `@ewjdev/anyclick-devtools`. Import from there instead.
  */
 export { INSPECT_DIALOG_EVENT } from "./InspectDialog/InspectDialogManager";
 
 export type {
   /** Props for InspectDialogManager component */
+  /** @deprecated Moved to `@ewjdev/anyclick-devtools`. Import from there instead. */
   InspectDialogManagerProps,
   /** Event detail for inspect dialog events */
+  /** @deprecated Moved to `@ewjdev/anyclick-devtools`. Import from there instead. */
   InspectDialogEventDetail,
 } from "./InspectDialog/InspectDialogManager";
 

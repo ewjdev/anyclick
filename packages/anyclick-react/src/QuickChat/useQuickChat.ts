@@ -1,289 +1,380 @@
 /**
- * Hook for managing QuickChat state and logic.
+ * Hook for managing QuickChat state and logic using ai-sdk-ui and zustand.
  *
  * @module QuickChat/useQuickChat
- * @since 2.0.0
+ * @since 3.1.0
  */
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getElementInspectInfo } from "@ewjdev/anyclick-core";
-import type {
-  ChatMessage,
-  ContextChunk,
-  QuickChatConfig,
-  QuickChatState,
-  SuggestedPrompt,
-} from "./types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useActiveMessages, useQuickChatStore } from "./store";
+import type { ChatMessage, QuickChatConfig, SuggestedPrompt } from "./types";
 import { DEFAULT_QUICK_CHAT_CONFIG } from "./types";
+import {
+  buildContextString,
+  extractContextChunks,
+} from "./useQuickChat.context";
+import type { DebugInfo } from "./useQuickChat.debug";
+import { createDebugInfo } from "./useQuickChat.debug";
+import {
+  chatMessagesToUiMessages,
+  getUIMessageText,
+  uiMessagesToChatMessages,
+} from "./useQuickChat.messages";
+import type { RateLimitNotice } from "./useQuickChat.rateLimit";
+import {
+  rateLimitNoticeFromError,
+  rateLimitNoticeFromResponse,
+} from "./useQuickChat.rateLimit";
 
-const PINNED_STATE_KEY = "anyclick-quick-chat-pinned";
-const CHAT_HISTORY_KEY = "anyclick-quick-chat-history";
-
-/**
- * Generates a unique ID.
- */
-function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-/**
- * Get pinned state from session storage.
- */
-function getPinnedState(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return sessionStorage.getItem(PINNED_STATE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
+export type { RateLimitNotice } from "./useQuickChat.rateLimit";
 
 /**
- * Set pinned state in session storage.
+ * Return type for useQuickChat hook.
  */
-function setPinnedState(pinned: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (pinned) {
-      sessionStorage.setItem(PINNED_STATE_KEY, "true");
-    } else {
-      sessionStorage.removeItem(PINNED_STATE_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-/**
- * Get chat history from session storage.
- */
-function getChatHistory(): ChatMessage[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = sessionStorage.getItem(CHAT_HISTORY_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Remove streaming flags and actions from stored messages
-      return parsed.map((msg: ChatMessage) => ({
-        ...msg,
-        isStreaming: false,
-        actions: undefined,
-      }));
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return [];
-}
-
-/**
- * Save chat history to session storage.
- */
-function saveChatHistory(messages: ChatMessage[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    // Only store last 10 messages to avoid storage limits
-    const toStore = messages.slice(-10).map((msg) => ({
-      id: msg.id,
-      role: msg.role,
-      content: msg.content,
-      timestamp: msg.timestamp,
-    }));
-    sessionStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(toStore));
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-/**
- * Clear chat history from session storage.
- */
-function clearChatHistory(): void {
-  if (typeof window === "undefined") return;
-  try {
-    sessionStorage.removeItem(CHAT_HISTORY_KEY);
-  } catch {
-    // Ignore storage errors
-  }
-}
-
-/**
- * Extracts context chunks from target element.
- */
-function extractContextChunks(
-  targetElement: Element | null,
-  containerElement: Element | null,
-): ContextChunk[] {
-  const chunks: ContextChunk[] = [];
-
-  if (!targetElement) return chunks;
-
-  try {
-    const info = getElementInspectInfo(targetElement);
-
-    // Add tag info
-    const tagContent = `<${info.tagName.toLowerCase()}${info.id ? ` id="${info.id}"` : ""}${info.classNames.length > 0 ? ` class="${info.classNames.join(" ")}"` : ""}>`;
-    chunks.push({
-      id: "element-tag",
-      label: "Element Tag",
-      content: tagContent,
-      type: "element",
-      included: true,
-      size: tagContent.length,
-    });
-
-    // Add text content if present
-    if (info.innerText && info.innerText.length > 0) {
-      const textContent = info.innerText.slice(0, 200);
-      chunks.push({
-        id: "element-text",
-        label: "Text Content",
-        content: textContent,
-        type: "text",
-        included: true,
-        size: textContent.length,
-      });
-    }
-
-    // Add computed styles summary
-    if (info.computedStyles) {
-      // Get a few key styles from different categories
-      const styleEntries: string[] = [];
-      for (const [category, styles] of Object.entries(info.computedStyles)) {
-        if (styles && typeof styles === "object") {
-          const entries = Object.entries(styles).slice(0, 2);
-          for (const [k, v] of entries) {
-            if (v) styleEntries.push(`${k}: ${v}`);
-          }
-        }
-        if (styleEntries.length >= 8) break;
-      }
-      const stylesContent = styleEntries.join("; ");
-      if (stylesContent) {
-        chunks.push({
-          id: "element-styles",
-          label: "Key Styles",
-          content: stylesContent,
-          type: "element",
-          included: true,
-          size: stylesContent.length,
-        });
-      }
-    }
-
-    // Add accessibility info
-    if (info.accessibility) {
-      const a11yContent = [
-        info.accessibility.role && `role="${info.accessibility.role}"`,
-        info.accessibility.accessibleName &&
-          `aria-label="${info.accessibility.accessibleName}"`,
-      ]
-        .filter(Boolean)
-        .join(", ");
-      if (a11yContent) {
-        chunks.push({
-          id: "element-a11y",
-          label: "Accessibility",
-          content: a11yContent,
-          type: "element",
-          included: true,
-          size: a11yContent.length,
-        });
-      }
-    }
-
-    // Add box model info
-    if (info.boxModel) {
-      const boxContent = `${Math.round(info.boxModel.content.width)}x${Math.round(info.boxModel.content.height)}px`;
-      chunks.push({
-        id: "element-dimensions",
-        label: "Dimensions",
-        content: boxContent,
-        type: "element",
-        included: true,
-        size: boxContent.length,
-      });
-    }
-  } catch (error) {
-    console.error("Failed to extract context:", error);
-  }
-
-  return chunks;
-}
-
-/**
- * Builds the context string from included chunks.
- */
-function buildContextString(chunks: ContextChunk[]): string {
-  const includedChunks = chunks.filter((c) => c.included);
-  if (includedChunks.length === 0) return "";
-
-  return includedChunks.map((c) => `[${c.label}]: ${c.content}`).join("\n");
+export interface UseQuickChatReturn {
+  /** Current input value */
+  input: string;
+  /** Array of chat messages */
+  messages: ChatMessage[];
+  /** Whether suggestions are being loaded */
+  isLoadingSuggestions: boolean;
+  /** Whether a message is being sent */
+  isSending: boolean;
+  /** Whether a response is currently streaming */
+  isStreaming: boolean;
+  /** Suggested prompts from AI pre-pass */
+  suggestedPrompts: SuggestedPrompt[];
+  /** Context chunks extracted from target element */
+  contextChunks: import("./types").ContextChunk[];
+  /** Error message if any */
+  error: string | null;
+  /** Debug information for troubleshooting */
+  debugInfo: DebugInfo | null;
+  /** Rate limit notice if rate limited */
+  rateLimitNotice: RateLimitNotice | null;
+  /** Whether chat is pinned */
+  isPinned: boolean;
+  /** Last sync timestamp with backend */
+  lastSyncedAt: number | null;
+  /** Merged configuration */
+  config: Required<QuickChatConfig>;
+  /** Set input value */
+  setInput: (value: string) => void;
+  /** Toggle a context chunk's included state */
+  toggleChunk: (chunkId: string) => void;
+  /** Toggle all context chunks */
+  toggleAllChunks: (included: boolean) => void;
+  /** Select a suggested prompt (sets it as input) */
+  selectSuggestion: (prompt: SuggestedPrompt) => void;
+  /** Send a message (uses current input if no messageText provided) */
+  sendMessage: (messageText?: string) => Promise<void>;
+  /** Clear all messages */
+  clearMessages: () => void;
+  /** Set pinned state */
+  setIsPinned: (pinned: boolean) => void;
+  /** Clear rate limit notice */
+  clearRateLimitNotice: () => void;
 }
 
 /**
  * Hook for managing QuickChat state and interactions.
+ *
+ * Provides a complete chat interface with:
+ * - AI-powered streaming responses via ai-sdk
+ * - Context extraction from DOM elements
+ * - Message persistence (24h localStorage)
+ * - Suggested prompts
+ * - Rate limiting handling
+ * - Backend synchronization
+ *
+ * @param targetElement - The DOM element to extract context from (e.g., right-clicked element)
+ * @param containerElement - Optional container element for scoped context extraction
+ * @param config - Configuration options (endpoint, model, systemPrompt, etc.)
+ *
+ * @returns Object containing chat state and control functions
+ *
+ * @example
+ * ```tsx
+ * const { messages, input, sendMessage, isSending } = useQuickChat(
+ *   targetElement,
+ *   containerElement,
+ *   { endpoint: '/api/chat', model: 'gpt-4' }
+ * );
+ * ```
  */
 export function useQuickChat(
   targetElement: Element | null,
   containerElement: Element | null,
   config: QuickChatConfig = {},
-) {
-  const mergedConfig = { ...DEFAULT_QUICK_CHAT_CONFIG, ...config };
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const initializedRef = useRef(false);
+): UseQuickChatReturn {
+  const mergedConfig = useMemo(
+    () => ({ ...DEFAULT_QUICK_CHAT_CONFIG, ...config }),
+    [config],
+  );
 
-  const [state, setState] = useState<QuickChatState>({
-    input: "",
-    messages: [],
-    isLoadingSuggestions: false,
-    isSending: false,
-    isStreaming: false,
-    suggestedPrompts: [],
-    contextChunks: [],
-    error: null,
+  const initializedRef = useRef(false);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [manualSending, setManualSending] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+  const [rateLimitNotice, setRateLimitNotice] =
+    useState<RateLimitNotice | null>(null);
+
+  // Zustand store
+  const {
+    input,
+    setInput,
+    isPinned,
+    setIsPinned,
+    contextChunks,
+    setContextChunks,
+    toggleChunk,
+    toggleAllChunks,
+    suggestedPrompts,
+    setSuggestedPrompts,
+    isLoadingSuggestions,
+    setIsLoadingSuggestions,
+    error,
+    setError,
+    addMessage,
+    clearMessages: storeClearMessages,
+    setLastSyncedAt,
+    lastSyncedAt,
+    setIsSending: setStoreIsSending,
+    setIsStreaming: setStoreIsStreaming,
+  } = useQuickChatStore();
+
+  // Active (non-expired) messages persisted for 24h
+  const storedMessages = useActiveMessages();
+
+  const contextString = useMemo(
+    () => buildContextString(contextChunks),
+    [contextChunks],
+  );
+
+  // Memoize chat body - only recreate when dependencies change
+  const chatBody = useMemo(
+    () => ({
+      action: "chat",
+      context: contextString,
+      model: mergedConfig.model,
+      systemPrompt: mergedConfig.systemPrompt,
+      maxLength: mergedConfig.maxResponseLength,
+    }),
+    [
+      contextString,
+      mergedConfig.model,
+      mergedConfig.systemPrompt,
+      mergedConfig.maxResponseLength,
+    ],
+  );
+
+  // Memoize transport - recreate only when endpoint or body structure changes
+  // Note: useChat will handle transport changes gracefully
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: mergedConfig.endpoint,
+        body: chatBody,
+      }),
+    [mergedConfig.endpoint, chatBody],
+  );
+
+  const handleRateLimitResponse = useCallback(
+    async (res: Response, endpoint: string) => {
+      const notice = await rateLimitNoticeFromResponse(res, endpoint);
+      if (!notice) return false;
+      setRateLimitNotice(notice);
+      setError(null);
+      return true;
+    },
+    [setError],
+  );
+
+  /**
+   * Schedule a backend sync after a short delay to batch updates.
+   */
+  const scheduleBackendSync = useCallback(() => {
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+
+    syncTimeoutRef.current = setTimeout(async () => {
+      try {
+        const currentMessages = useQuickChatStore
+          .getState()
+          .getActiveMessages();
+        if (currentMessages.length === 0) return;
+
+        const endpoint = `${mergedConfig.endpoint}/history`;
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save",
+            messages: currentMessages,
+          }),
+        });
+
+        if (await handleRateLimitResponse(res, endpoint)) return;
+        if (res.ok) setLastSyncedAt(Date.now());
+      } catch (err) {
+        console.error("[useQuickChat] Failed to sync chat history:", err);
+      }
+    }, 1000);
+  }, [handleRateLimitResponse, mergedConfig.endpoint, setLastSyncedAt]);
+
+  const {
+    messages: aiMessages,
+    sendMessage: aiSendMessage,
+    status,
+    stop,
+    setMessages: setAiMessages,
+  } = useChat({
+    transport,
+    onError: (err) => {
+      const response =
+        (err as unknown as { response?: Response }).response ?? undefined;
+      const statusCode =
+        (err as unknown as { status?: number }).status ??
+        (response ? response.status : undefined) ??
+        -1;
+
+      const responseText =
+        (err as unknown as { responseText?: string }).responseText ??
+        (err as unknown as { message?: string }).message ??
+        "";
+
+      setDebugInfo(
+        createDebugInfo({
+          status: statusCode,
+          ok: false,
+          contentType: response?.headers?.get?.("content-type") ?? null,
+          rawText: responseText,
+          error: err.message,
+        }),
+      );
+
+      setStoreIsStreaming(false);
+      setStoreIsSending(false);
+
+      const notice = rateLimitNoticeFromError({
+        statusCode,
+        response,
+        responseText,
+        endpoint: mergedConfig.endpoint,
+      });
+
+      if (notice) {
+        setRateLimitNotice(notice);
+        setError(null);
+        return;
+      }
+
+      setRateLimitNotice(null);
+      setError(err.message);
+    },
+    onFinish: ({ message }) => {
+      const messageText = getUIMessageText(message);
+
+      // Persist assistant message to store for 24h history + backend sync.
+      // Store IDs are generated, so we dedupe using the trailing message.
+      const current = useQuickChatStore.getState().getActiveMessages();
+      const last = current[current.length - 1];
+      const alreadyHaveSameTail =
+        last?.role === "assistant" && last.content === messageText;
+
+      if (!alreadyHaveSameTail && messageText) {
+        addMessage({
+          role: message.role as "user" | "assistant" | "system",
+          content: messageText,
+          isStreaming: false,
+        });
+      }
+
+      scheduleBackendSync();
+      setStoreIsStreaming(false);
+      setStoreIsSending(false);
+    },
   });
 
-  // Initialize from session storage on mount
+  const loadFromBackend = useCallback(async () => {
+    try {
+      const endpoint = `${mergedConfig.endpoint}/history`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "load" }),
+      });
+
+      if (await handleRateLimitResponse(response, endpoint)) return;
+      if (!response.ok) return;
+
+      const data = (await response.json().catch(() => null)) as {
+        messages?: ChatMessage[];
+      } | null;
+
+      if (!data?.messages || !Array.isArray(data.messages)) return;
+      if (data.messages.length === 0) return;
+
+      useQuickChatStore.getState().hydrate(data.messages);
+      setAiMessages(chatMessagesToUiMessages(data.messages));
+    } catch (err) {
+      console.error("[useQuickChat] Failed to load chat history:", err);
+    }
+  }, [handleRateLimitResponse, mergedConfig.endpoint, setAiMessages]);
+
+  // Convert ai-sdk messages to our ChatMessage format for display
+  const messages: ChatMessage[] = useMemo(
+    () =>
+      uiMessagesToChatMessages({
+        uiMessages: aiMessages,
+        status,
+        setInput,
+      }),
+    [aiMessages, setInput, status],
+  );
+
+  const isStreaming = status === "streaming";
+  const isSending =
+    status === "submitted" || status === "streaming" || manualSending;
+
+  // Initialize: load from backend if store is empty, or restore from store
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const isPinned = getPinnedState();
-    if (isPinned) {
-      const history = getChatHistory();
-      if (history.length > 0) {
-        setState((prev) => ({ ...prev, messages: history }));
-      }
+    if (storedMessages.length > 0) {
+      setAiMessages(chatMessagesToUiMessages(storedMessages));
+    } else {
+      void loadFromBackend();
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Extract context when target element changes
-  // When pinned, preserve the last context if targetElement becomes null
   useEffect(() => {
-    if (targetElement) {
-      const chunks = extractContextChunks(targetElement, containerElement);
-      setState((prev) => ({ ...prev, contextChunks: chunks }));
+    if (!targetElement) {
+      setContextChunks([]);
+      return;
     }
-    // Don't clear context when targetElement is null - preserve last context for pinned state
-  }, [targetElement, containerElement]);
+    const chunks = extractContextChunks(targetElement, containerElement);
+    setContextChunks(chunks);
+  }, [targetElement, containerElement, setContextChunks]);
 
   // Fetch suggested prompts when context is available
   useEffect(() => {
-    if (
-      !mergedConfig.showSuggestions ||
-      state.contextChunks.length === 0 ||
-      state.suggestedPrompts.length > 0
-    ) {
-      return;
-    }
+    if (!mergedConfig.showSuggestions) return;
+    if (!contextString) return;
+    if (suggestedPrompts.length > 0) return;
+
+    let cancelled = false;
 
     const fetchSuggestions = async () => {
-      setState((prev) => ({ ...prev, isLoadingSuggestions: true }));
+      setIsLoadingSuggestions(true);
 
       try {
-        const contextString = buildContextString(state.contextChunks);
         const response = await fetch(mergedConfig.endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -294,264 +385,154 @@ export function useQuickChat(
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.suggestions && Array.isArray(data.suggestions)) {
-            setState((prev) => ({
-              ...prev,
-              suggestedPrompts: data.suggestions.map(
-                (text: string, i: number) => ({
-                  id: `suggestion-${i}`,
-                  text,
-                }),
-              ),
-              isLoadingSuggestions: false,
-            }));
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch suggestions:", error);
-      }
-
-      // Fallback default suggestions
-      setState((prev) => ({
-        ...prev,
-        suggestedPrompts: [
-          { id: "s1", text: "What is this element?" },
-          { id: "s2", text: "How can I style this?" },
-          { id: "s3", text: "Is this accessible?" },
-        ],
-        isLoadingSuggestions: false,
-      }));
-    };
-
-    fetchSuggestions();
-  }, [
-    state.contextChunks,
-    state.suggestedPrompts.length,
-    mergedConfig.showSuggestions,
-    mergedConfig.endpoint,
-    mergedConfig.prePassModel,
-  ]);
-
-  // Set input value
-  const setInput = useCallback((value: string) => {
-    setState((prev) => ({ ...prev, input: value }));
-  }, []);
-
-  // Toggle context chunk inclusion
-  const toggleChunk = useCallback((chunkId: string) => {
-    setState((prev) => ({
-      ...prev,
-      contextChunks: prev.contextChunks.map((chunk) =>
-        chunk.id === chunkId ? { ...chunk, included: !chunk.included } : chunk,
-      ),
-    }));
-  }, []);
-
-  // Toggle all chunks
-  const toggleAllChunks = useCallback((included: boolean) => {
-    setState((prev) => ({
-      ...prev,
-      contextChunks: prev.contextChunks.map((chunk) => ({
-        ...chunk,
-        included,
-      })),
-    }));
-  }, []);
-
-  // Select a suggested prompt
-  const selectSuggestion = useCallback((prompt: SuggestedPrompt) => {
-    setState((prev) => ({ ...prev, input: prompt.text }));
-  }, []);
-
-  // Send a message
-  const sendMessage = useCallback(
-    async (messageText?: string) => {
-      const text = (messageText || state.input).trim();
-      if (!text) return;
-
-      // Abort any existing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
-      const userMessage: ChatMessage = {
-        id: generateId(),
-        role: "user",
-        content: text,
-        timestamp: Date.now(),
-      };
-
-      const assistantMessageId = generateId();
-      const assistantMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: "assistant",
-        content: "",
-        timestamp: Date.now(),
-        isStreaming: true,
-      };
-
-      setState((prev) => ({
-        ...prev,
-        input: "",
-        messages: [...prev.messages, userMessage, assistantMessage],
-        isSending: true,
-        isStreaming: true,
-        error: null,
-      }));
-
-      try {
-        const contextString = buildContextString(state.contextChunks);
-        const response = await fetch(mergedConfig.endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "chat",
-            message: text,
-            context: contextString,
-            model: mergedConfig.model,
-            systemPrompt: mergedConfig.systemPrompt,
-            maxLength: mergedConfig.maxResponseLength,
-          }),
-          signal: abortControllerRef.current.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response body");
-        }
-
-        const decoder = new TextDecoder();
-        let fullContent = "";
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          fullContent += chunk;
-
-          // Truncate if exceeds max length
-          if (fullContent.length > mergedConfig.maxResponseLength) {
-            fullContent =
-              fullContent.slice(0, mergedConfig.maxResponseLength) + "...";
-          }
-
-          setState((prev) => ({
-            ...prev,
-            messages: prev.messages.map((msg) =>
-              msg.id === assistantMessageId
-                ? { ...msg, content: fullContent }
-                : msg,
-            ),
-          }));
-        }
-
-        // Finalize message with actions
-        setState((prev) => ({
-          ...prev,
-          messages: prev.messages.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content: fullContent,
-                  isStreaming: false,
-                  actions: [
-                    {
-                      id: "copy",
-                      label: "Copy",
-                      onClick: () => {
-                        navigator.clipboard.writeText(fullContent);
-                      },
-                    },
-                    {
-                      id: "research",
-                      label: "Research more",
-                      onClick: () => {
-                        setState((p) => ({
-                          ...p,
-                          input: `Tell me more about: ${text}`,
-                        }));
-                      },
-                    },
-                  ],
-                }
-              : msg,
-          ),
-          isSending: false,
-          isStreaming: false,
-        }));
-      } catch (error) {
-        if ((error as Error).name === "AbortError") {
+        if (await handleRateLimitResponse(response, mergedConfig.endpoint)) {
+          if (!cancelled) setIsLoadingSuggestions(false);
           return;
         }
 
-        console.error("Chat error:", error);
-        setState((prev) => ({
-          ...prev,
-          messages: prev.messages.map((msg) =>
-            msg.id === assistantMessageId
-              ? {
-                  ...msg,
-                  content:
-                    "Sorry, I couldn't process your request. Please try again.",
-                  isStreaming: false,
-                }
-              : msg,
-          ),
-          isSending: false,
-          isStreaming: false,
-          error: (error as Error).message,
-        }));
+        if (response.ok) {
+          const data = (await response.json().catch(() => null)) as {
+            suggestions?: string[];
+          } | null;
+
+          if (data?.suggestions && Array.isArray(data.suggestions)) {
+            if (!cancelled) {
+              setSuggestedPrompts(
+                data.suggestions.map((text: string, i: number) => ({
+                  id: `suggestion-${i}`,
+                  text,
+                })),
+              );
+              setIsLoadingSuggestions(false);
+            }
+            return;
+          }
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[useQuickChat] Failed to fetch suggestions:", err);
+        }
+      }
+
+      if (!cancelled) {
+        // Fallback suggestions
+        setSuggestedPrompts([
+          { id: "s1", text: "What is this element?" },
+          { id: "s2", text: "How can I style this?" },
+          { id: "s3", text: "Is this accessible?" },
+        ]);
+        setIsLoadingSuggestions(false);
+      }
+    };
+
+    void fetchSuggestions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    contextString,
+    handleRateLimitResponse,
+    mergedConfig.endpoint,
+    mergedConfig.prePassModel,
+    mergedConfig.showSuggestions,
+    setIsLoadingSuggestions,
+    setSuggestedPrompts,
+    suggestedPrompts.length,
+  ]);
+
+  // Select a suggested prompt
+  const selectSuggestion = useCallback(
+    (prompt: SuggestedPrompt) => {
+      setInput(prompt.text);
+    },
+    [setInput],
+  );
+
+  // Send a message using streaming (ai-sdk useChat)
+  const sendMessage = useCallback(
+    async (messageText?: string) => {
+      const text = (messageText || input).trim();
+      if (!text) return;
+
+      setInput("");
+      setError(null);
+      setManualSending(true);
+      setStoreIsSending(true);
+      setStoreIsStreaming(true);
+      setDebugInfo(null);
+
+      try {
+        addMessage({
+          role: "user",
+          content: text,
+        });
+
+        await aiSendMessage({ text });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+      } finally {
+        setManualSending(false);
+        setStoreIsSending(false);
+        setStoreIsStreaming(false);
       }
     },
-    [state.input, state.contextChunks, mergedConfig],
+    [
+      addMessage,
+      aiSendMessage,
+      input,
+      setError,
+      setInput,
+      setStoreIsSending,
+      setStoreIsStreaming,
+    ],
   );
 
   // Clear messages
   const clearMessages = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    clearChatHistory();
-    setState((prev) => ({
-      ...prev,
-      messages: [],
-      error: null,
-    }));
-  }, []);
+    stop();
+    storeClearMessages();
+    setAiMessages([]);
 
-  // Save messages to session storage when they change (if pinned)
-  useEffect(() => {
-    if (state.messages.length > 0 && getPinnedState()) {
-      // Only save completed messages (not streaming)
-      const completedMessages = state.messages.filter(
-        (msg) => !msg.isStreaming,
+    const endpoint = `${mergedConfig.endpoint}/history`;
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "clear" }),
+    })
+      .then((res) => handleRateLimitResponse(res, endpoint))
+      .catch((err) =>
+        console.error("[useQuickChat] Failed to clear backend history:", err),
       );
-      if (completedMessages.length > 0) {
-        saveChatHistory(completedMessages);
-      }
-    }
-  }, [state.messages]);
+  }, [
+    handleRateLimitResponse,
+    mergedConfig.endpoint,
+    setAiMessages,
+    stop,
+    storeClearMessages,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
   }, []);
 
   return {
-    ...state,
+    input,
+    messages,
+    isLoadingSuggestions,
+    isSending,
+    isStreaming,
+    suggestedPrompts,
+    contextChunks,
+    error,
+    debugInfo,
+    rateLimitNotice,
+    isPinned,
+    lastSyncedAt,
     config: mergedConfig,
     setInput,
     toggleChunk,
@@ -559,5 +540,7 @@ export function useQuickChat(
     selectSuggestion,
     sendMessage,
     clearMessages,
-  };
+    setIsPinned,
+    clearRateLimitNotice: () => setRateLimitNotice(null),
+  } satisfies UseQuickChatReturn;
 }

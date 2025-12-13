@@ -86,9 +86,8 @@ export function HealthcareSection({
                 },
                 pointerIcon: theme.pointerIcon,
               }}
-              config={{ visibility: "always", hideDefaultCursor: true }}
             >
-              <div className="group cursor-none">
+              <div className="group">
                 <HealthcareCard />
                 <motion.div
                   className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500"

@@ -1,4 +1,4 @@
-import type { ReactNode, CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /**
  * Pointer visibility modes
@@ -105,15 +105,6 @@ export interface FunModeConfig {
    * Keep small for perf (e.g., sibling/child rects).
    */
   getObstacles?: () => DOMRect[];
-}
-
-/**
- * Internal state for go-kart pointer
- */
-export interface GoKartState {
-  position: { x: number; y: number };
-  velocity: { x: number; y: number };
-  angle: number;
 }
 
 /**

@@ -2,10 +2,11 @@
  * QuickChat component - Lightweight AI chat in the context menu.
  *
  * Provides a minimal chat interface that auto-focuses when opened,
- * streams AI responses, and offers quick actions.
+ * streams AI responses using ai-sdk-ui, and offers quick actions.
+ * Chat history persists for 24h via zustand store.
  *
  * @module QuickChat/QuickChat
- * @since 2.0.0
+ * @since 3.1.0
  */
 "use client";
 
@@ -16,6 +17,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { buildAnyclickPayload } from "@ewjdev/anyclick-core";
 import {
   AlertCircle,
   ChevronDown,
@@ -32,36 +34,6 @@ import {
 import { quickChatKeyframes, quickChatStyles } from "./styles";
 import type { QuickChatProps } from "./types";
 import { useQuickChat } from "./useQuickChat";
-
-const PINNED_STATE_KEY = "anyclick-quick-chat-pinned";
-
-/**
- * Get pinned state from session storage.
- */
-function getStoredPinnedState(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return sessionStorage.getItem(PINNED_STATE_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Set pinned state in session storage.
- */
-function setStoredPinnedState(pinned: boolean): void {
-  if (typeof window === "undefined") return;
-  try {
-    if (pinned) {
-      sessionStorage.setItem(PINNED_STATE_KEY, "true");
-    } else {
-      sessionStorage.removeItem(PINNED_STATE_KEY);
-    }
-  } catch {
-    // Ignore storage errors
-  }
-}
 
 /**
  * Injects keyframe animations into the document.
@@ -118,45 +90,47 @@ export function QuickChat({
     null,
   );
 
-  // Use stored pinned state or prop
-  const [localPinned, setLocalPinned] = useState(() => getStoredPinnedState());
-  const isPinned = isPinnedProp || localPinned;
-
-  // Sync pinned state with session storage
-  const handlePinToggle = useCallback(() => {
-    const newPinned = !isPinned;
-    setLocalPinned(newPinned);
-    setStoredPinnedState(newPinned);
-    onPin?.(newPinned);
-  }, [isPinned, onPin]);
-
-  // Handle close - if pinned, just unpin; otherwise close
-  const handleClose = useCallback(() => {
-    if (isPinned) {
-      setLocalPinned(false);
-      setStoredPinnedState(false);
-      onPin?.(false);
-    }
-    onClose();
-  }, [isPinned, onPin, onClose]);
-
   const {
     input,
     messages,
     isLoadingSuggestions,
     isSending,
     isStreaming,
+    debugInfo,
+    rateLimitNotice,
     suggestedPrompts,
     contextChunks,
     error,
+    isPinned: storePinned,
     setInput,
     toggleChunk,
     toggleAllChunks,
     selectSuggestion,
     sendMessage,
     clearMessages,
+    setIsPinned,
+    clearRateLimitNotice,
     config: mergedConfig,
   } = useQuickChat(targetElement, containerElement, config);
+
+  // Use prop or store pinned state
+  const isPinned = isPinnedProp || storePinned;
+
+  // Sync pinned state with store
+  const handlePinToggle = useCallback(() => {
+    const newPinned = !isPinned;
+    setIsPinned(newPinned);
+    onPin?.(newPinned);
+  }, [isPinned, setIsPinned, onPin]);
+
+  // Handle close - if pinned, just unpin; otherwise close
+  const handleClose = useCallback(() => {
+    if (isPinned) {
+      setIsPinned(false);
+      onPin?.(false);
+    }
+    onClose();
+  }, [isPinned, setIsPinned, onPin, onClose]);
 
   // Inject styles on mount
   useEffect(() => {
@@ -231,9 +205,7 @@ export function QuickChat({
     if (typeof window === "undefined") return;
     const query = input.trim();
     const baseUrl = mergedConfig.t3chat?.baseUrl ?? "https://t3.chat";
-    const url = query
-      ? `${baseUrl}/?q=${encodeURIComponent(query)}`
-      : baseUrl;
+    const url = query ? `${baseUrl}/?q=${encodeURIComponent(query)}` : baseUrl;
     window.open(url, "_blank", "noopener,noreferrer");
   }, [input, mergedConfig.t3chat?.baseUrl]);
 
@@ -247,6 +219,82 @@ export function QuickChat({
     () => contextChunks.filter((c) => c.included).length,
     [contextChunks],
   );
+
+  const [rateLimitExpanded, setRateLimitExpanded] = useState(false);
+  const [reportStatus, setReportStatus] = useState<
+    "idle" | "sending" | "sent" | "error"
+  >("idle");
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+
+  // If a new rate-limit notice appears, reset report UI
+  useEffect(() => {
+    if (rateLimitNotice) {
+      setReportStatus("idle");
+      setReportUrl(null);
+      setReportError(null);
+      setRateLimitExpanded(false);
+    }
+  }, [rateLimitNotice]);
+
+  const handleReportIssue = useCallback(async () => {
+    if (!rateLimitNotice) return;
+    if (!targetElement) {
+      setReportStatus("error");
+      setReportError("No target element available to report.");
+      return;
+    }
+
+    setReportStatus("sending");
+    setReportError(null);
+
+    try {
+      const payload = buildAnyclickPayload(targetElement, "issue", {
+        comment: `QuickChat: ${rateLimitNotice.message}`,
+        metadata: {
+          source: "quickchat",
+          kind: "rate_limit",
+          endpoint: rateLimitNotice.endpoint ?? mergedConfig.endpoint,
+          retryAt: rateLimitNotice.retryAt,
+          retryAfterSeconds: rateLimitNotice.retryAfterSeconds,
+          requestId: rateLimitNotice.requestId,
+          debugInfo: debugInfo ?? undefined,
+          raw: rateLimitNotice.raw ?? undefined,
+        },
+      });
+
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const json = (await res.json().catch(() => null)) as {
+        success?: boolean;
+        results?: Array<{ adapter: string; url?: string }>;
+        partialFailures?: Array<{ adapter: string; error?: string }>;
+        error?: string;
+      } | null;
+
+      if (!res.ok || !json?.success) {
+        const msg =
+          json?.error ||
+          (res.status
+            ? `Failed to create issue (${res.status}).`
+            : "Failed to create issue.");
+        throw new Error(msg);
+      }
+
+      const firstUrl = json.results?.find(
+        (r) => typeof r.url === "string",
+      )?.url;
+      setReportUrl(firstUrl ?? null);
+      setReportStatus("sent");
+    } catch (e) {
+      setReportStatus("error");
+      setReportError(e instanceof Error ? e.message : String(e));
+    }
+  }, [rateLimitNotice, targetElement, mergedConfig.endpoint, debugInfo]);
 
   if (!visible) return null;
 
@@ -424,7 +472,8 @@ export function QuickChat({
             : quickChatStyles.messagesArea
         }
       >
-        {error && (
+        {/* Keep generic errors visible, but rate-limit uses a sticky banner below */}
+        {error && !rateLimitNotice && (
           <div style={quickChatStyles.errorContainer}>
             <AlertCircle size={20} style={quickChatStyles.errorIcon} />
             <span style={quickChatStyles.errorText}>{error}</span>
@@ -436,6 +485,50 @@ export function QuickChat({
               <RefreshCw size={10} />
               Retry
             </button>
+          </div>
+        )}
+        {debugInfo && (
+          <div
+            style={{
+              backgroundColor: "#0f172a",
+              color: "#e2e8f0",
+              border: "1px solid #334155",
+              borderRadius: "8px",
+              padding: "8px",
+              margin: "0 0 8px",
+              fontSize: "12px",
+              lineHeight: 1.4,
+              wordBreak: "break-word",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <span>
+                Last request: {debugInfo.status}{" "}
+                {debugInfo.ok ? "(ok)" : "(error)"}
+              </span>
+              <span style={{ opacity: 0.7 }}>
+                {new Date(debugInfo.timestamp).toLocaleTimeString()}
+              </span>
+            </div>
+            {debugInfo.error && (
+              <div style={{ color: "#f87171", marginTop: "4px" }}>
+                Error: {debugInfo.error}
+              </div>
+            )}
+            {debugInfo.contentPreview && (
+              <div style={{ marginTop: "4px" }}>
+                Content: {debugInfo.contentPreview}
+              </div>
+            )}
+            <div style={{ marginTop: "4px", opacity: 0.8 }}>
+              Raw: {debugInfo.rawTextPreview || "(empty)"}
+            </div>
           </div>
         )}
         {messages.length > 0 &&
@@ -493,6 +586,163 @@ export function QuickChat({
           ))}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Sticky bottom notice for rate limiting */}
+      {rateLimitNotice && (
+        <div
+          style={{
+            borderTop: "1px solid rgba(148, 163, 184, 0.25)",
+            background:
+              "linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.96))",
+            color: "#e2e8f0",
+            padding: "8px 10px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "8px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertCircle size={16} style={{ color: "#fbbf24" }} />
+              <span style={{ fontSize: "13px", lineHeight: 1.2 }}>
+                {rateLimitNotice.message}
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={() => setRateLimitExpanded((v) => !v)}
+                style={{
+                  border: "1px solid rgba(148, 163, 184, 0.25)",
+                  background: "rgba(30, 41, 59, 0.6)",
+                  color: "#e2e8f0",
+                  borderRadius: "6px",
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                {rateLimitExpanded ? "Hide" : "Details"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleReportIssue}
+                disabled={reportStatus === "sending" || reportStatus === "sent"}
+                style={{
+                  border: "1px solid rgba(148, 163, 184, 0.25)",
+                  background:
+                    reportStatus === "sent"
+                      ? "rgba(34, 197, 94, 0.22)"
+                      : "rgba(30, 41, 59, 0.6)",
+                  color: "#e2e8f0",
+                  borderRadius: "6px",
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  cursor:
+                    reportStatus === "sending" || reportStatus === "sent"
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity: reportStatus === "sending" ? 0.7 : 1,
+                }}
+                title="Create a GitHub issue via /api/feedback"
+              >
+                {reportStatus === "sending"
+                  ? "Reporting..."
+                  : reportStatus === "sent"
+                    ? "Reported"
+                    : "Report"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  clearRateLimitNotice();
+                  setRateLimitExpanded(false);
+                }}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(226, 232, 240, 0.8)",
+                  padding: "4px",
+                  cursor: "pointer",
+                }}
+                title="Dismiss"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+
+          {reportUrl && (
+            <div style={{ marginTop: "6px", fontSize: "12px" }}>
+              Created:{" "}
+              <a
+                href={reportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#93c5fd" }}
+              >
+                Open issue
+              </a>
+            </div>
+          )}
+          {reportError && (
+            <div
+              style={{ marginTop: "6px", fontSize: "12px", color: "#fca5a5" }}
+            >
+              {reportError}
+            </div>
+          )}
+
+          {rateLimitExpanded && (
+            <div
+              style={{
+                marginTop: "8px",
+                fontSize: "12px",
+                lineHeight: 1.4,
+                backgroundColor: "rgba(2, 6, 23, 0.55)",
+                border: "1px solid rgba(148, 163, 184, 0.25)",
+                borderRadius: "8px",
+                padding: "8px",
+                wordBreak: "break-word",
+              }}
+            >
+              <div style={{ opacity: 0.85 }}>
+                Status: {rateLimitNotice.status}
+                {rateLimitNotice.requestId
+                  ? ` • Request: ${rateLimitNotice.requestId}`
+                  : ""}
+              </div>
+              {rateLimitNotice.endpoint && (
+                <div style={{ opacity: 0.75, marginTop: "4px" }}>
+                  Endpoint: {rateLimitNotice.endpoint}
+                </div>
+              )}
+              {rateLimitNotice.retryAt && (
+                <div style={{ opacity: 0.75, marginTop: "4px" }}>
+                  RetryAt: {new Date(rateLimitNotice.retryAt).toLocaleString()}
+                </div>
+              )}
+              {rateLimitNotice.raw && (
+                <div style={{ marginTop: "6px", opacity: 0.85 }}>
+                  Raw: {rateLimitNotice.raw}
+                </div>
+              )}
+              {debugInfo && (
+                <div style={{ marginTop: "6px", opacity: 0.85 }}>
+                  Debug: {debugInfo.rawTextPreview || "(empty)"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Input area */}
       <div style={quickChatStyles.inputContainer}>

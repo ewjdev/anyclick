@@ -697,10 +697,6 @@ function RoleCard({
           },
           pointerIcon: role.pointerIcon,
         }}
-        config={{
-          visibility: "always",
-          hideDefaultCursor: true,
-        }}
       >
         <div
           className={cn(

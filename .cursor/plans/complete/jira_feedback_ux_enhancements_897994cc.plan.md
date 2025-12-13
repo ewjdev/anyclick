@@ -1,27 +1,3 @@
----
-name: Jira Feedback UX Enhancements
-overview: Enhance JiraFeedbackMenu with optimistic description pre-fill, persistent form memory via sessionStorage (for both credentials and field preferences), and a seamless fallback for users without backend Jira configuration.
-todos:
-  - id: preferences-hook
-    content: Create useJiraPreferences hook for sessionStorage management (credentials + field defaults)
-    status: completed
-  - id: context-description
-    content: Add generateContextDescription helper and pre-fill description field
-    status: completed
-  - id: configure-step
-    content: Add 'configure' step UI for users without backend Jira config
-    status: completed
-  - id: api-session-creds
-    content: Update API route to accept credentials via x-jira-credentials header
-    status: completed
-  - id: remember-fields
-    content: Save and restore field values per issue type on form load/submit
-    status: completed
-  - id: auto-select-type
-    content: Auto-select last-used issue type with option to change
-    status: completed
----
-
 # Jira Feedback UX Enhancements
 
 ## Key Files

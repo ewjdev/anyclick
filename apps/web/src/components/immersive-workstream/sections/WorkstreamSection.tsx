@@ -30,7 +30,7 @@ export function WorkstreamSection({ theme }: WorkstreamSectionProps) {
           <SoftwareDevelopmentSection
             theme={theme}
             scrollYProgress={scrollYProgress}
-            isInView={isInView}
+            isInView={true}
             bgY={bgY}
           />
         </section>
