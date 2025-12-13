@@ -55,6 +55,7 @@
     "@ai-sdk/react": "^2.0.114",
     "@ewjdev/anyclick-core": "^1.4.0",
     "@ewjdev/anyclick-pointer": "^4.0.0",
+    "@ewjdev/anyclick-devtools": "^4.0.0",
     "ai": "^5.0.112",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2",
@@ -62,8 +63,7 @@
   },
   "peerDependencies": {
     "react": ">=19.2.1",
-    "react-dom": ">=19.2.1",
-    "@ewjdev/anyclick-devtools": "^4.0.0"
+    "react-dom": ">=19.2.1"
   },
   "devDependencies": {
     "@types/node": "^20.17.32",
