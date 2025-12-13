@@ -62,7 +62,8 @@
   },
   "peerDependencies": {
     "react": ">=19.2.1",
-    "react-dom": ">=19.2.1"
+    "react-dom": ">=19.2.1",
+    "@ewjdev/anyclick-devtools": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.32",
