@@ -1,5 +1,5 @@
 import { CSSProperties } from "react";
-import { openInspectDialog } from "../InspectDialog/InspectDialogManager";
+import { openInspectDialog } from "@ewjdev/anyclick-devtools";
 import type { ContextMenuItem } from "../types";
 import { CreatePresetMenuOptions, PresetConfig, PresetRole } from "./types";
 

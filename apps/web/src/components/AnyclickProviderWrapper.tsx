@@ -2,8 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
+import {
+  InspectDialogManager,
+  ModificationIndicator,
+} from "@ewjdev/anyclick-devtools";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { PointerProvider, useHideCursor } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
 
 const adapter = createHttpAdapter({
@@ -61,19 +64,19 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
         placeholder: "Ask about this element...",
         title: "Quick Ask",
       }}
-      // theme={{
-      //   highlightConfig: {
-      //     enabled: true,
-      //     colors: {
-      //       targetColor: "#3b82f6",
-      //       containerColor: "#8b5cf6",
-      //     },
-      //   },
-      //   screenshotConfig: chromePreset.screenshotConfig,
-      //   ...chromePreset.theme,
-      // }}
+      theme={{
+        highlightConfig: {
+          enabled: false,
+        },
+      }}
     >
       {children}
+      <InspectDialogManager
+        ideConfig={{
+          protocol: "cursor",
+          basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+        }}
+      />
       {/* <PointerProvider
         theme={{
           colors: {
@@ -100,12 +103,6 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
             protocol: "cursor",
             basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
           }}
-        />
-        <ModificationIndicator
-          position="bottom-right"
-          size={48}
-          autoApply
-          primaryColor="#3b82f6"
         />
       </PointerProvider> */}
     </AnyclickProvider>
