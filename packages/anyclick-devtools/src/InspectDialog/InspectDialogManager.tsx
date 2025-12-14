@@ -27,6 +27,8 @@ export interface InspectDialogEventDetail {
 export function openInspectDialog(targetElement: Element): void {
   if (typeof window === "undefined") return;
 
+  console.log("openInspectDialog", targetElement);
+
   const event = new CustomEvent<InspectDialogEventDetail>(
     INSPECT_DIALOG_EVENT,
     {
@@ -98,6 +100,7 @@ export function InspectDialogManager({
 
   useEffect(() => {
     const handleInspectEvent = (event: Event) => {
+      console.log("handleInspectEvent", event);
       const customEvent = event as CustomEvent<InspectDialogEventDetail>;
       if (customEvent.detail?.targetElement) {
         setTargetElement(customEvent.detail.targetElement);

@@ -1,17 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo } from "react";
-import { ModificationIndicator } from "@ewjdev/anyclick-devtools";
+import { useEffect, useMemo } from "react";
+import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import {
-  AnyclickProvider,
-  FunModeBridge,
-  InspectDialogManager,
-  createPresetMenu,
-} from "@ewjdev/anyclick-react";
-import { MousePointer2 } from "lucide-react";
+import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
@@ -20,6 +13,38 @@ const adapter = createHttpAdapter({
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   // Use chrome preset for developer-focused menu with inspect, copy, etc.
   const chromePreset = useMemo(() => createPresetMenu("chrome"), []);
+
+  console.count("AnyclickProviderWrapper");
+
+  // Clean up any stale cursor hiding styles when PointerProvider is not used
+  // This ensures the default cursor is restored if PointerProvider was removed
+  useEffect(() => {
+    // Remove any existing cursor hiding style element
+    const cursorHideStyle = document.getElementById(
+      "anyclick-pointer-cursor-hide",
+    );
+    if (cursorHideStyle) {
+      cursorHideStyle.remove();
+    }
+
+    // Also check periodically for any stale styles (for debugging)
+    const interval = setInterval(() => {
+      const staleStyle = document.getElementById(
+        "anyclick-pointer-cursor-hide",
+      );
+      if (staleStyle) {
+        console.warn(
+          "[AnyclickProviderWrapper] Found stale cursor hiding style, removing it",
+        );
+        staleStyle.remove();
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Option: Use this hook if you want to hide cursor without custom pointer
+  // useHideCursor(true);
 
   return (
     <AnyclickProvider
@@ -38,17 +63,18 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
       }}
       theme={{
         highlightConfig: {
-          enabled: true,
-          colors: {
-            targetColor: "#3b82f6",
-            containerColor: "#8b5cf6",
-          },
+          enabled: false,
         },
-        screenshotConfig: chromePreset.screenshotConfig,
-        ...chromePreset.theme,
       }}
     >
-      <PointerProvider
+      {children}
+      <InspectDialogManager
+        ideConfig={{
+          protocol: "cursor",
+          basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+        }}
+      />
+      {/* <PointerProvider
         theme={{
           colors: {
             pointerColor: "#3b82f6",
@@ -69,21 +95,13 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
           hideDefaultCursor: true,
         }}
       >
-        <FunModeBridge />
         <InspectDialogManager
           ideConfig={{
             protocol: "cursor",
             basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
           }}
         />
-        <ModificationIndicator
-          position="bottom-right"
-          size={48}
-          autoApply
-          primaryColor="#3b82f6"
-        />
-        {children}
-      </PointerProvider>
+      </PointerProvider> */}
     </AnyclickProvider>
   );
 }

@@ -1,22 +1,22 @@
 // Components
 "use client";
 
+// Legacy provider (complex nesting with context merging) - deprecated
 export {
-  PointerProvider,
-  PointerContext,
-  usePointer,
-  useParentPointerTheme,
-  // Theme/config merging helpers
+  // Theme/config merging helpers (still useful)
   mergeThemeWithDefaults,
-  mergeThemeWithParent,
   mergeConfigWithDefaults,
-  mergeConfigWithParent,
-} from "./PointerProvider";
+} from "./utils";
 
 // Re-export MergedTheme type
-export type { MergedTheme } from "./PointerProvider";
+export type { MergedTheme } from "./utils";
+
+// Custom pointer component (for advanced use cases)
 export { CustomPointer } from "./CustomPointer";
-export { GoKartPointer } from "./GoKartPointer";
+
+// Pointer store (for advanced use cases - accessing global state)
+export { usePointerStore, POINTER_CONTAINER_ATTR } from "./pointerStore";
+export type { PointerContainerEntry } from "./pointerStore";
 
 // Types
 export type {
@@ -28,7 +28,6 @@ export type {
   PointerTheme,
   PointerConfig,
   FunModeConfig,
-  GoKartState,
   PointerState,
   PointerProviderProps,
   CustomPointerProps,
@@ -70,3 +69,10 @@ export {
   resetDeviceDetectionCache,
   getDeviceType,
 } from "./deviceDetection";
+
+// Cursor hiding utility
+export { useHideCursor } from "./useHideCursor";
+
+export { usePointer } from "./usePointer";
+
+export { PointerProvider } from "./PointerProvider";

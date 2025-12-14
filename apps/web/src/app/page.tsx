@@ -5,7 +5,7 @@ import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamSho
 import PackagesSection from "@/components/PackagesSection";
 import QuickStartSection from "@/components/QuickStartSection";
 import RoadmapSummary from "@/components/RoadmapSummary";
-import { ArrowRight, Box, GitBranch, Terminal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -86,10 +86,9 @@ export default function Home() {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed px-2">
-            Right-click any element in your app to get the right context,
-            anyclick will format it for consumers and adapters will
-            automagically route it to the appropriate system. Issues or AI
-            agents.
+            Click any element in your app to capture context, anyclick will
+            format it for consumers and adapters will automagically route it to
+            the appropriate system and workflow.
           </p>
 
           {/* CTA Buttons */}

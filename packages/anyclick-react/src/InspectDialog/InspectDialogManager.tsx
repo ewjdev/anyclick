@@ -9,6 +9,21 @@ import {
   type PinnedPosition,
 } from "./InspectSimple";
 
+let didWarnDeprecated = false;
+function warnDeprecatedInspectDialogManager() {
+  if (didWarnDeprecated) return;
+  didWarnDeprecated = true;
+  if (process.env.NODE_ENV === "production") return;
+
+  // eslint-disable-next-line no-console
+  console.warn(
+    [
+      "[anyclick-react] InspectDialogManager is deprecated and has moved to @ewjdev/anyclick-devtools.",
+      "Update imports to `@ewjdev/anyclick-devtools`.",
+    ].join(" "),
+  );
+}
+
 /**
  * Custom event name for triggering the inspect dialog
  */
@@ -23,9 +38,13 @@ export interface InspectDialogEventDetail {
 
 /**
  * Dispatch an event to open the inspect dialog for an element
+ *
+ * @deprecated Moved to `@ewjdev/anyclick-devtools`. Import `openInspectDialog` from there instead.
  */
 export function openInspectDialog(targetElement: Element): void {
   if (typeof window === "undefined") return;
+
+  warnDeprecatedInspectDialogManager();
 
   const event = new CustomEvent<InspectDialogEventDetail>(
     INSPECT_DIALOG_EVENT,
@@ -65,6 +84,8 @@ export interface InspectDialogManagerProps {
  * Place this component once in your app (e.g., alongside AnyclickProvider) to enable
  * the inspect dialog functionality from the chrome preset.
  *
+ * @deprecated Moved to `@ewjdev/anyclick-devtools`. Import `InspectDialogManager` from there instead.
+ *
  * @example
  * ```tsx
  * <AnyclickProvider adapter={adapter}>
@@ -82,6 +103,8 @@ export function InspectDialogManager({
   initialPinnedPosition = "floating",
   compactConfig,
 }: InspectDialogManagerProps) {
+  warnDeprecatedInspectDialogManager();
+
   const [visible, setVisible] = useState(false);
   const [targetElement, setTargetElement] = useState<Element | null>(null);
 
@@ -98,6 +121,7 @@ export function InspectDialogManager({
 
   useEffect(() => {
     const handleInspectEvent = (event: Event) => {
+      console.log("handleInspectEvent", event);
       const customEvent = event as CustomEvent<InspectDialogEventDetail>;
       if (customEvent.detail?.targetElement) {
         setTargetElement(customEvent.detail.targetElement);
@@ -105,6 +129,7 @@ export function InspectDialogManager({
       }
     };
 
+    console.log("addEventListener", INSPECT_DIALOG_EVENT);
     window.addEventListener(INSPECT_DIALOG_EVENT, handleInspectEvent);
 
     return () => {
