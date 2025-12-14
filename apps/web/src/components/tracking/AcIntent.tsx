@@ -4,7 +4,8 @@
  * Ac.Intent - Declarative click/hover intent tracking component.
  *
  * Wraps interactive elements to automatically track clicks and hovers
- * without manual event handler wiring.
+ * without manual event handler wiring. Registers with parent Ac.Context
+ * for context menu integration.
  *
  * @module components/tracking/AcIntent
  */
@@ -12,25 +13,18 @@ import { getTrackingManager } from "@/lib/tracking/manager";
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { mergeContextData, useAcContext } from "./context";
+import { generateId, useIntentStore } from "./store";
+import type { AcIntentProps } from "./types";
 
-export interface AcIntentProps {
-  /** The intent identifier to track */
-  intent: string;
-  /** Event type to track (default: "click") */
-  on?: "click" | "hover" | "both";
-  /** Additional properties to include with the tracking event */
-  metadata?: Record<string, unknown>;
-  /** Disable tracking (useful for conditional tracking) */
-  disabled?: boolean;
-  /** Single child element (uses Slot pattern to merge props) */
-  children: React.ReactElement;
-}
+// Re-export props type for external use
+export type { AcIntentProps } from "./types";
 
 /**
  * Ac.Intent - Declarative intent tracking wrapper.
  *
  * Automatically attaches event handlers and data attributes to track
- * user interactions without manual boilerplate.
+ * user interactions without manual boilerplate. Registers with the
+ * intent store for context menu integration (unless context={false}).
  *
  * @example
  * ```tsx
@@ -44,34 +38,118 @@ export interface AcIntentProps {
  *   <Card />
  * </Ac.Intent>
  *
- * // With additional data
+ * // With additional metadata
  * <Ac.Intent intent={HomepageIntent.LINK_CLICK} metadata={{ link: "docs" }}>
  *   <a href="/docs">Documentation</a>
+ * </Ac.Intent>
+ *
+ * // With action for context menu
+ * <Ac.Intent
+ *   intent={HomepageIntent.FEATURE_CLICK}
+ *   action={{ label: "View Feature", priority: 8 }}
+ * >
+ *   <FeatureCard />
+ * </Ac.Intent>
+ *
+ * // Opt out of context menu (still tracks events)
+ * <Ac.Intent intent={HomepageIntent.MINOR_CLICK} context={false}>
+ *   <button>Minor Action</button>
  * </Ac.Intent>
  * ```
  */
 export const AcIntent = React.forwardRef<HTMLElement, AcIntentProps>(
-  ({ intent, on = "click", metadata, disabled = false, children }, ref) => {
+  (
+    {
+      intent,
+      on = "click",
+      metadata,
+      context: registerWithContext = true,
+      action,
+      disabled = false,
+      children,
+    },
+    forwardedRef,
+  ) => {
     // Get context data from parent Ac.Context providers
-    const { metadata: contextData } = useAcContext();
+    const { metadata: contextMetadata, contextId } = useAcContext();
 
-    // Merge context data with local data (local overrides context)
-    const mergedData = React.useMemo(
-      () => mergeContextData(contextData, metadata ?? {}),
-      [contextData, metadata],
+    // Generate unique ID for this intent
+    const intentIdRef = React.useRef<string>(generateId("intent"));
+    const intentId = intentIdRef.current;
+
+    // Internal ref for registration
+    const internalRef = React.useRef<HTMLElement | null>(null);
+
+    // Combine refs
+    const setRefs = React.useCallback(
+      (node: HTMLElement | null) => {
+        internalRef.current = node;
+        if (typeof forwardedRef === "function") {
+          forwardedRef(node);
+        } else if (forwardedRef) {
+          forwardedRef.current = node;
+        }
+      },
+      [forwardedRef],
+    );
+
+    // Merge context metadata with local metadata (local overrides context)
+    const mergedMetadata = React.useMemo(
+      () => mergeContextData(contextMetadata, metadata ?? {}),
+      [contextMetadata, metadata],
     );
 
     // Track hover only once per mount
     const hasHoveredRef = React.useRef(false);
+
+    // Store actions
+    const registerIntent = useIntentStore((s) => s.registerIntent);
+    const unregisterIntent = useIntentStore((s) => s.unregisterIntent);
+
+    // Determine event type for registration
+    const eventType = on === "both" ? "click" : on;
+
+    // Register with store on mount (unless context={false})
+    React.useEffect(() => {
+      if (disabled) return;
+
+      // Always register, but mark optOut if context={false}
+      // This allows events to pass through but consumers ignore optOut intents
+      registerIntent({
+        id: intentId,
+        intent,
+        contextId,
+        metadata: mergedMetadata,
+        elementRef: internalRef,
+        optOut: !registerWithContext,
+        eventType,
+        action,
+      });
+
+      return () => {
+        unregisterIntent(intentId);
+      };
+    }, [
+      intentId,
+      intent,
+      contextId,
+      disabled,
+      registerWithContext,
+      eventType,
+      action,
+      registerIntent,
+      unregisterIntent,
+    ]);
 
     // Track function
     const trackIntent = React.useCallback(() => {
       if (disabled) return;
 
       getTrackingManager().track(intent, {
-        properties: Object.keys(mergedData).length > 0 ? mergedData : undefined,
+        properties:
+          Object.keys(mergedMetadata).length > 0 ? mergedMetadata : undefined,
       });
-    }, [intent, mergedData, disabled]);
+    }, [intent, mergedMetadata, disabled]);
 
     // Click handler
     const handleClick = React.useCallback(
@@ -111,8 +189,8 @@ export const AcIntent = React.forwardRef<HTMLElement, AcIntentProps>(
       "data-ac-intent": intent,
     };
 
-    // Add data-ac-* attributes for each key in mergedData
-    for (const [key, value] of Object.entries(mergedData)) {
+    // Add data-ac-* attributes for each key in mergedMetadata
+    for (const [key, value] of Object.entries(mergedMetadata)) {
       if (value !== undefined && value !== null) {
         dataAttributes[`data-ac-${key}`] = String(value);
       }
@@ -120,7 +198,7 @@ export const AcIntent = React.forwardRef<HTMLElement, AcIntentProps>(
 
     // Build props to merge onto child
     const slotProps: Record<string, unknown> = {
-      ref,
+      ref: setRefs,
       ...dataAttributes,
     };
 

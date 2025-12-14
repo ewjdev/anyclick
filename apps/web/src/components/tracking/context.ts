@@ -13,18 +13,24 @@ import { createContext, useContext } from "react";
  * Data stored in the Ac tracking context.
  */
 export interface AcContextData {
+  /** Unique ID of this context (for store registration) */
+  contextId: string | null;
   /** Key-value pairs of context data */
   metadata: Record<string, unknown>;
   /** Optional context name for data-ac-context attribute */
   name?: string;
+  /** Depth in context tree (0 = no context) */
+  depth: number;
 }
 
 /**
  * Default context value (empty data).
  */
 const defaultContextData: AcContextData = {
+  contextId: null,
   metadata: {},
   name: undefined,
+  depth: 0,
 };
 
 /**
@@ -36,13 +42,13 @@ export const AcTrackingContext =
 /**
  * Hook to access the current Ac tracking context data.
  *
- * @returns The current context data, or empty object if no context provider exists
+ * @returns The current context data, or default if no context provider exists
  *
  * @example
  * ```tsx
  * function MyComponent() {
- *   const { data, name } = useAcContext();
- *   // data contains merged context from all parent Ac.Context providers
+ *   const { metadata, name, contextId } = useAcContext();
+ *   // metadata contains merged context from all parent Ac.Context providers
  * }
  * ```
  */

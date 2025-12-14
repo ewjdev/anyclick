@@ -4,6 +4,7 @@
  * Ac.View - Visibility/section view tracking component.
  *
  * Tracks when an element enters the viewport using IntersectionObserver.
+ * Registers with parent Ac.Context for context menu integration.
  *
  * @module components/tracking/AcView
  */
@@ -11,29 +12,18 @@ import { getTrackingManager } from "@/lib/tracking/manager";
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { mergeContextData, useAcContext } from "./context";
+import { generateId, useIntentStore } from "./store";
+import type { AcViewProps } from "./types";
 
-export interface AcViewProps {
-  /** The intent identifier to track when element becomes visible */
-  intent: string;
-  /** IntersectionObserver threshold (0-1, default: 0.5) */
-  threshold?: number;
-  /** Fire only once per mount (default: true) */
-  once?: boolean;
-  /** Minimum time visible in ms before firing (default: 0) */
-  minVisibleTime?: number;
-  /** Additional properties to include with the tracking event */
-  data?: Record<string, unknown>;
-  /** Disable tracking */
-  disabled?: boolean;
-  /** Single child element (uses Slot pattern to attach ref) */
-  children: React.ReactElement;
-}
+// Re-export props type for external use
+export type { AcViewProps } from "./types";
 
 /**
  * Ac.View - Declarative view tracking wrapper.
  *
  * Automatically tracks when the wrapped element becomes visible
- * in the viewport using IntersectionObserver.
+ * in the viewport using IntersectionObserver. Registers with the
+ * intent store for context menu integration (unless context={false}).
  *
  * @example
  * ```tsx
@@ -51,9 +41,14 @@ export interface AcViewProps {
  *   <section>...</section>
  * </Ac.View>
  *
- * // With additional data
+ * // With additional metadata
  * <Ac.View intent={HomepageIntent.SECTION_VIEW} metadata={{ section: "hero" }}>
  *   <section>...</section>
+ * </Ac.View>
+ *
+ * // Opt out of context menu (still tracks view)
+ * <Ac.View intent={HomepageIntent.MINOR_VIEW} context={false}>
+ *   <div>...</div>
  * </Ac.View>
  * ```
  */
@@ -64,19 +59,24 @@ export const AcView = React.forwardRef<HTMLElement, AcViewProps>(
       threshold = 0.5,
       once = true,
       minVisibleTime = 0,
-      data,
+      metadata,
+      context: registerWithContext = true,
       disabled = false,
       children,
     },
     forwardedRef,
   ) => {
     // Get context data from parent Ac.Context providers
-    const { data: contextData } = useAcContext();
+    const { metadata: contextMetadata, contextId } = useAcContext();
 
-    // Merge context data with local data (local overrides context)
-    const mergedData = React.useMemo(
-      () => mergeContextData(contextData, data ?? {}),
-      [contextData, data],
+    // Generate unique ID for this intent
+    const intentIdRef = React.useRef<string>(generateId("intent"));
+    const intentId = intentIdRef.current;
+
+    // Merge context metadata with local metadata (local overrides context)
+    const mergedMetadata = React.useMemo(
+      () => mergeContextData(contextMetadata, metadata ?? {}),
+      [contextMetadata, metadata],
     );
 
     // Internal ref for the element
@@ -105,19 +105,54 @@ export const AcView = React.forwardRef<HTMLElement, AcViewProps>(
       [forwardedRef],
     );
 
+    // Store actions
+    const registerIntent = useIntentStore((s) => s.registerIntent);
+    const unregisterIntent = useIntentStore((s) => s.unregisterIntent);
+
+    // Register with store on mount (unless context={false})
+    React.useEffect(() => {
+      if (disabled) return;
+
+      // Always register, but mark optOut if context={false}
+      registerIntent({
+        id: intentId,
+        intent,
+        contextId,
+        metadata: mergedMetadata,
+        elementRef: internalRef,
+        optOut: !registerWithContext,
+        eventType: "view",
+        action: undefined, // Views don't have actions by default
+      });
+
+      return () => {
+        unregisterIntent(intentId);
+      };
+    }, [
+      intentId,
+      intent,
+      contextId,
+      mergedMetadata,
+      disabled,
+      registerWithContext,
+      registerIntent,
+      unregisterIntent,
+    ]);
+
     // Track function
     const trackView = React.useCallback(() => {
       if (disabled || (once && hasTrackedRef.current)) return;
 
       hasTrackedRef.current = true;
       getTrackingManager().track(intent, {
-        properties: Object.keys(mergedData).length > 0 ? mergedData : undefined,
+        properties:
+          Object.keys(mergedMetadata).length > 0 ? mergedMetadata : undefined,
         engagement: {
           viewportVisible: true,
           timeOnSection: minVisibleTime > 0 ? minVisibleTime : undefined,
         },
       });
-    }, [intent, mergedData, disabled, once, minVisibleTime]);
+    }, [intent, mergedMetadata, disabled, once, minVisibleTime]);
 
     // Set up IntersectionObserver
     React.useEffect(() => {
@@ -175,8 +210,8 @@ export const AcView = React.forwardRef<HTMLElement, AcViewProps>(
       "data-ac-intent": intent,
     };
 
-    // Add data-ac-* attributes for each key in mergedData
-    for (const [key, value] of Object.entries(mergedData)) {
+    // Add data-ac-* attributes for each key in mergedMetadata
+    for (const [key, value] of Object.entries(mergedMetadata)) {
       if (value !== undefined && value !== null) {
         dataAttributes[`data-ac-${key}`] = String(value);
       }
