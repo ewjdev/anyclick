@@ -299,7 +299,7 @@
       "tags": [],
       "assignees": [],
       "todos": [],
-      "updatedAt": "2025-12-11T06:43:14.230Z"
+      "updatedAt": "2025-12-14T21:01:38.816Z"
     },
     {
       "id": "manual-integrations",
@@ -578,6 +578,6 @@
       ]
     }
   },
-  "lastSynced": "2025-12-11T06:43:14.230Z",
+  "lastSynced": "2025-12-14T21:01:38.817Z",
   "version": "1.1.0"
 }
