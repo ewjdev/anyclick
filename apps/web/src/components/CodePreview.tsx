@@ -55,6 +55,8 @@ export interface CodePreviewProps extends React.HTMLAttributes<HTMLDivElement> {
   showLineNumbers?: boolean;
   /** Custom label for terminal variant */
   terminalLabel?: string;
+  /** Callback when code is copied */
+  onCopy?: () => void;
   /** @deprecated Use `code` prop instead. Kept for backward compatibility */
   children?: string;
 }
@@ -445,6 +447,7 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
       showCopy = true,
       showLineNumbers = false,
       terminalLabel = "Terminal",
+      onCopy,
       className,
       ...props
     },
@@ -459,6 +462,8 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
         await navigator.clipboard.writeText(code);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        // Call the onCopy callback if provided
+        onCopy?.();
       } catch {
         // Fallback for older browsers
         const textArea = document.createElement("textarea");
@@ -469,8 +474,10 @@ export const CodePreview = React.forwardRef<HTMLDivElement, CodePreviewProps>(
         document.body.removeChild(textArea);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        // Call the onCopy callback if provided
+        onCopy?.();
       }
-    }, [code]);
+    }, [code, onCopy]);
 
     const tokenizedLines = React.useMemo(
       () => tokenize(code.trim(), language),
@@ -649,12 +656,13 @@ export interface TerminalBlockProps
 export const TerminalBlock = React.forwardRef<
   HTMLDivElement,
   TerminalBlockProps
->(({ label, children, ...props }, ref) => (
+>(({ label, children, onCopy, ...props }, ref) => (
   <CodePreview
     ref={ref}
     language="bash"
     variant="default"
     terminalLabel={label}
+    onCopy={onCopy}
     {...props}
   >
     {children}
@@ -666,8 +674,8 @@ TerminalBlock.displayName = "TerminalBlock";
 export interface CodeBlockProps extends Omit<CodePreviewProps, "variant"> {}
 
 export const CodeBlock = React.forwardRef<HTMLDivElement, CodeBlockProps>(
-  ({ children, ...props }, ref) => (
-    <CodePreview ref={ref} variant="default" {...props}>
+  ({ children, onCopy, ...props }, ref) => (
+    <CodePreview ref={ref} variant="default" onCopy={onCopy} {...props}>
       {children}
     </CodePreview>
   ),
@@ -680,8 +688,8 @@ export interface HeroCodeBlockProps extends Omit<CodePreviewProps, "variant"> {}
 export const HeroCodeBlock = React.forwardRef<
   HTMLDivElement,
   HeroCodeBlockProps
->(({ children, ...props }, ref) => (
-  <CodePreview ref={ref} variant="hero" {...props}>
+>(({ children, onCopy, ...props }, ref) => (
+  <CodePreview ref={ref} variant="hero" onCopy={onCopy} {...props}>
     {children}
   </CodePreview>
 ));

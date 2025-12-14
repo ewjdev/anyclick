@@ -1,5 +1,6 @@
 "use client";
 
+import { Ac } from "@/components/tracking";
 import type { ReactNode } from "react";
 import { useMemo } from "react";
 import { ModificationIndicator } from "@ewjdev/anyclick-devtools";
@@ -82,6 +83,10 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
           autoApply
           primaryColor="#3b82f6"
         />
+        {/* Bridge Ac actions with AnyclickProvider context menu */}
+        <Ac.MenuBridge />
+        {/* Debug panel for development (only renders in dev mode) */}
+        <Ac.DebugPanel />
         {children}
       </PointerProvider>
     </AnyclickProvider>
