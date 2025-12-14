@@ -31,10 +31,6 @@ export {
   getElementDescription,
 } from "./InspectDialog/inspectStore";
 
-// Modification indicator
-export { ModificationIndicator } from "./InspectDialog/ModificationIndicator";
-export type { ModificationIndicatorProps } from "./InspectDialog/ModificationIndicator";
-
 // Supporting types/utilities
 export type { HighlightColors } from "./types";
 export { generateCompactStyles } from "./types";
