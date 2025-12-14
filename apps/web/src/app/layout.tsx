@@ -1,6 +1,8 @@
 import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
+import { IntentProvider } from "@/components/IntentProvider";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter, Lato, Montserrat } from "next/font/google";
 import "./globals.css";
@@ -55,7 +57,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           lato.className,
         )}
       >
-        <AnyclickProviderWrapper>{children}</AnyclickProviderWrapper>
+        <IntentProvider>
+          <AnyclickProviderWrapper>{children}</AnyclickProviderWrapper>
+        </IntentProvider>
+        <Analytics />
       </body>
     </html>
   );

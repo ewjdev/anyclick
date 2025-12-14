@@ -1,7 +1,9 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { HomepageIntent } from "@/lib/intents";
+import { useTrackIntent, useSectionViewWithRef } from "@/lib/tracking";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NavigationRail } from "./NavigationRail";
 import { WorkstreamSection } from "./sections/WorkstreamSection";
 import { getImmersiveThemes } from "./themes";
@@ -11,9 +13,18 @@ export function ImmersiveWorkstreamShowcase({
 }: {
   className?: string;
 }) {
+  const { track } = useTrackIntent();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isRailVisible, setIsRailVisible] = useState(false);
   const immersiveThemes = useMemo(() => getImmersiveThemes(), []);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackedSectionsRef = useRef<Set<string>>(new Set());
+
+  // Track overall section view
+  useSectionViewWithRef(containerRef, {
+    intent: HomepageIntent.WORKSTREAM_SECTION_VIEW,
+    threshold: 0.1,
+  });
 
   useEffect(() => {
     const sectionIds = immersiveThemes.map((t) => t.id);
@@ -42,6 +53,20 @@ export function ImmersiveWorkstreamShowcase({
           const sectionId = entry.target.id;
           if (entry.isIntersecting) {
             intersectingSections.add(sectionId);
+
+              // Track individual workstream section views (once per session)
+              if (!trackedSectionsRef.current.has(sectionId)) {
+                trackedSectionsRef.current.add(sectionId);
+                track(HomepageIntent.WORKSTREAM_CARD_INTERACT, {
+                  properties: {
+                    action: "view",
+                    sectionId,
+                    sectionTitle:
+                      immersiveThemes.find((t) => t.id === sectionId)?.title ??
+                      sectionId,
+                  },
+                });
+              }
           } else {
             intersectingSections.delete(sectionId);
           }
@@ -80,15 +105,30 @@ export function ImmersiveWorkstreamShowcase({
       activeObserver.disconnect();
       window.removeEventListener("scroll", handleScroll);
     };
-  }, [immersiveThemes]);
+  }, [immersiveThemes, track]);
 
   const handleNavigate = (index: number) => {
-    const section = document.getElementById(immersiveThemes[index].id);
+    const theme = immersiveThemes[index];
+    const section = document.getElementById(theme.id);
+
+    // Track navigation click
+    track(HomepageIntent.WORKSTREAM_NAV_CLICK, {
+      properties: {
+        sectionIndex: index,
+        sectionId: theme.id,
+        sectionTitle: theme.title,
+      },
+    });
+
     section?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div className={cn("relative", className)}>
+    <div
+      ref={containerRef}
+      className={cn("relative", className)}
+      data-ac-intent={HomepageIntent.WORKSTREAM_SECTION_VIEW}
+    >
       <NavigationRail
         themes={immersiveThemes}
         activeIndex={activeIndex}
