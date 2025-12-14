@@ -1,6 +1,11 @@
+"use client";
+
 import roadmapRawData from "@/data/roadmap-items.json";
-import { memo } from "react";
-import { ArrowRight, Clock, Link } from "lucide-react";
+import { HomepageIntent } from "@/lib/intents";
+import { useTrackIntent, useSectionViewWithRef } from "@/lib/tracking";
+import { ArrowRight, Clock } from "lucide-react";
+import NextLink from "next/link";
+import { memo, useRef } from "react";
 
 type RoadmapData = {
   items: RoadmapItem[];
@@ -32,6 +37,15 @@ const getTags = (item: { tags?: unknown }): string[] => {
 };
 
 const RoadmapSummary = ({ roadmapData }: { roadmapData?: RoadmapData }) => {
+  const { track } = useTrackIntent();
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Track section view
+  useSectionViewWithRef(sectionRef, {
+    intent: HomepageIntent.ROADMAP_SECTION_VIEW,
+    threshold: 0.5,
+  });
+
   const data = roadmapData ?? (roadmapRawData as RoadmapData);
   const upcomingItems = data.items.filter(
     (item) =>
@@ -45,7 +59,11 @@ const RoadmapSummary = ({ roadmapData }: { roadmapData?: RoadmapData }) => {
     .join(", ");
 
   return (
-    <div className="p-6 rounded-2xl bg-linear-to-br from-amber-500/5 to-transparent border border-amber-500/10">
+    <div
+      ref={sectionRef}
+      className="p-6 rounded-2xl bg-linear-to-br from-amber-500/5 to-transparent border border-amber-500/10"
+      data-ac-intent={HomepageIntent.ROADMAP_SECTION_VIEW}
+    >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
@@ -56,9 +74,14 @@ const RoadmapSummary = ({ roadmapData }: { roadmapData?: RoadmapData }) => {
             {upcomingTitles}
             {upcomingItems.length > 5 ? ", and more" : ""}. See what&apos;s next
             on our{" "}
-            <Link href="/roadmap" className="text-amber-300 underline">
+            <NextLink
+              href="/roadmap"
+              className="text-amber-300 underline"
+              onClick={() => track(HomepageIntent.ROADMAP_LINK_CLICK)}
+              data-ac-intent={HomepageIntent.ROADMAP_LINK_CLICK}
+            >
               roadmap
-            </Link>
+            </NextLink>
           </p>
         </div>
         <a
@@ -66,6 +89,8 @@ const RoadmapSummary = ({ roadmapData }: { roadmapData?: RoadmapData }) => {
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 px-5 py-2.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-medium transition-colors flex items-center gap-2"
+          onClick={() => track(HomepageIntent.ROADMAP_FEATURE_REQUEST_CLICK)}
+          data-ac-intent={HomepageIntent.ROADMAP_FEATURE_REQUEST_CLICK}
         >
           Request a feature
           <ArrowRight className="w-4 h-4" />
