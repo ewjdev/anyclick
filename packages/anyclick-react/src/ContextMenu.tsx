@@ -809,7 +809,7 @@ export function ContextMenu({
               {submenuStack.length > 0 && <BackButton onClick={handleBack} />}
               {currentItems.map((item) => (
                 <MenuItem
-                  key={item.type}
+                  key={item.id ?? item.type}
                   disabled={isSubmitting}
                   hasChildren={item.children && item.children.length > 0}
                   item={item}

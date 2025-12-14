@@ -6,11 +6,14 @@
  * Reads from the intent store and injects Ac actions into the
  * AnyclickProvider's context menu when right-clicking within an Ac.Context.
  *
+ * Drop this component anywhere inside an AnyclickProvider to enable
+ * Ac-defined actions to appear in the right-click context menu.
+ *
  * @module components/tracking/AcMenuBridge
  */
 import { getTrackingManager } from "@/lib/tracking/manager";
 import * as React from "react";
-import type { ContextMenuItem } from "@ewjdev/anyclick-react";
+import { type ContextMenuItem, useAnyclick } from "@ewjdev/anyclick-react";
 import { useIntentStore } from "./store";
 import type { AcAction, AcActionContext } from "./types";
 
@@ -19,17 +22,10 @@ import type { AcAction, AcActionContext } from "./types";
  */
 export interface AcMenuBridgeProps {
   /**
-   * Callback to get the current target element for the context menu.
-   * This is called when the menu opens to determine which Ac actions to show.
+   * Whether the bridge is disabled.
+   * When disabled, no actions are registered with the provider.
    */
-  getTargetElement?: () => Element | null;
-  /**
-   * Callback to register dynamic menu items with the parent AnyclickProvider.
-   * If not provided, the bridge will attempt to use a global registration mechanism.
-   */
-  onRegisterActions?: (
-    getActions: (element: Element) => ContextMenuItem[],
-  ) => () => void;
+  disabled?: boolean;
 }
 
 /**
@@ -43,9 +39,13 @@ function convertToMenuItem(
   metadata: Record<string, unknown>,
 ): ContextMenuItem {
   return {
+    // Stable id for deduplication and React keys
+    id: `ac:${action.intent}`,
     type: action.intent,
     label: action.label,
     icon: action.icon,
+    // Pass through priority for sorting
+    priority: action.priority,
     showComment: action.showComment ?? false,
     status: action.status,
     requiredRoles: action.requiredRoles,
@@ -146,8 +146,8 @@ export function useAcActionGetter(): (element: Element) => ContextMenuItem[] {
  * AcMenuBridge - Component that bridges Ac actions with AnyclickProvider.
  *
  * Place this inside your AnyclickProvider to enable Ac actions in the
- * context menu. The bridge reads from the intent store and provides
- * actions based on the right-clicked element's context.
+ * context menu. The bridge automatically registers itself with the nearest
+ * provider and injects actions based on the right-clicked element's context.
  *
  * @example
  * ```tsx
@@ -156,24 +156,41 @@ export function useAcActionGetter(): (element: Element) => ContextMenuItem[] {
  *   <App />
  * </AnyclickProvider>
  * ```
- *
- * Note: Full integration requires AnyclickProvider to support dynamic
- * menu item injection. Currently this component provides hooks that
- * can be used to get Ac actions for manual integration.
  */
-export function AcMenuBridge({ onRegisterActions }: AcMenuBridgeProps) {
-  const getActions = useAcActionGetter();
+export function AcMenuBridge({ disabled = false }: AcMenuBridgeProps) {
+  const getActionsRef = React.useRef(useAcActionGetter());
+  const { registerDynamicMenuItems } = useAnyclick();
 
-  // Register with parent provider if callback provided
+  // Keep getActions ref updated
+  getActionsRef.current = useAcActionGetter();
+
+  // Store registerDynamicMenuItems in a ref to avoid effect re-runs
+  const registerRef = React.useRef(registerDynamicMenuItems);
+  registerRef.current = registerDynamicMenuItems;
+
+  // Store unregister function
+  const unregisterRef = React.useRef<(() => void) | null>(null);
+
+  // Register once on mount, unregister on unmount
+  // Uses refs to avoid dependency on changing function references
   React.useEffect(() => {
-    if (onRegisterActions) {
-      const unregister = onRegisterActions(getActions);
-      return unregister;
-    }
-  }, [getActions, onRegisterActions]);
+    if (disabled) return;
+
+    // Create a wrapper that uses the current ref value
+    const getActions = (element: Element) => getActionsRef.current(element);
+
+    unregisterRef.current = registerRef.current(getActions);
+
+    return () => {
+      if (unregisterRef.current) {
+        unregisterRef.current();
+        unregisterRef.current = null;
+      }
+    };
+  }, [disabled]); // Only re-run when disabled changes
 
   // This component doesn't render anything visible
-  // It just registers actions with the intent store
+  // It just registers actions with the provider
   return null;
 }
 
@@ -223,15 +240,13 @@ export function AcDebugPanel() {
       <div>
         <strong>Intents ({intents.size}):</strong>
         <ul style={{ margin: "4px 0", paddingLeft: 16 }}>
-          {Array.from(intents.values())
-            .slice(0, 10)
-            .map((intent) => (
-              <li key={intent.id}>
-                {intent.intent.split(".").slice(-2).join(".")}
-                {intent.optOut && " (opt-out)"}
-              </li>
-            ))}
-          {intents.size > 10 && <li>...and {intents.size - 10} more</li>}
+          {Array.from(intents.values()).map((intent) => (
+            <li key={intent.id}>
+              {intent.intent.split(".").slice(-4).join(".")}
+              {intent.optOut && " (opt-out)"}
+            </li>
+          ))}
+          {/* {intents.size > 10 && <li>...and {intents.size - 10} more</li>} */}
         </ul>
       </div>
     </div>

@@ -128,7 +128,13 @@ export * from "./ui";
 /**
  * Provider instance type for advanced store management.
  */
-export type { ProviderInstance } from "./store";
+export type { ProviderInstance, DynamicMenuItemGetter } from "./store";
+
+/**
+ * Generates a unique ID for a dynamic menu getter.
+ * Useful when manually registering dynamic menu getters via the store.
+ */
+export { generateDynamicMenuGetterId } from "./store";
 
 // ============================================================================
 // Types

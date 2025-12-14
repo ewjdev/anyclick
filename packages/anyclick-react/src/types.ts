@@ -122,6 +122,11 @@ export interface ContextMenuItem {
   children?: ContextMenuItem[];
   /** Optional icon */
   icon?: ReactNode;
+  /**
+   * Stable unique id for React keys and deduplication.
+   * If not provided, one will be auto-generated from type + label.
+   */
+  id?: string;
   /** Display label */
   label: string;
   /**
@@ -133,6 +138,11 @@ export interface ContextMenuItem {
     containerElement: Element | null;
     targetElement: Element | null;
   }) => boolean | Promise<boolean | void> | void;
+  /**
+   * Priority for sorting menu items (1-10, where 10 = highest priority).
+   * Items are sorted by priority descending. Default: 5.
+   */
+  priority?: number;
   /** Optional role(s) required to see this menu item */
   requiredRoles?: string[];
   /** Whether to show a comment input for this type */
@@ -336,6 +346,12 @@ export interface AnyclickProviderProps {
   cooldownMs?: number;
   /** Whether the provider is disabled */
   disabled?: boolean;
+  /**
+   * Callback to get dynamic menu items based on the right-clicked element.
+   * Called once when the context menu opens. Returned items are merged with menuItems.
+   * For child-component registration, use registerDynamicMenuItems from context instead.
+   */
+  dynamicMenuItems?: (element: Element) => ContextMenuItem[];
   /** Header content */
   header?: ReactNode | null;
   /** Configuration for element highlighting */
@@ -391,6 +407,11 @@ export interface AnyclickProviderProps {
   touchHoldDurationMs?: number;
   /** Maximum movement in px before touch hold is cancelled (default: 10) */
   touchMoveThreshold?: number;
+  /**
+   * User context for role-based menu filtering.
+   * When provided, menu items with requiredRoles will be filtered based on user roles.
+   */
+  userContext?: AnyclickUserContext;
 }
 
 // ============================================================================
@@ -431,6 +452,14 @@ export interface AnyclickContextValue {
   openMenu: (element: Element, position: { x: number; y: number }) => void;
   /** The provider's unique ID */
   providerId: string;
+  /**
+   * Register a dynamic menu getter for this provider.
+   * Returns an unregister function.
+   * Called once per menu open to get context-aware menu items.
+   */
+  registerDynamicMenuItems: (
+    getter: (element: Element) => ContextMenuItem[],
+  ) => () => void;
   /** Whether this provider is scoped */
   scoped: boolean;
   /** Submit anyclick for a specific element */

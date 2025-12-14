@@ -11,7 +11,10 @@
 
 import type { AnyclickMenuEvent } from "@ewjdev/anyclick-core";
 import { create } from "zustand";
-import type { AnyclickTheme } from "./types";
+import type { AnyclickTheme, ContextMenuItem } from "./types";
+
+/** Type for dynamic menu item getter functions */
+export type DynamicMenuItemGetter = (element: Element) => ContextMenuItem[];
 
 /**
  * Registered provider instance in the provider registry.
@@ -28,6 +31,11 @@ export interface ProviderInstance {
   depth: number;
   /** Whether this provider is disabled */
   disabled: boolean;
+  /**
+   * Map of getter ID to dynamic menu item getter function.
+   * Used by child components (e.g. AcMenuBridge) to inject context-aware menu items.
+   */
+  dynamicMenuItemGetters: Map<string, DynamicMenuItemGetter>;
   /** Unique identifier for this provider instance */
   id: string;
   /** Handler to call when an event occurs in this provider's scope */
@@ -70,6 +78,17 @@ interface ProviderStore {
   ) => ProviderInstance | null;
 
   /**
+   * Gets all dynamic menu items for a provider by calling all registered getters.
+   * @param providerId - The ID of the provider
+   * @param element - The target element to pass to getters
+   * @returns Flattened array of menu items from all registered getters
+   */
+  getDynamicMenuItems: (
+    providerId: string,
+    element: Element,
+  ) => ContextMenuItem[];
+
+  /**
    * Gets the merged theme for a provider (includes inherited parent themes).
    * @param providerId - The ID of the provider to get the merged theme for
    * @returns The merged theme configuration
@@ -99,10 +118,29 @@ interface ProviderStore {
   isElementInDisabledScope: (element: Element) => boolean;
 
   /**
+   * Registers a dynamic menu item getter for a provider.
+   * @param providerId - The ID of the provider to register the getter for
+   * @param getterId - Unique ID for this getter (for later unregistration)
+   * @param getter - Function that returns menu items for a given element
+   */
+  registerDynamicMenuItems: (
+    providerId: string,
+    getterId: string,
+    getter: DynamicMenuItemGetter,
+  ) => void;
+
+  /**
    * Registers a new provider in the store.
    * @param provider - The provider instance to register
    */
   registerProvider: (provider: ProviderInstance) => void;
+
+  /**
+   * Unregisters a dynamic menu item getter from a provider.
+   * @param providerId - The ID of the provider
+   * @param getterId - The ID of the getter to unregister
+   */
+  unregisterDynamicMenuItems: (providerId: string, getterId: string) => void;
 
   /**
    * Unregisters a provider from the store.
@@ -120,6 +158,26 @@ interface ProviderStore {
 
 /** Counter for generating unique provider IDs */
 let providerIdCounter = 0;
+
+/** Counter for generating unique dynamic menu getter IDs */
+let dynamicMenuGetterIdCounter = 0;
+
+/**
+ * Generates a unique ID for a dynamic menu getter.
+ *
+ * @returns A unique getter ID string
+ *
+ * @example
+ * ```ts
+ * const id = generateDynamicMenuGetterId();
+ * // => "dynamic-menu-getter-1"
+ * ```
+ *
+ * @since 1.4.0
+ */
+export function generateDynamicMenuGetterId(): string {
+  return `dynamic-menu-getter-${++dynamicMenuGetterIdCounter}`;
+}
 
 /**
  * Generates a unique ID for a provider instance.
@@ -213,6 +271,30 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     }
 
     return nearestParent;
+  },
+
+  getDynamicMenuItems: (providerId, element) => {
+    const { providers } = get();
+    const provider = providers.get(providerId);
+
+    if (!provider) return [];
+
+    const items: ContextMenuItem[] = [];
+
+    // Call all registered getters and flatten results
+    for (const getter of provider.dynamicMenuItemGetters.values()) {
+      try {
+        const getterItems = getter(element);
+        items.push(...getterItems);
+      } catch (error) {
+        console.error(
+          `[anyclick] Dynamic menu getter error for provider ${providerId}:`,
+          error,
+        );
+      }
+    }
+
+    return items;
   },
 
   getMergedTheme: (providerId) => {
@@ -324,10 +406,42 @@ export const useProviderStore = create<ProviderStore>((set, get) => ({
     return false;
   },
 
+  registerDynamicMenuItems: (providerId, getterId, getter) => {
+    set((state) => {
+      const newProviders = new Map(state.providers);
+      const provider = newProviders.get(providerId);
+      if (provider) {
+        const newGetters = new Map(provider.dynamicMenuItemGetters);
+        newGetters.set(getterId, getter);
+        newProviders.set(providerId, {
+          ...provider,
+          dynamicMenuItemGetters: newGetters,
+        });
+      }
+      return { providers: newProviders };
+    });
+  },
+
   registerProvider: (provider) => {
     set((state) => {
       const newProviders = new Map(state.providers);
       newProviders.set(provider.id, provider);
+      return { providers: newProviders };
+    });
+  },
+
+  unregisterDynamicMenuItems: (providerId, getterId) => {
+    set((state) => {
+      const newProviders = new Map(state.providers);
+      const provider = newProviders.get(providerId);
+      if (provider) {
+        const newGetters = new Map(provider.dynamicMenuItemGetters);
+        newGetters.delete(getterId);
+        newProviders.set(providerId, {
+          ...provider,
+          dynamicMenuItemGetters: newGetters,
+        });
+      }
       return { providers: newProviders };
     });
   },

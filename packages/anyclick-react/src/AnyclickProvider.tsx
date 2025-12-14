@@ -28,13 +28,19 @@ import { createAnyclickClient } from "@ewjdev/anyclick-core";
 import { ContextMenu } from "./ContextMenu";
 import { AnyclickContext, useAnyclick } from "./context";
 import { findContainerParent } from "./highlight";
-import { type ProviderInstance, useProviderStore } from "./store";
+import {
+  type ProviderInstance,
+  generateDynamicMenuGetterId,
+  useProviderStore,
+} from "./store";
 import type {
   AnyclickContextValue,
   AnyclickProviderProps,
   AnyclickTheme,
+  AnyclickUserContext,
   ContextMenuItem,
 } from "./types";
+import { filterMenuItemsByRole } from "./types";
 
 /**
  * Default menu items shown when no custom items are provided.
@@ -46,6 +52,108 @@ const defaultMenuItems: ContextMenuItem[] = [
 ];
 
 const OFFSCREEN_POSITION = { x: -9999, y: -9999 };
+
+/** Default priority for menu items (middle of 1-10 range) */
+const DEFAULT_PRIORITY = 5;
+
+/**
+ * Assigns stable IDs to menu items that don't have one.
+ * Recursively processes children.
+ */
+function assignMenuItemIds(
+  items: ContextMenuItem[],
+  prefix = "auto",
+): ContextMenuItem[] {
+  return items.map((item, index) => {
+    const id = item.id ?? `${prefix}:${item.type}:${item.label}:${index}`;
+    const children = item.children
+      ? assignMenuItemIds(item.children, `${id}:child`)
+      : undefined;
+    return { ...item, id, children };
+  });
+}
+
+/**
+ * Deduplicates menu items by id, keeping the first occurrence.
+ */
+function dedupeMenuItems(items: ContextMenuItem[]): ContextMenuItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = item.id ?? `${item.type}:${item.label}`;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
+/**
+ * Sorts menu items by priority (highest first).
+ * Uses stable sort to preserve original order for equal priorities.
+ * Recursively sorts children.
+ */
+function sortMenuItemsByPriority(items: ContextMenuItem[]): ContextMenuItem[] {
+  // Create indexed items for stable sort
+  const indexed = items.map((item, index) => ({ item, index }));
+
+  // Sort by priority desc, then by original index (stable)
+  indexed.sort((a, b) => {
+    const priorityA = a.item.priority ?? DEFAULT_PRIORITY;
+    const priorityB = b.item.priority ?? DEFAULT_PRIORITY;
+    if (priorityB !== priorityA) return priorityB - priorityA;
+    return a.index - b.index;
+  });
+
+  return indexed.map(({ item }) => ({
+    ...item,
+    children: item.children
+      ? sortMenuItemsByPriority(item.children)
+      : undefined,
+  }));
+}
+
+/**
+ * Recursively filters menu items by role.
+ */
+function filterMenuItemsByRoleRecursive(
+  items: ContextMenuItem[],
+  userContext?: AnyclickUserContext,
+): ContextMenuItem[] {
+  const filtered = filterMenuItemsByRole(items, userContext);
+  return filtered.map((item) => ({
+    ...item,
+    children: item.children
+      ? filterMenuItemsByRoleRecursive(item.children, userContext)
+      : undefined,
+  }));
+}
+
+/**
+ * Normalizes menu items: assigns IDs, dedupes, sorts by priority, and filters by role.
+ */
+function normalizeMenuItems(
+  staticItems: ContextMenuItem[],
+  dynamicItems: ContextMenuItem[],
+  userContext?: AnyclickUserContext,
+): ContextMenuItem[] {
+  // Merge static + dynamic
+  const merged = [...staticItems, ...dynamicItems];
+
+  // Assign IDs
+  const withIds = assignMenuItemIds(merged);
+
+  // Dedupe
+  const deduped = dedupeMenuItems(withIds);
+
+  // Sort by priority
+  const sorted = sortMenuItemsByPriority(deduped);
+
+  // Filter by role (only if userContext provided)
+  const filtered = userContext
+    ? filterMenuItemsByRoleRecursive(sorted, userContext)
+    : sorted;
+
+  return filtered;
+}
 
 /**
  * AnyclickProvider component - wraps your app to enable feedback capture.
@@ -73,6 +181,7 @@ export function AnyclickProvider({
   children,
   cooldownMs,
   disabled = false,
+  dynamicMenuItems,
   header,
   highlightConfig,
   maxAncestors,
@@ -80,6 +189,7 @@ export function AnyclickProvider({
   maxOuterHTMLLength,
   menuClassName,
   menuItems = defaultMenuItems,
+  menuPositionMode,
   menuStyle,
   metadata,
   onSubmitError,
@@ -92,6 +202,7 @@ export function AnyclickProvider({
   theme,
   touchHoldDurationMs,
   touchMoveThreshold,
+  userContext,
 }: AnyclickProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -100,6 +211,9 @@ export function AnyclickProvider({
   const [containerElement, setContainerElement] = useState<Element | null>(
     null,
   );
+  // Snapshot of resolved menu items (computed once when menu opens)
+  const [resolvedMenuItems, setResolvedMenuItems] =
+    useState<ContextMenuItem[]>(menuItems);
 
   // Generate a stable ID for this provider instance using React's useId
   const providerId = useId();
@@ -139,6 +253,7 @@ export function AnyclickProvider({
   // Store access
   const {
     findParentProvider,
+    getDynamicMenuItems,
     getMergedTheme,
     isDisabledByAncestor,
     isElementInAnyScopedProvider,
@@ -188,6 +303,24 @@ export function AnyclickProvider({
     };
   }, [highlightConfig, menuClassName, menuStyle, screenshotConfig, theme]);
 
+  // Snapshot menu items for a given element (called once when menu opens)
+  const snapshotMenuItems = useCallback(
+    (element: Element) => {
+      // Get dynamic items from prop callback
+      const dynamicFromProp = dynamicMenuItems ? dynamicMenuItems(element) : [];
+
+      // Get dynamic items from registered getters (via store)
+      const dynamicFromRegistry = getDynamicMenuItems(providerId, element);
+
+      // Merge and normalize
+      const allDynamic = [...dynamicFromProp, ...dynamicFromRegistry];
+      const normalized = normalizeMenuItems(menuItems, allDynamic, userContext);
+
+      setResolvedMenuItems(normalized);
+    },
+    [dynamicMenuItems, getDynamicMenuItems, menuItems, providerId, userContext],
+  );
+
   // Context menu handler
   const handleContextMenu = useCallback(
     (event: AnyclickMenuEvent, element: Element): boolean => {
@@ -202,6 +335,9 @@ export function AnyclickProvider({
       }
 
       const mergedTheme = getMergedTheme(providerId);
+
+      // Snapshot menu items for this element
+      snapshotMenuItems(element);
 
       setTargetElement(element);
       const container = findContainerParent(
@@ -221,6 +357,7 @@ export function AnyclickProvider({
       isElementInDisabledScope,
       providerId,
       scoped,
+      snapshotMenuItems,
     ],
   );
 
@@ -230,6 +367,7 @@ export function AnyclickProvider({
       containerRef: containerRef as React.RefObject<Element | null>,
       depth: actualDepth,
       disabled: effectiveDisabled,
+      dynamicMenuItemGetters: new Map(),
       id: providerId,
       onContextMenu: handleContextMenu,
       parentId,
@@ -357,6 +495,9 @@ export function AnyclickProvider({
   // Open menu programmatically
   const openMenu = useCallback(
     (element: Element, position: { x: number; y: number }) => {
+      // Snapshot menu items for this element
+      snapshotMenuItems(element);
+
       setTargetElement(element);
       const mergedTheme = getMergedTheme(providerId);
       const container = findContainerParent(
@@ -367,7 +508,7 @@ export function AnyclickProvider({
       setMenuPosition(position);
       setMenuVisible(true);
     },
-    [getMergedTheme, highlightConfig, providerId],
+    [getMergedTheme, highlightConfig, providerId, snapshotMenuItems],
   );
 
   // Close menu
@@ -420,6 +561,23 @@ export function AnyclickProvider({
   const effectiveScreenshotConfig =
     mergedTheme.screenshotConfig ?? screenshotConfig;
 
+  // Register dynamic menu items function (exposed via context for child components)
+  // Uses getState() to avoid dependency on store functions which could cause re-render loops
+  const registerDynamicMenuItems = useCallback(
+    (getter: (element: Element) => ContextMenuItem[]) => {
+      const getterId = generateDynamicMenuGetterId();
+      const store = useProviderStore.getState();
+      store.registerDynamicMenuItems(providerId, getterId, getter);
+
+      // Return unregister function
+      return () => {
+        const store = useProviderStore.getState();
+        store.unregisterDynamicMenuItems(providerId, getterId);
+      };
+    },
+    [providerId],
+  );
+
   // Context value
   const contextValue: AnyclickContextValue = useMemo(
     () => ({
@@ -428,6 +586,7 @@ export function AnyclickProvider({
       isSubmitting,
       openMenu,
       providerId,
+      registerDynamicMenuItems,
       scoped,
       submitAnyclick,
       theme: mergedTheme,
@@ -440,6 +599,7 @@ export function AnyclickProvider({
       mergedTheme,
       openMenu,
       providerId,
+      registerDynamicMenuItems,
       scoped,
       submitAnyclick,
     ],
@@ -468,10 +628,11 @@ export function AnyclickProvider({
           header={header}
           highlightConfig={effectiveHighlightConfig}
           isSubmitting={isSubmitting}
-          items={menuItems}
+          items={resolvedMenuItems}
           onClose={closeMenu}
           onSelect={handleMenuSelect}
           position={menuPosition}
+          positionMode={menuPositionMode}
           quickChatConfig={quickChatConfig}
           screenshotConfig={effectiveScreenshotConfig}
           style={effectiveMenuStyle}
