@@ -104,7 +104,7 @@ export function CustomPointer({
   enabled = true,
   onInteractionChange,
 }: CustomPointerProps) {
-  console.count("CustomPointer RENDER");
+  // console.count("CustomPointer RENDER");
   const mergedTheme = useMemo(() => mergeTheme(theme), [theme]);
   const mergedConfig = useMemo(() => mergeConfig(config), [config]);
 

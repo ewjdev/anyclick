@@ -1,5 +1,7 @@
 "use client";
 
+import { Ac } from "@/components/tracking";
+import { HomepageIntent } from "@/lib/intents";
 import {
   Camera,
   GitBranch,
@@ -8,9 +10,6 @@ import {
   Terminal,
   Zap,
 } from "lucide-react";
-import { useRef } from "react";
-import { HomepageIntent } from "@/lib/intents";
-import { useTrackIntent, useSectionViewWithRef } from "@/lib/tracking";
 
 type Feature = {
   id: string;
@@ -106,71 +105,53 @@ const colorClasses: Record<string, { icon: string; bg: string }> = {
 };
 
 function FeatureCard({ feature }: { feature: Feature }) {
-  const { track } = useTrackIntent();
   const Icon = feature.icon;
   const colors = colorClasses[feature.color];
-  const hoveredRef = useRef(false);
-
-  const handleMouseEnter = () => {
-    if (!hoveredRef.current) {
-      hoveredRef.current = true;
-      track(HomepageIntent.FEATURES_CARD_HOVER, {
-        properties: { featureId: feature.id, featureTitle: feature.title },
-      });
-    }
-  };
 
   return (
-    <div
-      className={`group p-6 rounded-2xl bg-white/2 border border-white/5 ${feature.hoverBorder} transition-all hover:bg-white/4`}
-      onMouseEnter={handleMouseEnter}
-      data-ac-intent={HomepageIntent.FEATURES_CARD_HOVER}
-      data-ac-feature={feature.id}
+    <Ac.Intent
+      intent={HomepageIntent.FEATURES_CARD_HOVER}
+      on="hover"
+      metadata={{ "feature-id": feature.id, "feature-title": feature.title }}
     >
       <div
-        className={`w-12 h-12 rounded-xl bg-linear-to-br ${colors.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+        className={`group p-6 rounded-2xl bg-white/2 border border-white/5 ${feature.hoverBorder} transition-all hover:bg-white/4`}
       >
-        <Icon className={`w-6 h-6 ${colors.icon}`} />
+        <div
+          className={`w-12 h-12 rounded-xl bg-linear-to-br ${colors.bg} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+        >
+          <Icon className={`w-6 h-6 ${colors.icon}`} />
+        </div>
+        <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">
+          {feature.description}
+        </p>
       </div>
-      <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">
-        {feature.description}
-      </p>
-    </div>
+    </Ac.Intent>
   );
 }
 
 const FeaturesSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // Track section view
-  useSectionViewWithRef(sectionRef, {
-    intent: HomepageIntent.FEATURES_SECTION_VIEW,
-    threshold: 0.3,
-  });
-
   return (
-    <div
-      ref={sectionRef}
-      className="max-w-7xl mx-auto relative"
-      data-ac-intent={HomepageIntent.FEATURES_SECTION_VIEW}
-    >
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Everything you need for UI context
-        </h2>
-        <p className="text-gray-400 max-w-xl mx-auto">
-          From capturing user intent to automatic code fixes, anyclick
-          streamlines the entire feedback workflow.
-        </p>
-      </div>
+    <Ac.View intent={HomepageIntent.FEATURES_SECTION_VIEW} threshold={0.3}>
+      <div className="max-w-7xl mx-auto relative">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Everything you need for UI context
+          </h2>
+          <p className="text-gray-400 max-w-xl mx-auto">
+            From capturing user intent to automatic code fixes, anyclick
+            streamlines the entire feedback workflow.
+          </p>
+        </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((feature) => (
-          <FeatureCard key={feature.id} feature={feature} />
-        ))}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature) => (
+            <FeatureCard key={feature.id} feature={feature} />
+          ))}
+        </div>
       </div>
-    </div>
+    </Ac.View>
   );
 };
 

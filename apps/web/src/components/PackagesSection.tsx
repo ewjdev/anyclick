@@ -1,5 +1,7 @@
 "use client";
 
+import { Ac } from "@/components/tracking";
+import { HomepageIntent } from "@/lib/intents";
 import {
   Bot,
   Box,
@@ -13,15 +15,12 @@ import {
   UploadCloud,
   Wrench,
 } from "lucide-react";
-import { useRef } from "react";
-import { HomepageIntent } from "@/lib/intents";
-import { useTrackIntent, useSectionViewWithRef } from "@/lib/tracking";
 
 type PackageItem = {
   name: string;
   description: string;
   features: string[];
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   tags?: string[];
 };
@@ -196,92 +195,73 @@ const getColors = (color: string) => {
 };
 
 const PackageCard = ({ item }: { item: PackageItem }) => {
-  const { track } = useTrackIntent();
-  const hoveredRef = useRef(false);
   const colors = getColors(item.color);
-
-  const handleMouseEnter = () => {
-    if (!hoveredRef.current) {
-      hoveredRef.current = true;
-      track(HomepageIntent.PACKAGES_CARD_HOVER, {
-        properties: { packageName: item.name },
-      });
-    }
-  };
+  const Icon = item.icon;
 
   return (
-    <div
-      className={`p-6 rounded-2xl bg-linear-to-br border ${colors.bg}`}
-      onMouseEnter={handleMouseEnter}
-      data-ac-intent={HomepageIntent.PACKAGES_CARD_HOVER}
-      data-ac-package={item.name}
+    <Ac.Intent
+      intent={HomepageIntent.PACKAGES_CARD_HOVER}
+      on="hover"
+      metadata={{ "package-name": item.name }}
     >
-      <div className="flex items-center gap-3 mb-4">
-        <item.icon className={`w-6 h-6 ${colors.icon}`} />
-        <code className={`${colors.title} font-mono`}>{item.name}</code>
+      <div className={`p-6 rounded-2xl bg-linear-to-br border ${colors.bg}`}>
+        <div className="flex items-center gap-3 mb-4">
+          <Icon className={`w-6 h-6 ${colors.icon}`} />
+          <code className={`${colors.title} font-mono`}>{item.name}</code>
+        </div>
+        <p className="text-gray-400 text-sm mb-4">{item.description}</p>
+        <div className="flex flex-wrap gap-2">
+          {item.features.map((feature) => (
+            <span
+              key={feature}
+              className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400"
+            >
+              {feature}
+            </span>
+          ))}
+        </div>
       </div>
-      <p className="text-gray-400 text-sm mb-4">{item.description}</p>
-      <div className="flex flex-wrap gap-2">
-        {item.features.map((feature) => (
-          <span
-            key={feature}
-            className="px-2 py-1 text-xs rounded bg-white/5 text-gray-400"
-          >
-            {feature}
-          </span>
-        ))}
-      </div>
-    </div>
+    </Ac.Intent>
   );
 };
 
 const PackagesSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // Track section view
-  useSectionViewWithRef(sectionRef, {
-    intent: HomepageIntent.PACKAGES_SECTION_VIEW,
-    threshold: 0.3,
-  });
-
   return (
-    <div
-      ref={sectionRef}
-      className="max-w-7xl mx-auto px-4"
-      data-ac-intent={HomepageIntent.PACKAGES_SECTION_VIEW}
-    >
-      <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-          Modular Architecture
-        </h2>
-        <p className="text-gray-400 max-w-xl mx-auto">
-          Pick only the packages you need. All packages are published under the{" "}
-          <code className="text-cyan-400">@anyclick</code> scope.
-        </p>
-      </div>
+    <Ac.View intent={HomepageIntent.PACKAGES_SECTION_VIEW} threshold={0.3}>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Modular Architecture
+          </h2>
+          <p className="text-gray-400 max-w-xl mx-auto">
+            Pick only the packages you need. All packages are published under
+            the <code className="text-cyan-400">@anyclick</code> scope.
+          </p>
+        </div>
 
-      <div className="mb-12">
-        <h3 className="text-2xl font-semibold mb-6 text-gray-200 border-b border-white/10 pb-2">
-          Core Packages
-        </h3>
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {corePackages.map((pkg) => (
-            <PackageCard key={pkg.name} item={pkg} />
-          ))}
+        <div className="mb-12">
+          <h3 className="text-2xl font-semibold mb-6 text-gray-200 border-b border-white/10 pb-2">
+            Core Packages
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {corePackages.map((pkg) => (
+              <PackageCard key={pkg.name} item={pkg} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-2xl font-semibold mb-6 text-gray-200 border-b border-white/10 pb-2">
+            Extensions & Adapters
+          </h3>
+          <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {extensionPackages.map((pkg) => (
+              <PackageCard key={pkg.name} item={pkg} />
+            ))}
+          </div>
         </div>
       </div>
-
-      <div>
-        <h3 className="text-2xl font-semibold mb-6 text-gray-200 border-b border-white/10 pb-2">
-          Extensions & Adapters
-        </h3>
-        <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {extensionPackages.map((pkg) => (
-            <PackageCard key={pkg.name} item={pkg} />
-          ))}
-        </div>
-      </div>
-    </div>
+    </Ac.View>
   );
 };
 
