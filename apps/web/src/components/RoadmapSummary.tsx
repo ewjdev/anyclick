@@ -2,10 +2,10 @@
 
 import roadmapRawData from "@/data/roadmap-items.json";
 import { HomepageIntent } from "@/lib/intents";
-import { useTrackIntent, useSectionViewWithRef } from "@/lib/tracking";
-import { ArrowRight, Clock } from "lucide-react";
-import NextLink from "next/link";
+import { useSectionViewWithRef, useTrackIntent } from "@/lib/tracking";
 import { memo, useRef } from "react";
+import { ArrowRight, Clock, Link as LinkIcon } from "lucide-react";
+import NextLink from "next/link";
 
 type RoadmapData = {
   items: RoadmapItem[];

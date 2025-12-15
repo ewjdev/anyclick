@@ -35,11 +35,7 @@ export type {
 } from "./types";
 
 // Manager
-export {
-  getTrackingManager,
-  trackEvent,
-  identifyUser,
-} from "./manager";
+export { getTrackingManager, trackEvent, identifyUser } from "./manager";
 
 // Providers
 export {

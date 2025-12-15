@@ -1,3 +1,5 @@
+import { Ac } from "@/components/tracking";
+import { HomepageIntent } from "@/lib/intents";
 import { useRef } from "react";
 import { useInView, useScroll, useTransform } from "motion/react";
 import type { ImmersiveTheme } from "../types";
@@ -19,51 +21,48 @@ export function WorkstreamSection({ theme }: WorkstreamSectionProps) {
   const isInView = useInView(sectionRef, { amount: 0.3 });
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
 
-  switch (theme.id) {
-    case "software":
-      return (
-        <section
-          ref={sectionRef}
-          id={theme.id}
-          className="relative min-h-screen w-full overflow-hidden"
-        >
-          <SoftwareDevelopmentSection
-            theme={theme}
-            scrollYProgress={scrollYProgress}
-            isInView={isInView}
-            bgY={bgY}
-          />
-        </section>
-      );
-    case "healthcare":
-      return (
-        <section
-          ref={sectionRef}
-          id={theme.id}
-          className="relative min-h-screen w-full overflow-hidden"
-        >
-          <HealthcareSection
-            theme={theme}
-            scrollYProgress={scrollYProgress}
-            isInView={isInView}
-            bgY={bgY}
-          />
-        </section>
-      );
-    default:
-      return (
-        <section
-          ref={sectionRef}
-          id={theme.id}
-          className="relative min-h-screen w-full overflow-hidden"
-        >
-          <DefaultWorkstreamSection
-            theme={theme}
-            scrollYProgress={scrollYProgress}
-            isInView={isInView}
-            bgY={bgY}
-          />
-        </section>
-      );
-  }
+  const sectionContent = (
+    <section
+      ref={sectionRef}
+      id={theme.id}
+      className="relative min-h-screen w-full overflow-hidden"
+    >
+      {theme.id === "software" ? (
+        <SoftwareDevelopmentSection
+          theme={theme}
+          scrollYProgress={scrollYProgress}
+          isInView={true}
+          bgY={bgY}
+        />
+      ) : theme.id === "healthcare" ? (
+        <HealthcareSection
+          theme={theme}
+          scrollYProgress={scrollYProgress}
+          isInView={isInView}
+          bgY={bgY}
+        />
+      ) : (
+        <DefaultWorkstreamSection
+          theme={theme}
+          scrollYProgress={scrollYProgress}
+          isInView={isInView}
+          bgY={bgY}
+        />
+      )}
+    </section>
+  );
+
+  return (
+    <Ac.View
+      intent={HomepageIntent.WORKSTREAM_CARD_INTERACT}
+      threshold={0.1}
+      metadata={{
+        action: "view",
+        "section-id": theme.id,
+        "section-title": theme.title,
+      }}
+    >
+      {sectionContent}
+    </Ac.View>
+  );
 }

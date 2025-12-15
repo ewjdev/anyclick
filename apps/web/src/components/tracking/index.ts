@@ -46,20 +46,16 @@
  */
 // Components
 import { AcContext } from "./AcContext";
+import { AcDebugPanel } from "./AcDebugPanel";
 import { AcIntent } from "./AcIntent";
-import { AcDebugPanel, AcMenuBridge } from "./AcMenuBridge";
+import { AcMenuBridge } from "./AcMenuBridge";
 import { AcView } from "./AcView";
 
 // Export individual components
 export { AcContext } from "./AcContext";
 export { AcIntent } from "./AcIntent";
 export { AcView } from "./AcView";
-export {
-  AcMenuBridge,
-  AcDebugPanel,
-  useAcActions,
-  useAcActionGetter,
-} from "./AcMenuBridge";
+export { AcMenuBridge, useAcActions, useAcActionGetter } from "./AcMenuBridge";
 
 // Export context hook
 export { useAcContext } from "./context";

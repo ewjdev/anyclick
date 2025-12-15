@@ -31,6 +31,8 @@ export enum HomepageIntent {
   WORKSTREAM_NAV_CLICK = "web.homepage.workstream.nav.click",
   WORKSTREAM_CARD_INTERACT = "web.homepage.workstream.card.interact",
 
+  COPY_EDITOR_CODE = "web.homepage.editor.code.copy",
+
   // ============================================================================
   // Features Section
   // ============================================================================

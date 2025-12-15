@@ -5,9 +5,15 @@
  *
  * @module api/anyclick/chat
  */
+import { rateLimitByIp } from "@/app/api/utils";
 import { createLogger, generateRequestId } from "@/lib/logger";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateText, streamText } from "ai";
+
+const DEFAULT_MODEL = "gpt-5-nano";
+const DEFAULT_MODEL_FAST = "gpt-5-mini";
+const DEFAULT_MAX_TOKENS = 10000;
+const CHARACTER_TO_TOKEN_RATIO = 3;
 
 // Initialize OpenAI client
 const openai = createOpenAI({
@@ -18,6 +24,14 @@ const openai = createOpenAI({
 const logger = createLogger("AnyClickChat");
 
 const isDev = process.env.NODE_ENV === "development";
+
+function headersToObject(headers: Headers): Record<string, string> {
+  const obj: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    obj[key] = value;
+  });
+  return obj;
+}
 
 // Default system prompt for element context
 const DEFAULT_SYSTEM_PROMPT = `You are a helpful assistant that provides quick, concise answers about web elements and UI. 
@@ -63,6 +77,286 @@ function buildFallbackRefinePrompt(
   return `Improve or clarify: "${cleanSelected}".${contextPart}`;
 }
 
+/**
+ * Extract text content from a message (handles both v1 and v2 formats).
+ * v1: { content: string }
+ * v2: { parts: Array<{ type: 'text', text: string }> }
+ */
+function getMessageText(msg: {
+  content?: string;
+  parts?: Array<{ type: string; text?: string }>;
+}): string {
+  // v2+ format: extract from parts
+  if (msg.parts && Array.isArray(msg.parts)) {
+    return msg.parts
+      .map((p) => {
+        const maybeText = (p as unknown as { text?: unknown }).text;
+        if (typeof maybeText === "string") return maybeText;
+        const maybeContent = (p as unknown as { content?: unknown }).content;
+        if (typeof maybeContent === "string") return maybeContent;
+        return "";
+      })
+      .join("");
+  }
+  // v1 format: use content directly
+  return msg.content || "";
+}
+
+/**
+ * Handle ai-sdk useChat format requests.
+ * useChat sends: { messages: [...], ...body options from the body config }
+ */
+async function handleAiSdkChat(
+  request: Request,
+  body: {
+    messages: Array<{
+      role: string;
+      content?: string;
+      parts?: Array<{ type: string; text?: string }>;
+    }>;
+    action?: string;
+    context?: string;
+    model?: string;
+    systemPrompt?: string;
+    maxLength?: number;
+  },
+  requestId: string,
+  requestStartTime: number,
+) {
+  const { messages, context, model, systemPrompt, maxLength } = body;
+
+  logger.info("[BACKEND] Request headers (chat)", {
+    requestId,
+    contentType: request.headers.get("content-type"),
+    accept: request.headers.get("accept"),
+    userAgent: isDev
+      ? request.headers.get("user-agent")
+      : (request.headers.get("user-agent") || "").slice(0, 50),
+  });
+
+  logger.info("[BACKEND] Processing ai-sdk chat format", {
+    requestId,
+    messageCount: messages.length,
+    messages: messages.map((m) => {
+      const text = getMessageText(m);
+      return {
+        role: m.role,
+        contentLength: text.length,
+        hasParts: !!m.parts,
+        hasContent: !!m.content,
+      };
+    }),
+    model: model || DEFAULT_MODEL,
+    hasContext: !!context,
+    contextLength: context?.length || 0,
+    bodyKeys: Object.keys(body),
+  });
+
+  // Ensure there's at least one user message.
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((m) => m.role === "user");
+  if (!lastUserMessage) {
+    logger.warn("[BACKEND] No user message found in messages array", {
+      requestId,
+      messages: messages.map((m) => m.role),
+    });
+    return Response.json({ error: "No user message found" }, { status: 400 });
+  }
+
+  const lastUserText = getMessageText(lastUserMessage);
+  logger.info("[BACKEND] Found last user message", {
+    requestId,
+    content: lastUserText.substring(0, 100),
+    contentLength: lastUserText.length,
+  });
+
+  const maxTokens =
+    typeof maxLength === "number"
+      ? Math.min(maxLength, DEFAULT_MAX_TOKENS)
+      : DEFAULT_MAX_TOKENS;
+  const maxChars = Math.ceil(maxTokens * CHARACTER_TO_TOKEN_RATIO);
+  // Build system prompt with context
+  const effectiveSystemPrompt = `${systemPrompt || DEFAULT_SYSTEM_PROMPT}
+
+Element context:
+${context || "No element context provided."}
+
+Important: Keep your response under ${maxChars} characters.`;
+
+  logger.debug("[BACKEND] ai-sdk chat prompt prepared", {
+    requestId,
+    lastMessageLength: lastUserText.length,
+    hasContext: !!context,
+    maxTokens,
+    maxChars,
+    systemPromptLength: effectiveSystemPrompt.length,
+  });
+
+  const chatStartTime = Date.now();
+  try {
+    // Stream using the full message history (ai-sdk transport expects data stream protocol)
+    const modelName = model || DEFAULT_MODEL;
+
+    logger.info("[BACKEND] About to call streamText (streaming)", {
+      requestId,
+      modelName,
+      maxTokens,
+      systemPromptLength: effectiveSystemPrompt.length,
+      lastUserMessage: lastUserText.substring(0, 200),
+    });
+
+    const result = streamText({
+      // IMPORTANT: use chat model explicitly for streaming text deltas.
+      // With some OpenAI "responses" models/settings, we observed reasoning events
+      // without any text deltas; `openai.chat()` reliably emits text.
+      model: openai.chat(modelName as Parameters<typeof openai.chat>[0]),
+      system: effectiveSystemPrompt,
+      messages: messages.map((m) => ({
+        role: m.role as "user" | "assistant" | "system",
+        content: getMessageText(m),
+      })),
+      maxOutputTokens: maxTokens,
+      // Reduce chance of "reasoning-only" output.
+      providerOptions: {
+        openai: {
+          // This model does not accept "none" (it supports minimal/low/medium/high).
+          reasoningEffort: "minimal",
+          textVerbosity: "low",
+        },
+      },
+    });
+
+    logger.info("[BACKEND] streamText started", {
+      requestId,
+      modelName,
+      maxTokens,
+    });
+
+    logger.performance("streamText init time", chatStartTime, { requestId });
+
+    // ai-sdk versions differ in which streaming response helpers are available.
+    // DefaultChatTransport typically expects the "data stream" protocol; older
+    // clients use the "UI message stream" protocol. We choose the best available
+    // method at runtime and log which one we used.
+    const anyResult = result as unknown as {
+      toDataStreamResponse?: () => Response;
+      toUIMessageStreamResponse: () => Response;
+    };
+
+    const baseResponse =
+      typeof anyResult.toDataStreamResponse === "function"
+        ? (() => {
+            logger.info("[BACKEND] Using toDataStreamResponse()", {
+              requestId,
+            });
+            return anyResult.toDataStreamResponse();
+          })()
+        : (() => {
+            logger.info("[BACKEND] Using toUIMessageStreamResponse()", {
+              requestId,
+            });
+            return anyResult.toUIMessageStreamResponse();
+          })();
+
+    // Add headers that make proxy buffering less likely (best-effort).
+    const responseHeaders = new Headers(baseResponse.headers);
+    responseHeaders.set("Cache-Control", "no-cache, no-transform");
+    responseHeaders.set("X-Accel-Buffering", "no");
+    responseHeaders.set("X-Anyclick-Request-Id", requestId);
+
+    logger.info("[BACKEND] Returning stream response", {
+      requestId,
+      status: baseResponse.status,
+      responseHeaders: isDev ? headersToObject(responseHeaders) : undefined,
+      contentType: responseHeaders.get("content-type"),
+    });
+
+    const bodyStream = baseResponse.body;
+    if (!bodyStream) {
+      logger.warn("[BACKEND] Stream response had no body", { requestId });
+      return new Response(null, {
+        status: baseResponse.status,
+        headers: responseHeaders,
+      });
+    }
+
+    // Tee the stream so we can log chunk timings without consuming the client stream.
+    const [clientStream, logStream] = bodyStream.tee();
+    void (async () => {
+      const logStart = Date.now();
+      let firstChunkMs: number | null = null;
+      let totalBytes = 0;
+      let chunks = 0;
+      const previews: string[] = [];
+      const reader = logStream.getReader();
+
+      try {
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          chunks += 1;
+          if (value) {
+            totalBytes += value.byteLength;
+            if (firstChunkMs === null) {
+              firstChunkMs = Date.now() - logStart;
+              logger.info("[BACKEND] Stream first chunk observed", {
+                requestId,
+                firstChunkMs,
+                firstChunkBytes: value.byteLength,
+              });
+            }
+            // In dev, log a few chunk previews to confirm protocol/data.
+            if (isDev && chunks <= 5) {
+              try {
+                const preview = new TextDecoder().decode(value).slice(0, 200);
+                previews.push(preview);
+                logger.debug("[BACKEND] Stream chunk preview", {
+                  requestId,
+                  chunk: chunks,
+                  preview,
+                });
+              } catch {
+                // ignore decoding issues
+              }
+            }
+          }
+        }
+
+        logger.info("[BACKEND] Stream completed", {
+          requestId,
+          chunks,
+          totalBytes,
+          durationMs: Date.now() - logStart,
+          previews: isDev ? previews : undefined,
+        });
+      } catch (err) {
+        logger.error("[BACKEND] Stream logging failed", err, { requestId });
+      } finally {
+        try {
+          reader.releaseLock();
+        } catch {
+          // ignore
+        }
+      }
+    })();
+
+    return new Response(clientStream, {
+      status: baseResponse.status,
+      headers: responseHeaders,
+    });
+  } catch (aiError) {
+    logger.error("[BACKEND] AI stream failed (ai-sdk path)", aiError, {
+      requestId,
+      model: model || DEFAULT_MODEL,
+      errorMessage:
+        aiError instanceof Error ? aiError.message : String(aiError),
+      errorStack: aiError instanceof Error ? aiError.stack : undefined,
+    });
+    throw aiError;
+  }
+}
+
 export async function POST(request: Request) {
   const requestId = generateRequestId();
   const requestStartTime = Date.now();
@@ -76,14 +370,72 @@ export async function POST(request: Request) {
     userAgent: isDev ? userAgent : userAgent.substring(0, 50),
   });
 
+  // Check rate limit before processing
+  const rateLimitResult = await rateLimitByIp(
+    request,
+    "24 h",
+    undefined,
+    requestId,
+  );
+  if (!rateLimitResult.allowed) {
+    logger.warn("[BACKEND] Rate limit exceeded", {
+      requestId,
+      remaining: rateLimitResult.remaining,
+      count: rateLimitResult.count,
+    });
+    return (
+      rateLimitResult.response ||
+      Response.json(
+        { error: "Rate limit exceeded. Try again later." },
+        { status: 429 },
+      )
+    );
+  }
+
+  logger.info("[BACKEND] Rate limit check passed", {
+    requestId,
+    remaining: rateLimitResult.remaining,
+    count: rateLimitResult.count,
+  });
+
   try {
     const bodyStartTime = Date.now();
     const body = await request.json();
     logger.performance("Request body parsed", bodyStartTime, { requestId });
 
+    // Handle ai-sdk useChat format (messages array)
+    // useChat sends: { messages: [...], ...body options }
+    logger.info("[BACKEND] Checking request format", {
+      requestId,
+      hasMessages: !!body.messages,
+      isMessagesArray: Array.isArray(body.messages),
+      bodyKeys: Object.keys(body),
+      bodySample: JSON.stringify(body).substring(0, 500),
+    });
+
+    if (body.messages && Array.isArray(body.messages)) {
+      logger.info(
+        "[BACKEND] Detected ai-sdk format, routing to handleAiSdkChat",
+        {
+          requestId,
+          messageCount: body.messages.length,
+        },
+      );
+      return handleAiSdkChat(request, body, requestId, requestStartTime);
+    }
+
+    logger.info("[BACKEND] Using legacy action-based format", { requestId });
+
     const { action, context, message, model, systemPrompt, maxLength } = body;
 
+    const maxTokens =
+      typeof maxLength === "number"
+        ? Math.min(maxLength, DEFAULT_MAX_TOKENS)
+        : DEFAULT_MAX_TOKENS;
+    const maxChars = Math.ceil(maxTokens * CHARACTER_TO_TOKEN_RATIO);
+
     logger.debug("Request body parsed", {
+      message: JSON.stringify(message),
       requestId,
       action,
       hasContext: !!context,
@@ -92,7 +444,8 @@ export async function POST(request: Request) {
       messageLength: message?.length || 0,
       model: model || "default",
       hasSystemPrompt: !!systemPrompt,
-      maxLength: maxLength || "default",
+      maxTokens: maxTokens || "default",
+      maxChars: maxChars || "default",
     });
 
     if (!action) {
@@ -109,21 +462,21 @@ export async function POST(request: Request) {
     if (action === "suggest") {
       logger.info("Processing suggest action", {
         requestId,
-        model: model || "gpt-5-nano",
+        model: model || DEFAULT_MODEL,
       });
 
       const suggestStartTime = Date.now();
       try {
         const result = await generateText({
-          model: openai(model || "gpt-5-nano"),
+          model: openai(model || DEFAULT_MODEL),
           system: SUGGESTION_SYSTEM_PROMPT,
           prompt: `Element context:\n${context || "No context provided"}\n\nGenerate question suggestions:`,
-          maxTokens: 1000,
+          maxOutputTokens: Math.min(DEFAULT_MAX_TOKENS, 4000),
         });
 
         logger.performance("AI generateText (suggest)", suggestStartTime, {
           requestId,
-          model: model || "gpt-5-nano",
+          model: model || DEFAULT_MODEL,
           responseLength: result.text.length,
         });
 
@@ -136,6 +489,7 @@ export async function POST(request: Request) {
             logger.info("Suggestions generated successfully", {
               requestId,
               count: finalSuggestions.length,
+              suggestions: JSON.stringify(finalSuggestions),
             });
             logger.performance(
               "Total request time (suggest)",
@@ -187,7 +541,7 @@ export async function POST(request: Request) {
       } catch (aiError) {
         logger.error("AI generation failed for suggest action", aiError, {
           requestId,
-          model: model || "gpt-5-nano",
+          model: model || DEFAULT_MODEL,
         });
         throw aiError;
       }
@@ -231,15 +585,15 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
       const refineStartTime = Date.now();
       try {
         const result = await generateText({
-          model: openai("gpt-5-mini"),
+          model: openai(DEFAULT_MODEL),
           system: effectiveSystemPrompt,
           prompt,
-          maxTokens: 500,
+          maxOutputTokens: Math.min(DEFAULT_MAX_TOKENS, 4000),
         });
 
         logger.performance("AI generateText (refine)", refineStartTime, {
           requestId,
-          model: "gpt-5-mini",
+          model: DEFAULT_MODEL,
           responseLength: result.text.length,
         });
 
@@ -273,7 +627,7 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
       } catch (aiError) {
         logger.error("AI generation failed for refine action", aiError, {
           requestId,
-          model: "gpt-5-mini",
+          model: DEFAULT_MODEL,
         });
         throw aiError;
       }
@@ -282,8 +636,9 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
     if (action === "chat") {
       logger.info("Processing chat action", {
         requestId,
-        model: model || "gpt-5-nano",
-        maxLength: maxLength || 500,
+        model: model || DEFAULT_MODEL,
+        maxTokens,
+        maxChars,
       });
 
       if (!message) {
@@ -300,29 +655,30 @@ Refine this into a clear, well-formed prompt for t3.chat:`;
 Element context:
 ${context || "No element context provided."}
 
-Important: Keep your response under ${maxLength || 500} characters.`;
+Important: Keep your response under ${maxChars} characters.`;
 
       logger.debug("Chat prompt prepared", {
         requestId,
         messageLength: message.length,
         hasContext: !!context,
-        maxLength: maxLength || 500,
+        maxTokens,
+        maxChars,
         usingCustomSystemPrompt: !!systemPrompt,
       });
 
       const chatStartTime = Date.now();
       try {
         const result = streamText({
-          model: openai(model || "gpt-5-nano"),
+          model: openai(model || DEFAULT_MODEL),
           system: effectiveSystemPrompt,
           prompt: message,
-          maxTokens: Math.min(Math.ceil((maxLength || 500) / 3), 300),
+          maxOutputTokens: maxTokens,
         });
 
         logger.info("Chat stream initiated", {
           requestId,
-          model: model || "gpt-5-nano",
-          maxTokens: Math.min(Math.ceil((maxLength || 500) / 3), 300),
+          model: model || DEFAULT_MODEL,
+          maxTokens,
         });
         logger.performance("Stream initialization time", chatStartTime, {
           requestId,
