@@ -45,7 +45,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",
     "motion": "^12.23.26",
-    "next": "16.0.7",
+    "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "tailwind-merge": "^3.3.1",
