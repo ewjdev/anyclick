@@ -19,6 +19,9 @@ import type {
 import { CompactModeConfig } from "./InspectDialog/InspectSimple";
 import type { QuickChatConfig } from "./QuickChat/types";
 
+// Re-export ToastConfig from Toast module for convenience
+export type { ToastConfig } from "./Toast/types";
+
 // ============================================================================
 // Theme Configuration
 // ============================================================================
@@ -387,6 +390,26 @@ export interface AnyclickProviderProps {
    * Set to null or { disabled: true } to disable anyclick in this subtree.
    */
   theme?: AnyclickTheme | null;
+  /**
+   * Configuration for toast notifications.
+   * By default, toasts are shown on submission success/error.
+   * Set `enabled: false` to disable automatic toasts.
+   *
+   * @example
+   * ```tsx
+   * <AnyclickProvider
+   *   adapter={adapter}
+   *   toastConfig={{
+   *     enabled: true,
+   *     position: "bottom-right",
+   *     successMessage: "Thanks for your feedback!",
+   *   }}
+   * >
+   * ```
+   *
+   * @since 1.6.0
+   */
+  toastConfig?: import("./Toast/types").ToastConfig;
   /** Duration in ms to hold touch before triggering context menu (default: 500) */
   touchHoldDurationMs?: number;
   /** Maximum movement in px before touch hold is cancelled (default: 10) */

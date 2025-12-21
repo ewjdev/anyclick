@@ -26,6 +26,7 @@ import type {
 } from "@ewjdev/anyclick-core";
 import { createAnyclickClient } from "@ewjdev/anyclick-core";
 import { ContextMenu } from "./ContextMenu";
+import { ToastContainer, showToast } from "./Toast";
 import { AnyclickContext, useAnyclick } from "./context";
 import { findContainerParent } from "./highlight";
 import { type ProviderInstance, useProviderStore } from "./store";
@@ -90,6 +91,7 @@ export function AnyclickProvider({
   stripAttributes,
   targetFilter,
   theme,
+  toastConfig,
   touchHoldDurationMs,
   touchMoveThreshold,
 }: AnyclickProviderProps) {
@@ -343,6 +345,21 @@ export function AnyclickProvider({
           metadata,
           screenshots,
         });
+
+        // Show success toast if enabled (default: true)
+        if (toastConfig?.enabled !== false) {
+          showToast(toastConfig?.successMessage ?? "Feedback sent!", "success");
+        }
+      } catch (error) {
+        // Show error toast if enabled (default: true)
+        if (toastConfig?.enabled !== false) {
+          showToast(
+            toastConfig?.errorMessage ?? "Failed to send feedback",
+            "error",
+          );
+        }
+        // Re-throw so the client's onSubmitError callback can handle it
+        throw error;
       } finally {
         setIsSubmitting(false);
         setMenuVisible(false);
@@ -351,7 +368,7 @@ export function AnyclickProvider({
         setContainerElement(null);
       }
     },
-    [metadata],
+    [metadata, toastConfig],
   );
 
   // Open menu programmatically
@@ -458,6 +475,9 @@ export function AnyclickProvider({
     children
   );
 
+  // Only render ToastContainer for non-scoped (root) providers to avoid duplicates
+  const shouldRenderToastContainer = !scoped && toastConfig?.enabled !== false;
+
   return (
     <AnyclickContext.Provider value={contextValue}>
       <div data-anyclick-root>
@@ -478,6 +498,9 @@ export function AnyclickProvider({
           targetElement={targetElement}
           visible={menuVisible && !effectiveDisabled}
         />
+        {shouldRenderToastContainer && (
+          <ToastContainer position={toastConfig?.position ?? "bottom-right"} />
+        )}
       </div>
     </AnyclickContext.Provider>
   );
