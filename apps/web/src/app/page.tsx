@@ -1,14 +1,34 @@
+ "use client";
+
 import { AnyclickLogo } from "@/components/AnyclickLogo";
+import { AnimatedWord } from "@/components/AnimatedWord";
 import { HeroCodeBlock } from "@/components/CodePreview";
 import FeaturesSection from "@/components/FeaturesSection";
 import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamShowcase";
 import PackagesSection from "@/components/PackagesSection";
 import QuickStartSection from "@/components/QuickStartSection";
 import RoadmapSummary from "@/components/RoadmapSummary";
+import { useFirstTimeInteraction } from "@/lib/hooks/useFirstTimeInteraction";
 import { ArrowRight } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const { hasInteracted, markComplete } = useFirstTimeInteraction();
+  const [showButton, setShowButton] = useState(hasInteracted);
+
+  useEffect(() => {
+    if (hasInteracted) {
+      setShowButton(true);
+    }
+  }, [hasInteracted]);
+
+  const handleCycleComplete = () => {
+    markComplete();
+    setShowButton(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden">
       {/* Animated gradient background */}
@@ -79,9 +99,19 @@ export default function Home() {
               UX done right
             </span>
             <br />
-            <span className="bg-linear-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-              Why not click on everything?
-            </span>
+            <motion.span
+              layout
+              className="inline-flex flex-wrap items-baseline justify-center gap-2 bg-linear-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent"
+              transition={{ type: "spring", stiffness: 240, damping: 22 }}
+            >
+              <span>Why not click on</span>
+              <AnimatedWord
+                words={["Everything", "Anything"]}
+                onCycleComplete={handleCycleComplete}
+                className="bg-linear-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent"
+              />
+              <span>?</span>
+            </motion.span>
           </h1>
 
           {/* Subheadline */}
@@ -92,7 +122,15 @@ export default function Home() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex items-center justify-center gap-4">
+          <motion.div
+            className="flex items-center justify-center gap-4"
+            initial={false}
+            animate={{
+              opacity: showButton ? 1 : 0,
+              pointerEvents: showButton ? "auto" : "none",
+            }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <Link
               href="/docs/getting-started"
               className="group px-8 py-3 rounded-xl bg-linear-to-r from-violet-500 to-cyan-500 text-white font-semibold transition-all hover:shadow-lg hover:shadow-violet-500/25 flex items-center gap-2"
@@ -100,7 +138,7 @@ export default function Home() {
               Get Started
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-          </div>
+          </motion.div>
         </div>
 
         {/* Code Preview */}

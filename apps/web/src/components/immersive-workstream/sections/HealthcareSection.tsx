@@ -7,6 +7,9 @@ import { adapter } from "../adapter";
 import { HealthcareMedicalBackground } from "../backgrounds/HealthcareMedicalBackground";
 import { HealthcareCard } from "../cards/HealthcareCard";
 import type { ImmersiveTheme } from "../types";
+import { WorkflowDrawer } from "../workflows/WorkflowDrawer";
+import { isWorkflowWorkstreamId } from "../workflows/registry";
+import { useWorkflowLauncher } from "../workflows/useWorkflowLauncher";
 
 interface HealthcareSectionProps {
   theme: ImmersiveTheme;
@@ -21,6 +24,13 @@ export function HealthcareSection({
   isInView,
   bgY,
 }: HealthcareSectionProps) {
+  const workflowWorkstreamId = isWorkflowWorkstreamId(theme.id)
+    ? theme.id
+    : "healthcare";
+  const { activeWorkflow, closeWorkflow, menuItems } = useWorkflowLauncher(
+    workflowWorkstreamId,
+  );
+
   return (
     <>
       <motion.div
@@ -63,7 +73,7 @@ export function HealthcareSection({
         >
           <AnyclickProvider
             adapter={adapter}
-            menuItems={theme.menuItems}
+            menuItems={menuItems}
             metadata={{ workstream: theme.id }}
             theme={{
               menuStyle: theme.menuStyle,
@@ -110,6 +120,8 @@ export function HealthcareSection({
           background: `linear-gradient(to top, rgba(16, 185, 129, 0.1), transparent)`,
         }}
       />
+
+      <WorkflowDrawer activeWorkflow={activeWorkflow} onClose={closeWorkflow} />
     </>
   );
 }

@@ -5,6 +5,9 @@ import { type MotionValue, motion } from "motion/react";
 import { FloatingIcon } from "../FloatingIcon";
 import { adapter } from "../adapter";
 import type { ImmersiveTheme } from "../types";
+import { WorkflowDrawer } from "../workflows/WorkflowDrawer";
+import { isWorkflowWorkstreamId } from "../workflows/registry";
+import { useWorkflowLauncher } from "../workflows/useWorkflowLauncher";
 
 interface DefaultWorkstreamSectionProps {
   theme: ImmersiveTheme;
@@ -19,6 +22,13 @@ export function DefaultWorkstreamSection({
   isInView,
   bgY,
 }: DefaultWorkstreamSectionProps) {
+  const workflowWorkstreamId = isWorkflowWorkstreamId(theme.id)
+    ? theme.id
+    : "software";
+  const { activeWorkflow, closeWorkflow, menuItems } = useWorkflowLauncher(
+    workflowWorkstreamId,
+  );
+
   return (
     <>
       <motion.div
@@ -66,7 +76,7 @@ export function DefaultWorkstreamSection({
         >
           <AnyclickProvider
             adapter={adapter}
-            menuItems={theme.menuItems}
+            menuItems={menuItems}
             metadata={{ workstream: theme.id }}
             theme={{
               menuStyle: theme.menuStyle,
@@ -114,6 +124,8 @@ export function DefaultWorkstreamSection({
           opacity: 0.3,
         }}
       />
+
+      <WorkflowDrawer activeWorkflow={activeWorkflow} onClose={closeWorkflow} />
     </>
   );
 }

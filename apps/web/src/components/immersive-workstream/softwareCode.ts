@@ -1,11 +1,11 @@
-export const DEFAULT_SOFTWARE_CODE = `// Edit this code to customize the context menu!
-// Changes apply instantly when you right-click.
+export const DEFAULT_SOFTWARE_CODE = `// Workflow menu is fixed for the homepage demo.
+// Right-click in the software section to preview full workflows.
 
-const menuItems = [
-  { label: "Report bug", type: "bug", showComment: true },
-  { label: "Send to Cursor", type: "cursor", showComment: false },
-  { label: "Copy selector", type: "selector", showComment: false },
+const workflowMenu = [
+  { label: "Report this bug", flow: "Ticket System -> Issue Details -> Review" },
+  { label: "Send to Cursor", flow: "Fix Scope -> Prompt & Constraints -> Review" },
+  { label: "Copy selector", flow: "Selector Format -> Copy Bundle" },
 ];
 
-// Right-click anywhere to see your menu in action!
+// This editor remains visible to show how the workflow configuration might look.
 `;

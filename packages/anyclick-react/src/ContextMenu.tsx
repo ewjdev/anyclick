@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { AnyclickType, ScreenshotData } from "@ewjdev/anyclick-core";
 import {
   DEFAULT_SCREENSHOT_CONFIG,
@@ -307,6 +308,7 @@ export function ContextMenu({
     }
   });
   const menuRef = useRef<HTMLDivElement>(null);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
 
   // Position state for different modes
   const [adjustedPosition, setAdjustedPosition] = useState<{
@@ -499,6 +501,11 @@ export function ContextMenu({
 
   // Track initial input for type-to-chat feature
   const [initialChatInput, setInitialChatInput] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setPortalRoot(document.body);
+  }, []);
 
   // Handle keyboard input - escape and type-to-chat
   useEffect(() => {
@@ -706,10 +713,135 @@ export function ContextMenu({
   // Show pinned QuickChat drawer (separate from menu)
   const showPinnedDrawer = isQuickChatPinned && quickChatConfig;
   const showMenu = visible && targetElement;
+  const menuNode = showMenu ? (
+    <div
+      ref={menuRef}
+      aria-label="Feedback options"
+      className={className}
+      role="menu"
+      style={{
+        ...menuStyles.container,
+        left: adjustedPosition.x,
+        top: adjustedPosition.y,
+        ...(containerWidth ? { minWidth: containerWidth, width: containerWidth } : {}),
+        touchAction: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+        WebkitUserSelect: "none",
+        ...(isDragging ? { cursor: "grabbing" } : {}),
+        ...style,
+      }}
+    >
+      {!header &&
+        currentView !== "screenshot-preview" &&
+        currentView !== "quick-chat" && (
+          <DefaultHeader styles={menuStyles.header} title="Send Feedback">
+            {positionMode === "dynamic" && (
+              <div
+                data-drag-handle
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "1";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.opacity = "0.5";
+                }}
+                onPointerDown={handleDragStart}
+                style={{
+                  ...menuStyles.dragHandle,
+                  cursor: isDragging ? "grabbing" : "grab",
+                }}
+                title="Drag to move"
+              >
+                <GripVertical className="w-4 h-4" />
+              </div>
+            )}
+            {showPreview && (
+              <div style={menuStyles.screenshotIndicator}>
+                <CameraIcon className="w-3 h-3" />
+              </div>
+            )}
+            {quickChatConfig && (
+              <button
+                type="button"
+                onClick={handleQuickChatToggle}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "24px",
+                  height: "24px",
+                  border: "none",
+                  borderRadius: "4px",
+                  backgroundColor: isQuickChatPinned
+                    ? "var(--anyclick-menu-accent, #0066cc)"
+                    : "transparent",
+                  color: isQuickChatPinned
+                    ? "#fff"
+                    : "var(--anyclick-menu-accent, #0066cc)",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                title={isQuickChatPinned ? "Quick Chat (pinned)" : "Quick Ask AI"}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </DefaultHeader>
+        )}
+      {!!header && header}
+
+      {currentView === "menu" && (
+        <div style={menuStyles.itemList}>
+          {submenuStack.length > 0 && <BackButton onClick={handleBack} />}
+          {currentItems.map((item) => (
+            <MenuItem
+              key={item.type}
+              disabled={isSubmitting}
+              hasChildren={item.children && item.children.length > 0}
+              item={item}
+              onClick={() => handleItemClick(item)}
+            />
+          ))}
+        </div>
+      )}
+
+      {currentView === "comment" && (
+        <CommentForm
+          isSubmitting={isSubmitting}
+          onCancel={handleCommentCancel}
+          onSubmit={handleCommentSubmit}
+        />
+      )}
+
+      {currentView === "screenshot-preview" && (
+        <ScreenshotPreview
+          isLoading={isCapturing}
+          isSubmitting={isSubmitting}
+          onCancel={handleScreenshotCancel}
+          onConfirm={handleScreenshotConfirm}
+          onRetake={handleRetakeScreenshots}
+          screenshots={screenshots}
+        />
+      )}
+
+      {currentView === "quick-chat" && quickChatConfig && !isQuickChatPinned && (
+        <QuickChat
+          visible={true}
+          targetElement={targetElement}
+          containerElement={containerElement}
+          onClose={handleQuickChatClose}
+          onPin={handleQuickChatPin}
+          isPinned={false}
+          config={quickChatConfig}
+          initialInput={initialChatInput}
+          onInitialInputConsumed={() => setInitialChatInput("")}
+        />
+      )}
+    </div>
+  ) : null;
 
   return (
     <>
-      {/* Pinned QuickChat drawer - anchored to right side, independent of menu */}
       {showPinnedDrawer && (
         <QuickChat
           visible={true}
@@ -721,141 +853,7 @@ export function ContextMenu({
           config={quickChatConfig}
         />
       )}
-
-      {/* Context menu - only visible when menu is open */}
-      {showMenu && (
-        <div
-          ref={menuRef}
-          aria-label="Feedback options"
-          className={className}
-          role="menu"
-          style={{
-            ...menuStyles.container,
-            left: adjustedPosition.x,
-            top: adjustedPosition.y,
-            ...(containerWidth
-              ? { minWidth: containerWidth, width: containerWidth }
-              : {}),
-            touchAction: "none",
-            userSelect: "none",
-            WebkitTouchCallout: "none",
-            WebkitUserSelect: "none",
-            ...(isDragging ? { cursor: "grabbing" } : {}),
-            ...style,
-          }}
-        >
-          {!header &&
-            currentView !== "screenshot-preview" &&
-            currentView !== "quick-chat" && (
-              <DefaultHeader styles={menuStyles.header} title="Send Feedback">
-                {positionMode === "dynamic" && (
-                  <div
-                    data-drag-handle
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.opacity = "1";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.opacity = "0.5";
-                    }}
-                    onPointerDown={handleDragStart}
-                    style={{
-                      ...menuStyles.dragHandle,
-                      cursor: isDragging ? "grabbing" : "grab",
-                    }}
-                    title="Drag to move"
-                  >
-                    <GripVertical className="w-4 h-4" />
-                  </div>
-                )}
-                {showPreview && (
-                  <div style={menuStyles.screenshotIndicator}>
-                    <CameraIcon className="w-3 h-3" />
-                  </div>
-                )}
-                {quickChatConfig && (
-                  <button
-                    type="button"
-                    onClick={handleQuickChatToggle}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      width: "24px",
-                      height: "24px",
-                      border: "none",
-                      borderRadius: "4px",
-                      backgroundColor: isQuickChatPinned
-                        ? "var(--anyclick-menu-accent, #0066cc)"
-                        : "transparent",
-                      color: isQuickChatPinned
-                        ? "#fff"
-                        : "var(--anyclick-menu-accent, #0066cc)",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                    title={
-                      isQuickChatPinned ? "Quick Chat (pinned)" : "Quick Ask AI"
-                    }
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </DefaultHeader>
-            )}
-          {!!header && header}
-
-          {currentView === "menu" && (
-            <div style={menuStyles.itemList}>
-              {submenuStack.length > 0 && <BackButton onClick={handleBack} />}
-              {currentItems.map((item) => (
-                <MenuItem
-                  key={item.type}
-                  disabled={isSubmitting}
-                  hasChildren={item.children && item.children.length > 0}
-                  item={item}
-                  onClick={() => handleItemClick(item)}
-                />
-              ))}
-            </div>
-          )}
-
-          {currentView === "comment" && (
-            <CommentForm
-              isSubmitting={isSubmitting}
-              onCancel={handleCommentCancel}
-              onSubmit={handleCommentSubmit}
-            />
-          )}
-
-          {currentView === "screenshot-preview" && (
-            <ScreenshotPreview
-              isLoading={isCapturing}
-              isSubmitting={isSubmitting}
-              onCancel={handleScreenshotCancel}
-              onConfirm={handleScreenshotConfirm}
-              onRetake={handleRetakeScreenshots}
-              screenshots={screenshots}
-            />
-          )}
-
-          {/* Inline QuickChat - inside menu when not pinned */}
-          {currentView === "quick-chat" &&
-            quickChatConfig &&
-            !isQuickChatPinned && (
-              <QuickChat
-                visible={true}
-                targetElement={targetElement}
-                containerElement={containerElement}
-                onClose={handleQuickChatClose}
-                onPin={handleQuickChatPin}
-                isPinned={false}
-                config={quickChatConfig}
-                initialInput={initialChatInput}
-                onInitialInputConsumed={() => setInitialChatInput("")}
-              />
-            )}
-        </div>
-      )}
+      {portalRoot && menuNode ? createPortal(menuNode, portalRoot) : menuNode}
     </>
   );
 }
