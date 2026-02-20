@@ -433,6 +433,150 @@ const WORKFLOW_ACTIONS: WorkflowActionDefinition[] = [
     ],
   },
   {
+    id: "healthcare.verify_identity_token",
+    workstream: "healthcare",
+    menuLabel: "Verify identity token",
+    menuType: "healthcare_verify_identity_token",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "verification-source",
+        title: "Verification Source",
+        description: "Choose where verification context was pulled from.",
+      },
+      {
+        id: "mismatch-details",
+        title: "Mismatch Details",
+        description: "Capture non-PHI mismatch details for routing.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
+    id: "healthcare.coverage_exception",
+    workstream: "healthcare",
+    menuLabel: "Coverage exception",
+    menuType: "healthcare_coverage_exception",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "payer-trigger",
+        title: "Payer & Trigger",
+        description: "Record payer and eligibility trigger reason.",
+      },
+      {
+        id: "authorization-path",
+        title: "Authorization Path",
+        description: "Route to the appropriate authorization queue.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
+    id: "healthcare.request_vital_recheck",
+    workstream: "healthcare",
+    menuLabel: "Request vital recheck",
+    menuType: "healthcare_request_vital_recheck",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "vital-threshold",
+        title: "Vital & Threshold",
+        description: "Select the vital and threshold concern.",
+      },
+      {
+        id: "recheck-owner",
+        title: "Recheck Timing & Owner",
+        description: "Set recheck timing and assigned owner.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
+    id: "healthcare.open_trend_review",
+    workstream: "healthcare",
+    menuLabel: "Open trend review",
+    menuType: "healthcare_open_trend_review",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "trend-window",
+        title: "Trend Window",
+        description: "Choose trend time horizon for review.",
+      },
+      {
+        id: "clinical-context",
+        title: "Clinical Context",
+        description: "Add non-PHI clinical context notes.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
+    id: "healthcare.notify_care_team",
+    workstream: "healthcare",
+    menuLabel: "Notify care team",
+    menuType: "healthcare_notify_care_team",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "team-selection",
+        title: "Team Selection",
+        description: "Choose care team recipients.",
+      },
+      {
+        id: "message-priority",
+        title: "Message & Priority",
+        description: "Compose summary and priority level.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
+    id: "healthcare.escalate_handoff",
+    workstream: "healthcare",
+    menuLabel: "Escalate handoff",
+    menuType: "healthcare_escalate_handoff",
+    submitMode: "demo",
+    steps: [
+      {
+        id: "handoff-target",
+        title: "Handoff Target",
+        description: "Select destination team for escalation.",
+      },
+      {
+        id: "risk-sla",
+        title: "Risk & SLA",
+        description: "Define risk posture and response target.",
+      },
+      {
+        id: "confirm",
+        title: "Confirm",
+        description: "Review and complete the workflow.",
+      },
+    ],
+  },
+  {
     id: "social.save_asset",
     workstream: "social",
     menuLabel: "Save asset",

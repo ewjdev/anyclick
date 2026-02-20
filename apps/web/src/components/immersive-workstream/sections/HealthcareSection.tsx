@@ -1,14 +1,11 @@
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import { useMemo } from "react";
 import { MousePointer2 } from "lucide-react";
 import { type MotionValue, motion } from "motion/react";
 import { FloatingIcon } from "../FloatingIcon";
-import { adapter } from "../adapter";
 import { HealthcareMedicalBackground } from "../backgrounds/HealthcareMedicalBackground";
 import { HealthcareCard } from "../cards/HealthcareCard";
 import type { ImmersiveTheme } from "../types";
 import { WorkflowDrawer } from "../workflows/WorkflowDrawer";
-import { isWorkflowWorkstreamId } from "../workflows/registry";
 import { useWorkflowLauncher } from "../workflows/useWorkflowLauncher";
 
 interface HealthcareSectionProps {
@@ -24,11 +21,37 @@ export function HealthcareSection({
   isInView,
   bgY,
 }: HealthcareSectionProps) {
-  const workflowWorkstreamId = isWorkflowWorkstreamId(theme.id)
-    ? theme.id
-    : "healthcare";
-  const { activeWorkflow, closeWorkflow, menuItems } = useWorkflowLauncher(
-    workflowWorkstreamId,
+  const { activeWorkflow, closeWorkflow, getMenuItemsForActionIds } =
+    useWorkflowLauncher("healthcare");
+
+  const summaryMenuItems = useMemo(
+    () =>
+      getMenuItemsForActionIds([
+        "healthcare.check_in_issue",
+        "healthcare.verify_identity_token",
+        "healthcare.coverage_exception",
+      ]),
+    [getMenuItemsForActionIds],
+  );
+
+  const vitalsMenuItems = useMemo(
+    () =>
+      getMenuItemsForActionIds([
+        "healthcare.vital_alert",
+        "healthcare.request_vital_recheck",
+        "healthcare.open_trend_review",
+      ]),
+    [getMenuItemsForActionIds],
+  );
+
+  const statusMenuItems = useMemo(
+    () =>
+      getMenuItemsForActionIds([
+        "healthcare.flag_urgent",
+        "healthcare.notify_care_team",
+        "healthcare.escalate_handoff",
+      ]),
+    [getMenuItemsForActionIds],
   );
 
   return (
@@ -71,46 +94,29 @@ export function HealthcareSection({
           }
           transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
         >
-          <AnyclickProvider
-            adapter={adapter}
-            menuItems={menuItems}
-            metadata={{ workstream: theme.id }}
-            theme={{
-              menuStyle: theme.menuStyle,
-              highlightConfig: {
-                enabled: true,
-                colors: {
-                  targetColor: theme.primaryColor,
-                  containerColor: `${theme.primaryColor}30`,
-                },
-              },
-            }}
-            header={<></>}
-            scoped
-          >
-            <PointerProvider
-              theme={{
-                colors: {
-                  pointerColor: theme.primaryColor,
-                  circleColor: `${theme.primaryColor}50`,
-                },
-                pointerIcon: theme.pointerIcon,
-              }}
+          <div className="group">
+            <HealthcareCard
+              menuStyle={theme.menuStyle}
+              pointerCircleColor={`${theme.primaryColor}50`}
+              pointerColor={theme.primaryColor}
+              pointerIcon={theme.pointerIcon}
+              primaryColor={theme.primaryColor}
+              statusMenuItems={statusMenuItems}
+              summaryMenuItems={summaryMenuItems}
+              vitalsMenuItems={vitalsMenuItems}
+            />
+            <motion.div
+              className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
             >
-              <div className="group">
-                <HealthcareCard />
-                <motion.div
-                  className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 }}
-                >
-                  <MousePointer2 size={14} />
-                  <span>Right-click to interact</span>
-                </motion.div>
-              </div>
-            </PointerProvider>
-          </AnyclickProvider>
+              <MousePointer2 size={14} />
+              <span>
+                Right-click patient summary, vitals, or care status to interact
+              </span>
+            </motion.div>
+          </div>
         </motion.div>
       </div>
 

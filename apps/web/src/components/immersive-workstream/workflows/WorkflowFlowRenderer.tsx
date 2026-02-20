@@ -1019,6 +1019,393 @@ const GENERIC_WORKFLOWS: Record<GenericActionId, GenericWorkflowConfig> = {
       },
     ],
   },
+  "healthcare.verify_identity_token": {
+    successTitle: "Identity verification workflow simulated",
+    successMessage:
+      "Verification and mismatch details were prepared using non-PHI context.",
+    steps: [
+      {
+        title: "Verification Source",
+        description: "Capture token verification source.",
+        kind: "form",
+        fields: [
+          {
+            key: "verificationSource",
+            kind: "select",
+            label: "Source",
+            required: true,
+            options: [
+              { value: "kiosk", label: "Check-in kiosk" },
+              { value: "frontdesk", label: "Front desk scan" },
+              { value: "portal", label: "Patient portal token" },
+            ],
+          },
+          {
+            key: "verificationMode",
+            kind: "select",
+            label: "Verification Mode",
+            required: true,
+            options: [
+              { value: "qr", label: "QR token" },
+              { value: "wristband", label: "Wristband barcode" },
+              { value: "manual", label: "Manual confirmation token" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Mismatch Details",
+        description: "Document mismatch details (non-PHI only).",
+        kind: "form",
+        fields: [
+          {
+            key: "patientTokenRef",
+            kind: "text",
+            label: "Patient Token Reference",
+            placeholder: "PT-TOKEN-49211",
+            required: true,
+          },
+          {
+            key: "mismatchDetails",
+            kind: "textarea",
+            label: "Mismatch Details",
+            placeholder:
+              "Use operational details only. Do not include patient name, DOB, or MRN.",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
+  "healthcare.coverage_exception": {
+    successTitle: "Coverage exception workflow simulated",
+    successMessage:
+      "Coverage and authorization routing details were staged with context.",
+    steps: [
+      {
+        title: "Payer & Trigger",
+        description: "Capture coverage trigger details.",
+        kind: "form",
+        fields: [
+          {
+            key: "payerType",
+            kind: "select",
+            label: "Payer",
+            required: true,
+            options: [
+              { value: "commercial", label: "Commercial" },
+              { value: "medicare", label: "Medicare" },
+              { value: "medicaid", label: "Medicaid" },
+            ],
+          },
+          {
+            key: "exceptionTrigger",
+            kind: "select",
+            label: "Eligibility Trigger",
+            required: true,
+            options: [
+              { value: "inactive", label: "Inactive coverage" },
+              { value: "auth", label: "Authorization required" },
+              { value: "benefit", label: "Benefit limitation" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Authorization Path",
+        description: "Choose routing and follow-up path.",
+        kind: "form",
+        fields: [
+          {
+            key: "authorizationQueue",
+            kind: "select",
+            label: "Authorization Queue",
+            required: true,
+            options: [
+              { value: "billing-auth", label: "Billing authorization" },
+              { value: "clinical-auth", label: "Clinical authorization" },
+              { value: "supervisor", label: "Supervisor review" },
+            ],
+          },
+          {
+            key: "coverageNotes",
+            kind: "textarea",
+            label: "Operational Notes",
+            placeholder:
+              "Use token references and workflow context only. Exclude PHI.",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
+  "healthcare.request_vital_recheck": {
+    successTitle: "Vital recheck workflow simulated",
+    successMessage:
+      "Recheck timing and ownership were captured for bedside follow-up.",
+    steps: [
+      {
+        title: "Vital & Threshold",
+        description: "Define concerning vital threshold.",
+        kind: "form",
+        fields: [
+          {
+            key: "recheckVitalType",
+            kind: "select",
+            label: "Vital Type",
+            required: true,
+            options: [
+              { value: "hr", label: "Heart rate" },
+              { value: "bp", label: "Blood pressure" },
+              { value: "spo2", label: "SpO2" },
+              { value: "temp", label: "Temperature" },
+            ],
+          },
+          {
+            key: "thresholdRule",
+            kind: "text",
+            label: "Threshold Rule",
+            placeholder: "HR > 120 for 5 min",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Recheck Timing & Owner",
+        description: "Assign recheck timing and owner.",
+        kind: "form",
+        fields: [
+          {
+            key: "recheckWindow",
+            kind: "select",
+            label: "Recheck Window",
+            required: true,
+            options: [
+              { value: "5m", label: "5 minutes" },
+              { value: "10m", label: "10 minutes" },
+              { value: "15m", label: "15 minutes" },
+            ],
+          },
+          {
+            key: "recheckOwner",
+            kind: "select",
+            label: "Owner",
+            required: true,
+            options: [
+              { value: "primary-rn", label: "Primary RN" },
+              { value: "charge-rn", label: "Charge RN" },
+              { value: "rapid-team", label: "Rapid response team" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
+  "healthcare.open_trend_review": {
+    successTitle: "Trend review workflow simulated",
+    successMessage:
+      "Trend review request and clinical context were prepared for analysis.",
+    steps: [
+      {
+        title: "Trend Window",
+        description: "Select time range for trend review.",
+        kind: "form",
+        fields: [
+          {
+            key: "trendWindow",
+            kind: "select",
+            label: "Trend Window",
+            required: true,
+            options: [
+              { value: "30m", label: "Last 30 minutes" },
+              { value: "2h", label: "Last 2 hours" },
+              { value: "24h", label: "Last 24 hours" },
+            ],
+          },
+          {
+            key: "trendFocus",
+            kind: "select",
+            label: "Focus",
+            required: true,
+            options: [
+              { value: "instability", label: "Instability pattern" },
+              { value: "response", label: "Treatment response" },
+              { value: "artifact", label: "Potential monitor artifact" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Clinical Context",
+        description: "Capture non-PHI context notes.",
+        kind: "form",
+        fields: [
+          {
+            key: "clinicalContextNotes",
+            kind: "textarea",
+            label: "Clinical Context Notes",
+            placeholder:
+              "Operational context only. Use unit/bed tokens and no patient identifiers.",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
+  "healthcare.notify_care_team": {
+    successTitle: "Care team notification workflow simulated",
+    successMessage:
+      "Care team notification and urgency context were prepared for routing.",
+    steps: [
+      {
+        title: "Team Selection",
+        description: "Select notification recipients.",
+        kind: "form",
+        fields: [
+          {
+            key: "careTeamTarget",
+            kind: "select",
+            label: "Care Team",
+            required: true,
+            options: [
+              { value: "primary-team", label: "Primary care team" },
+              { value: "consult-team", label: "Consult team" },
+              { value: "oncall-team", label: "On-call coverage" },
+            ],
+          },
+          {
+            key: "notifyChannel",
+            kind: "select",
+            label: "Channel",
+            required: true,
+            options: [
+              { value: "ehr-inbox", label: "EHR inbox (demo)" },
+              { value: "secure-chat", label: "Secure chat (demo)" },
+              { value: "unit-board", label: "Unit board task" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Message & Priority",
+        description: "Set priority and write handoff message.",
+        kind: "form",
+        fields: [
+          {
+            key: "notifyPriority",
+            kind: "select",
+            label: "Priority",
+            required: true,
+            options: [
+              { value: "routine", label: "Routine" },
+              { value: "high", label: "High" },
+              { value: "urgent", label: "Urgent" },
+            ],
+          },
+          {
+            key: "notifyMessage",
+            kind: "textarea",
+            label: "Message",
+            placeholder:
+              "Use operational context and token references only (no PHI).",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
+  "healthcare.escalate_handoff": {
+    successTitle: "Handoff escalation workflow simulated",
+    successMessage:
+      "Handoff escalation target and SLA requirements were captured.",
+    steps: [
+      {
+        title: "Handoff Target",
+        description: "Choose escalation destination.",
+        kind: "form",
+        fields: [
+          {
+            key: "handoffTarget",
+            kind: "select",
+            label: "Target Team",
+            required: true,
+            options: [
+              { value: "charge-nurse", label: "Charge nurse" },
+              { value: "hospitalist", label: "Hospitalist coverage" },
+              { value: "rapid-response", label: "Rapid response coordinator" },
+            ],
+          },
+          {
+            key: "handoffReason",
+            kind: "textarea",
+            label: "Escalation Reason",
+            placeholder:
+              "Summarize operational urgency and context with non-PHI details.",
+            required: true,
+          },
+        ],
+      },
+      {
+        title: "Risk & SLA",
+        description: "Define risk posture and response timeline.",
+        kind: "form",
+        fields: [
+          {
+            key: "handoffRisk",
+            kind: "select",
+            label: "Risk Level",
+            required: true,
+            options: [
+              { value: "moderate", label: "Moderate" },
+              { value: "high", label: "High" },
+              { value: "critical", label: "Critical" },
+            ],
+          },
+          {
+            key: "handoffSla",
+            kind: "select",
+            label: "SLA Target",
+            required: true,
+            options: [
+              { value: "10m", label: "10 minutes" },
+              { value: "30m", label: "30 minutes" },
+              { value: "60m", label: "60 minutes" },
+            ],
+          },
+        ],
+      },
+      {
+        title: "Confirm",
+        description: "Review and complete.",
+        kind: "review",
+      },
+    ],
+  },
   "social.flag_content": {
     successTitle: "Content flag workflow simulated",
     successMessage:

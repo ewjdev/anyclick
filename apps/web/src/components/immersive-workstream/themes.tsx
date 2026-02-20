@@ -13,7 +13,6 @@ import {
   Truck,
   Users,
 } from "lucide-react";
-import { HealthcareCard } from "./cards/HealthcareCard";
 import { SocialCard } from "./cards/SocialCard";
 import type { ImmersiveTheme } from "./types";
 
@@ -197,7 +196,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
         opacity: 0.2,
       },
     ],
-    cardContent: <HealthcareCard />,
+    cardContent: null,
     menuStyle: {
       "--anyclick-menu-bg": "#ffffff",
       "--anyclick-menu-border": "#10b981",

@@ -29,6 +29,12 @@ export type WorkflowActionId =
   | "healthcare.check_in_issue"
   | "healthcare.vital_alert"
   | "healthcare.flag_urgent"
+  | "healthcare.verify_identity_token"
+  | "healthcare.coverage_exception"
+  | "healthcare.request_vital_recheck"
+  | "healthcare.open_trend_review"
+  | "healthcare.notify_care_team"
+  | "healthcare.escalate_handoff"
   | "social.save_asset"
   | "social.flag_content"
   | "social.quick_reply";
