@@ -1,13 +1,14 @@
-import { useCallback, useState } from "react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
-import type { ContextMenuItem } from "@ewjdev/anyclick-react";
 import { MousePointer2 } from "lucide-react";
 import { type MotionValue, motion } from "motion/react";
 import { FloatingIcon } from "../FloatingIcon";
 import { adapter } from "../adapter";
 import { SoftwareEditorCard } from "../cards/SoftwareEditorCard";
 import type { ImmersiveTheme } from "../types";
+import { WorkflowDrawer } from "../workflows/WorkflowDrawer";
+import { isWorkflowWorkstreamId } from "../workflows/registry";
+import { useWorkflowLauncher } from "../workflows/useWorkflowLauncher";
 
 interface SoftwareDevelopmentSectionProps {
   theme: ImmersiveTheme;
@@ -22,12 +23,11 @@ export function SoftwareDevelopmentSection({
   isInView,
   bgY,
 }: SoftwareDevelopmentSectionProps) {
-  const [menuItems, setMenuItems] = useState<ContextMenuItem[]>(
-    theme.menuItems,
-  );
-  const handleMenuItemsChange = useCallback(
-    (items: ContextMenuItem[]) => setMenuItems(items),
-    [],
+  const workflowWorkstreamId = isWorkflowWorkstreamId(theme.id)
+    ? theme.id
+    : "software";
+  const { activeWorkflow, closeWorkflow, menuItems } = useWorkflowLauncher(
+    workflowWorkstreamId,
   );
 
   return (
@@ -115,7 +115,7 @@ export function SoftwareDevelopmentSection({
               }}
             >
               <div>
-                <SoftwareEditorCard onMenuItemsChange={handleMenuItemsChange} />
+                <SoftwareEditorCard />
 
                 <motion.div
                   className="mt-6 flex items-center justify-center gap-2 text-sm text-[#00ff41]/50 font-mono"
@@ -124,7 +124,7 @@ export function SoftwareDevelopmentSection({
                   transition={{ delay: 0.8 }}
                 >
                   <MousePointer2 size={14} />
-                  <span>Right-click to see your custom menu</span>
+                  <span>Right-click to launch workflow demos</span>
                 </motion.div>
               </div>
             </PointerProvider>
@@ -139,6 +139,8 @@ export function SoftwareDevelopmentSection({
           opacity: 0.3,
         }}
       />
+
+      <WorkflowDrawer activeWorkflow={activeWorkflow} onClose={closeWorkflow} />
     </>
   );
 }

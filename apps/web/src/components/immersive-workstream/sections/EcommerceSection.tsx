@@ -2,54 +2,63 @@ import { useMemo } from "react";
 import { MousePointer2 } from "lucide-react";
 import { type MotionValue, motion } from "motion/react";
 import { FloatingIcon } from "../FloatingIcon";
-import { HealthcareMedicalBackground } from "../backgrounds/HealthcareMedicalBackground";
-import { HealthcareCard } from "../cards/HealthcareCard";
+import { EcommerceCard } from "../cards/EcommerceCard";
 import type { ImmersiveTheme } from "../types";
 import { WorkflowDrawer } from "../workflows/WorkflowDrawer";
 import { useWorkflowLauncher } from "../workflows/useWorkflowLauncher";
 
-interface HealthcareSectionProps {
-  theme: ImmersiveTheme;
-  scrollYProgress: MotionValue<number>;
-  isInView: boolean;
+interface EcommerceSectionProps {
   bgY: MotionValue<string>;
+  isInView: boolean;
+  scrollYProgress: MotionValue<number>;
+  theme: ImmersiveTheme;
 }
 
-export function HealthcareSection({
-  theme,
-  scrollYProgress,
-  isInView,
+export function EcommerceSection({
   bgY,
-}: HealthcareSectionProps) {
+  isInView,
+  scrollYProgress,
+  theme,
+}: EcommerceSectionProps) {
   const { activeWorkflow, closeWorkflow, getMenuItemsForActionIds } =
-    useWorkflowLauncher("healthcare");
+    useWorkflowLauncher("ecommerce");
 
-  const summaryMenuItems = useMemo(
+  const orderMenuItems = useMemo(
     () =>
       getMenuItemsForActionIds([
-        "healthcare.check_in_issue",
-        "healthcare.verify_identity_token",
-        "healthcare.coverage_exception",
+        "ecommerce.item_missing",
+        "ecommerce.shipping_issue",
+        "ecommerce.escalate_order",
       ]),
     [getMenuItemsForActionIds],
   );
 
-  const vitalsMenuItems = useMemo(
+  const stockMenuItems = useMemo(
     () =>
       getMenuItemsForActionIds([
-        "healthcare.vital_alert",
-        "healthcare.request_vital_recheck",
-        "healthcare.open_trend_review",
+        "ecommerce.view_stock_details",
+        "ecommerce.adjust_stock",
+        "ecommerce.set_restock_alert",
       ]),
     [getMenuItemsForActionIds],
   );
 
-  const statusMenuItems = useMemo(
+  const pricingMenuItems = useMemo(
     () =>
       getMenuItemsForActionIds([
-        "healthcare.flag_urgent",
-        "healthcare.notify_care_team",
-        "healthcare.escalate_handoff",
+        "ecommerce.view_discounts",
+        "ecommerce.change_price",
+        "ecommerce.schedule_promotion",
+      ]),
+    [getMenuItemsForActionIds],
+  );
+
+  const productMenuItems = useMemo(
+    () =>
+      getMenuItemsForActionIds([
+        "ecommerce.edit_product",
+        "ecommerce.upload_product_media",
+        "ecommerce.update_product_copy",
       ]),
     [getMenuItemsForActionIds],
   );
@@ -61,11 +70,16 @@ export function HealthcareSection({
         style={{ background: theme.backgroundGradient, y: bgY }}
       />
 
-      <HealthcareMedicalBackground />
+      {theme.gridPattern && (
+        <div
+          className="absolute inset-0 -z-10 opacity-50"
+          style={{ background: theme.gridPattern }}
+        />
+      )}
 
-      {theme.floatingElements.map((element, i) => (
+      {theme.floatingElements.map((element, index) => (
         <FloatingIcon
-          key={i}
+          key={index}
           element={element}
           scrollYProgress={scrollYProgress}
         />
@@ -84,26 +98,21 @@ export function HealthcareSection({
           >
             {theme.title}
           </h2>
-          <p className="text-lg text-gray-600">{theme.tagline}</p>
+          <p className="text-lg text-gray-400">{theme.tagline}</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={
-            isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }
-          }
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-        >
+        <div>
           <div className="group">
-            <HealthcareCard
+            <EcommerceCard
               menuStyle={theme.menuStyle}
-              pointerCircleColor={`${theme.primaryColor}50`}
+              orderMenuItems={orderMenuItems}
+              pointerCircleColor={`${theme.primaryColor}60`}
               pointerColor={theme.primaryColor}
               pointerIcon={theme.pointerIcon}
+              pricingMenuItems={pricingMenuItems}
               primaryColor={theme.primaryColor}
-              statusMenuItems={statusMenuItems}
-              summaryMenuItems={summaryMenuItems}
-              vitalsMenuItems={vitalsMenuItems}
+              productMenuItems={productMenuItems}
+              stockMenuItems={stockMenuItems}
             />
             <motion.div
               className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500"
@@ -113,17 +122,18 @@ export function HealthcareSection({
             >
               <MousePointer2 size={14} />
               <span>
-                Right-click patient summary, vitals, or care status to interact
+                Right-click stock, pricing, product details, or order rows
               </span>
             </motion.div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <div
         className="absolute bottom-0 left-0 right-0 h-32 -z-10"
         style={{
-          background: `linear-gradient(to top, rgba(16, 185, 129, 0.1), transparent)`,
+          background: `linear-gradient(to top, ${theme.glowColor}, transparent)`,
+          opacity: 0.3,
         }}
       />
 

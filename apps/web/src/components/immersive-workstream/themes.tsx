@@ -13,8 +13,6 @@ import {
   Truck,
   Users,
 } from "lucide-react";
-import { EcommerceCard } from "./cards/EcommerceCard";
-import { HealthcareCard } from "./cards/HealthcareCard";
 import { SocialCard } from "./cards/SocialCard";
 import type { ImmersiveTheme } from "./types";
 
@@ -22,7 +20,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
   {
     id: "software",
     title: "Software Development",
-    tagline: "Edit the code below to customize your context menu in real-time",
+    tagline: "Right-click to run full development workflow prototypes",
     primaryColor: "#00ff41",
     secondaryColor: "#22c55e",
     glowColor: "rgba(0, 255, 65, 0.4)",
@@ -77,11 +75,6 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
       },
     ],
     cardContent: null,
-    menuItems: [
-      { label: "Report bug", type: "bug", showComment: true },
-      { label: "Send to Cursor", type: "cursor", showComment: false },
-      { label: "Copy selector", type: "selector", showComment: false },
-    ],
     menuStyle: {
       "--anyclick-menu-bg": "#0a0a0a",
       "--anyclick-menu-border": "#00ff41",
@@ -146,12 +139,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
         opacity: 0.4,
       },
     ],
-    cardContent: <EcommerceCard />,
-    menuItems: [
-      { label: "Item missing", type: "missing", showComment: true },
-      { label: "Shipping issue", type: "shipping", showComment: true },
-      { label: "Escalate", type: "escalate", showComment: false },
-    ],
+    cardContent: null,
     menuStyle: {
       "--anyclick-menu-bg": "#1c1917",
       "--anyclick-menu-border": "#f59e0b",
@@ -208,12 +196,7 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
         opacity: 0.2,
       },
     ],
-    cardContent: <HealthcareCard />,
-    menuItems: [
-      { label: "Check-in issue", type: "checkin", showComment: true },
-      { label: "Vital alert", type: "vital", showComment: true },
-      { label: "Flag urgent", type: "urgent", showComment: false },
-    ],
+    cardContent: null,
     menuStyle: {
       "--anyclick-menu-bg": "#ffffff",
       "--anyclick-menu-border": "#10b981",
@@ -280,11 +263,6 @@ export const getImmersiveThemes = (): ImmersiveTheme[] => [
       },
     ],
     cardContent: <SocialCard />,
-    menuItems: [
-      { label: "Save asset", type: "save", showComment: false },
-      { label: "Flag content", type: "flag", showComment: true },
-      { label: "Quick reply", type: "reply", showComment: true },
-    ],
     menuStyle: {
       "--anyclick-menu-bg": "rgba(236, 72, 153, 0.1)",
       "--anyclick-menu-border": "rgba(236, 72, 153, 0.3)",

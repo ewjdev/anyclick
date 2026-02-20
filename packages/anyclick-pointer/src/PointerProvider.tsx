@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { CustomPointer } from "./CustomPointer";
 import { POINTER_CONTAINER_ATTR, usePointerStore } from "./pointerStore";
 import type {
@@ -75,6 +76,7 @@ export function PointerProvider({
   const [dynamicConfig, setDynamicConfig] = useState<PointerConfig | undefined>(
     initialConfig,
   );
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
 
   // Merge theme and config with defaults
   const mergedTheme = useMemo(
@@ -197,6 +199,33 @@ export function PointerProvider({
     [style, isThisContainerActive],
   );
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setPortalRoot(document.body);
+  }, []);
+
+  const pointerNode =
+    shouldShowPointer && portalRoot
+      ? createPortal(
+          <CustomPointer
+            theme={mergedTheme}
+            config={mergedConfig}
+            enabled={enabled}
+            onInteractionChange={handleInteractionChange}
+          />,
+          portalRoot,
+        )
+      : shouldShowPointer
+        ? (
+            <CustomPointer
+              theme={mergedTheme}
+              config={mergedConfig}
+              enabled={enabled}
+              onInteractionChange={handleInteractionChange}
+            />
+          )
+        : null;
+
   return (
     <PointerContext.Provider value={contextValue}>
       <div
@@ -208,14 +237,7 @@ export function PointerProvider({
       >
         {children}
       </div>
-      {shouldShowPointer && (
-        <CustomPointer
-          theme={mergedTheme}
-          config={mergedConfig}
-          enabled={enabled}
-          onInteractionChange={handleInteractionChange}
-        />
-      )}
+      {pointerNode}
     </PointerContext.Provider>
   );
 }
