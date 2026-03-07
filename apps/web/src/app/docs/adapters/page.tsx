@@ -98,16 +98,17 @@ export default function AdaptersDocsPage() {
         </p>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Installation</h3>
-        <CodeBlock>{`npm install @ewjdev/anyclick-github`}</CodeBlock>
+        <CodeBlock>{`npm install @ewjdev/anyclick-core @ewjdev/anyclick-github`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Browser-Side Setup</h3>
         <p className="text-gray-400 mb-4">
-          Use the HTTP adapter to send feedback to your API endpoint:
+          Use the generic HTTP adapter from <code>@ewjdev/anyclick-core</code>{" "}
+          to send feedback to your API endpoint:
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',

@@ -12,7 +12,7 @@
  * @example
  * ```tsx
  * import { AnyclickProvider } from "@ewjdev/anyclick-react";
- * import { createHttpAdapter } from "@ewjdev/anyclick-github";
+ * import { createHttpAdapter } from "@ewjdev/anyclick-core";
  *
  * const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
  *
@@ -26,8 +26,6 @@
  * ```
  */
 "use client";
-// Shared styles (prefixed, no preflight) for anyclick react surfaces.
-import "./styles/tailwind.css";
 
 // ============================================================================
 // Core Components
@@ -121,7 +119,29 @@ export { generateProviderId } from "./store";
 export { dispatchContextMenuEvent } from "./store";
 
 // ============================================================================
-// UI primitives (shadcn-inspired, prefixed Tailwind)
+// Styling
+// ============================================================================
+export {
+  ANYCLICK_STYLE_SLOTS,
+  AnyclickBadge,
+  AnyclickButton,
+  AnyclickIconButton,
+  AnyclickInput,
+  AnyclickStyleProvider,
+  AnyclickSurface,
+  AnyclickTab,
+  AnyclickTabs,
+  AnyclickTextarea,
+  composeClassNames,
+  composeInlineStyles,
+  fallbackAnyclickStyleAdapter,
+  mergeStyleAdapters,
+  resolveSlotProps,
+  useAnyclickStyle,
+} from "./styling";
+
+// ============================================================================
+// UI primitives
 // ============================================================================
 export * from "./ui";
 
@@ -162,6 +182,25 @@ export type {
   /** Status of a menu item */
   FeedbackMenuStatus,
 } from "./types";
+
+export type {
+  /** Style adapter contract for slot-based styling */
+  AnyclickStyleAdapter,
+  /** Primitive component override registry */
+  AnyclickComponentOverrides,
+  /** Props for AnyclickStyleProvider */
+  AnyclickStyleProviderProps,
+  /** Style slot union */
+  AnyclickStyleSlot,
+  /** Slot state passed to adapters */
+  AnyclickSlotState,
+  /** Resolved slot props */
+  AnyclickSlotProps,
+  /** Resolved style adapter after inheritance/merging */
+  AnyclickResolvedStyleAdapter,
+  /** Semantic style tokens */
+  AnyclickStyleTokens,
+} from "./styling";
 
 // ============================================================================
 // Presets

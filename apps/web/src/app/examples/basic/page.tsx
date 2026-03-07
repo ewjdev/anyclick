@@ -98,7 +98,7 @@ export default function BasicExamplePage() {
           code={`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 // Create adapter pointing to your API
 const adapter = createHttpAdapter({

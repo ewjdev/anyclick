@@ -1,0 +1,52 @@
+{
+  "name": "@ewjdev/anyclick-react-mui",
+  "version": "1.0.0",
+  "private": false,
+  "description": "MUI adapter package for @ewjdev/anyclick-react",
+  "license": "MIT",
+  "author": "ewjdev",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewjdev/anyclick.git",
+    "directory": "packages/anyclick-react-mui"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.tsx --format esm,cjs --sourcemap --external react,react-dom,@mui/material,@emotion/react,@emotion/styled",
+    "clean": "rimraf dist",
+    "dev": "tsup src/index.tsx --format esm,cjs --sourcemap --external react,react-dom,@mui/material,@emotion/react,@emotion/styled --watch"
+  },
+  "dependencies": {
+    "@ewjdev/anyclick-react": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.0",
+    "react": ">=19.2.1",
+    "react-dom": ">=19.2.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.1",
+    "@types/react-dom": "^19.2.1",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "5.8.3"
+  }
+}

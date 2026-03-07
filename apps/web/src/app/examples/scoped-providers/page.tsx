@@ -218,7 +218,7 @@ export function PaymentForm({ children }) {
         <CodeBlock filename="app/layout.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 // Main app feedback goes to GitHub
 const githubAdapter = createHttpAdapter({

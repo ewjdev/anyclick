@@ -21,7 +21,15 @@ import {
 import { QuickChat } from "./QuickChat";
 import { ScreenshotPreview } from "./ScreenshotPreview";
 import { applyHighlights, clearHighlights } from "./highlight";
-import { getBadgeStyle, menuStyles } from "./styles";
+import {
+  AnyclickBadge,
+  AnyclickButton,
+  AnyclickIconButton,
+  AnyclickSurface,
+  AnyclickTextarea,
+  resolveSlotProps,
+  useAnyclickStyle,
+} from "./styling";
 import type { ContextMenuItem, ContextMenuProps } from "./types";
 
 /** Padding from viewport edges in pixels */
@@ -44,16 +52,22 @@ const OFFSCREEN_POSITION = { x: -9999, y: -9999 };
 const DefaultHeader = ({
   children,
   className,
-  styles,
+  style,
   title = "Send Feedback",
 }: {
   children?: React.ReactNode;
   className?: string;
-  styles?: React.CSSProperties;
+  style?: React.CSSProperties;
   title?: string;
 }) => {
+  const adapter = useAnyclickStyle();
+  const headerProps = resolveSlotProps(adapter, "menu.header", {}, {
+    className,
+    style,
+  });
+
   return (
-    <div style={styles} className={className}>
+    <div {...headerProps.attrs} style={headerProps.style} className={headerProps.className}>
       <span>{title}</span>
       {children}
     </div>
@@ -79,13 +93,14 @@ const MenuItem = React.memo(function MenuItem({
   const isComingSoon = item.status === "comingSoon";
   const badgeLabel = item.badge?.label ?? (isComingSoon ? "Coming soon" : null);
   const badgeTone = item.badge?.tone ?? (isComingSoon ? "neutral" : "neutral");
-
-  const badgeStyle = badgeLabel ? getBadgeStyle(badgeTone) : undefined;
   const iconNode = item.icon ?? defaultIcons[item.type];
+  const adapter = useAnyclickStyle();
+  const itemIconProps = resolveSlotProps(adapter, "menu.itemIcon");
+  const itemLabelProps = resolveSlotProps(adapter, "menu.itemLabel");
+  const submenuProps = resolveSlotProps(adapter, "menu.submenuIndicator");
 
   return (
-    <button
-      type="button"
+    <AnyclickButton
       disabled={disabled || isComingSoon}
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -96,22 +111,47 @@ const MenuItem = React.memo(function MenuItem({
       onTouchCancel={() => setIsPressed(false)}
       onTouchEnd={() => setIsPressed(false)}
       onTouchStart={() => setIsPressed(true)}
-      style={{
-        ...menuStyles.touchFriendly,
-        ...menuStyles.item,
-        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
-        ...(disabled ? menuStyles.itemDisabled : {}),
+      slotName="menu.item"
+      slotState={{
+        disabled: disabled || isComingSoon,
+        hovered: isHovered,
+        pressed: isPressed,
       }}
     >
-      {iconNode ? <span style={menuStyles.itemIcon}>{iconNode}</span> : null}
-      <span style={menuStyles.itemLabel}>
+      {iconNode ? (
+        <span
+          {...itemIconProps.attrs}
+          className={itemIconProps.className}
+          style={itemIconProps.style}
+        >
+          {iconNode}
+        </span>
+      ) : null}
+      <span
+        {...itemLabelProps.attrs}
+        className={itemLabelProps.className}
+        style={itemLabelProps.style}
+      >
         {item.label}
-        {badgeLabel && <span style={badgeStyle}>{badgeLabel}</span>}
+        {badgeLabel && (
+          <AnyclickBadge
+            slotName="menu.itemBadge"
+            slotState={{ tone: badgeTone }}
+          >
+            {badgeLabel}
+          </AnyclickBadge>
+        )}
       </span>
       {hasChildren && (
-        <ChevronRightIcon className="w-4 h-4" style={menuStyles.submenuIcon} />
+        <span
+          {...submenuProps.attrs}
+          className={submenuProps.className}
+          style={submenuProps.style}
+        >
+          <ChevronRightIcon className="w-4 h-4" />
+        </span>
       )}
-    </button>
+    </AnyclickButton>
   );
 });
 
@@ -125,10 +165,11 @@ const BackButton = React.memo(function BackButton({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const adapter = useAnyclickStyle();
+  const itemLabelProps = resolveSlotProps(adapter, "menu.itemLabel");
 
   return (
-    <button
-      type="button"
+    <AnyclickButton
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -138,16 +179,18 @@ const BackButton = React.memo(function BackButton({
       onTouchCancel={() => setIsPressed(false)}
       onTouchEnd={() => setIsPressed(false)}
       onTouchStart={() => setIsPressed(true)}
-      style={{
-        ...menuStyles.item,
-        ...menuStyles.backButton,
-        ...menuStyles.touchFriendly,
-        ...(isHovered || isPressed ? menuStyles.itemHover : {}),
-      }}
+      slotName="menu.backButton"
+      slotState={{ hovered: isHovered, pressed: isPressed }}
     >
       <ChevronLeftIcon className="w-4 h-4" style={{ opacity: 0.5 }} />
-      <span style={{ opacity: 0.7 }}>Back</span>
-    </button>
+      <span
+        {...itemLabelProps.attrs}
+        className={itemLabelProps.className}
+        style={{ ...itemLabelProps.style, opacity: 0.7 }}
+      >
+        Back
+      </span>
+    </AnyclickButton>
   );
 });
 
@@ -165,6 +208,8 @@ const CommentForm = React.memo(function CommentForm({
 }) {
   const [comment, setComment] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const adapter = useAnyclickStyle();
+  const sectionProps = resolveSlotProps(adapter, "comment.section");
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -186,37 +231,38 @@ const CommentForm = React.memo(function CommentForm({
   );
 
   return (
-    <div style={menuStyles.commentSection}>
-      <textarea
+    <div
+      {...sectionProps.attrs}
+      className={sectionProps.className}
+      style={sectionProps.style}
+    >
+      <AnyclickTextarea
         ref={inputRef}
         disabled={isSubmitting}
         onChange={(e) => setComment(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Add a comment (optional)..."
-        style={menuStyles.commentInput}
+        slotName="comment.textarea"
+        slotState={{ disabled: isSubmitting }}
         value={comment}
       />
-      <div style={menuStyles.buttonRow}>
-        <button
-          type="button"
+      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+        <AnyclickButton
           disabled={isSubmitting}
           onClick={onCancel}
-          style={{ ...menuStyles.button, ...menuStyles.cancelButton }}
+          slotName="comment.secondaryAction"
+          slotState={{ disabled: isSubmitting }}
         >
           Cancel
-        </button>
-        <button
-          type="button"
+        </AnyclickButton>
+        <AnyclickButton
           disabled={isSubmitting}
           onClick={handleSubmit}
-          style={{
-            ...menuStyles.button,
-            ...menuStyles.submitButton,
-            ...(isSubmitting ? menuStyles.submitButtonDisabled : {}),
-          }}
+          slotName="comment.primaryAction"
+          slotState={{ disabled: isSubmitting, loading: isSubmitting }}
         >
           {isSubmitting ? "Sending..." : "Send"}
-        </button>
+        </AnyclickButton>
       </div>
     </div>
   );
@@ -288,7 +334,7 @@ export function ContextMenu({
   positionMode = "inView",
   quickChatConfig,
   screenshotConfig,
-  style,
+  style: surfaceStyle,
   targetElement,
   visible,
 }: ContextMenuProps) {
@@ -713,31 +759,45 @@ export function ContextMenu({
   // Show pinned QuickChat drawer (separate from menu)
   const showPinnedDrawer = isQuickChatPinned && quickChatConfig;
   const showMenu = visible && targetElement;
+  const style = useAnyclickStyle();
+  const overlayProps = resolveSlotProps(style, "menu.overlay");
+  const listProps = resolveSlotProps(style, "menu.list");
   const menuNode = showMenu ? (
-    <div
-      ref={menuRef}
-      aria-label="Feedback options"
-      className={className}
-      role="menu"
-      style={{
-        ...menuStyles.container,
-        left: adjustedPosition.x,
-        top: adjustedPosition.y,
-        ...(containerWidth ? { minWidth: containerWidth, width: containerWidth } : {}),
-        touchAction: "none",
-        userSelect: "none",
-        WebkitTouchCallout: "none",
-        WebkitUserSelect: "none",
-        ...(isDragging ? { cursor: "grabbing" } : {}),
-        ...style,
-      }}
-    >
+    <>
+      <div
+        {...overlayProps.attrs}
+        className={overlayProps.className}
+        style={overlayProps.style}
+        onClick={onClose}
+        role="presentation"
+      />
+      <AnyclickSurface
+        ref={menuRef}
+        aria-label="Feedback options"
+        className={className}
+        role="menu"
+        slotName="menu.surface"
+        slotState={{ expanded: currentView === "quick-chat" && !isQuickChatPinned }}
+        style={{
+          left: adjustedPosition.x,
+          top: adjustedPosition.y,
+          ...(containerWidth
+            ? { minWidth: containerWidth, width: containerWidth }
+            : {}),
+          touchAction: "none",
+          userSelect: "none",
+          WebkitTouchCallout: "none",
+          WebkitUserSelect: "none",
+          ...(isDragging ? { cursor: "grabbing" } : {}),
+          ...surfaceStyle,
+        }}
+      >
       {!header &&
         currentView !== "screenshot-preview" &&
         currentView !== "quick-chat" && (
-          <DefaultHeader styles={menuStyles.header} title="Send Feedback">
+          <DefaultHeader title="Send Feedback">
             {positionMode === "dynamic" && (
-              <div
+              <AnyclickIconButton
                 data-drag-handle
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.opacity = "1";
@@ -746,52 +806,39 @@ export function ContextMenu({
                   (e.currentTarget as HTMLElement).style.opacity = "0.5";
                 }}
                 onPointerDown={handleDragStart}
-                style={{
-                  ...menuStyles.dragHandle,
-                  cursor: isDragging ? "grabbing" : "grab",
-                }}
+                slotName="menu.dragHandle"
+                slotState={{ active: isDragging }}
+                style={{ cursor: isDragging ? "grabbing" : "grab", opacity: 0.5 }}
                 title="Drag to move"
               >
                 <GripVertical className="w-4 h-4" />
-              </div>
+              </AnyclickIconButton>
             )}
             {showPreview && (
-              <div style={menuStyles.screenshotIndicator}>
+              <div style={{ display: "flex", flex: 1, justifyContent: "flex-end" }}>
                 <CameraIcon className="w-3 h-3" />
               </div>
             )}
             {quickChatConfig && (
-              <button
-                type="button"
+              <AnyclickIconButton
                 onClick={handleQuickChatToggle}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "24px",
-                  height: "24px",
-                  border: "none",
-                  borderRadius: "4px",
-                  backgroundColor: isQuickChatPinned
-                    ? "var(--anyclick-menu-accent, #0066cc)"
-                    : "transparent",
-                  color: isQuickChatPinned
-                    ? "#fff"
-                    : "var(--anyclick-menu-accent, #0066cc)",
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
+                slotName="menu.headerAction"
+                slotState={{ selected: isQuickChatPinned }}
                 title={isQuickChatPinned ? "Quick Chat (pinned)" : "Quick Ask AI"}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-              </button>
+              </AnyclickIconButton>
             )}
           </DefaultHeader>
         )}
       {!!header && header}
 
       {currentView === "menu" && (
-        <div style={menuStyles.itemList}>
+        <div
+          {...listProps.attrs}
+          className={listProps.className}
+          style={listProps.style}
+        >
           {submenuStack.length > 0 && <BackButton onClick={handleBack} />}
           {currentItems.map((item) => (
             <MenuItem
@@ -837,7 +884,9 @@ export function ContextMenu({
           onInitialInputConsumed={() => setInitialChatInput("")}
         />
       )}
-    </div>
+      {footer}
+      </AnyclickSurface>
+    </>
   ) : null;
 
   return (

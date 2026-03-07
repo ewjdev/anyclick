@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@layer components {
+  .ac-anyclick-tw-overlay {
+    @apply fixed inset-0 bg-transparent;
+  }
+
+  .ac-anyclick-tw-surface {
+    @apply rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl;
+  }
+
+  .ac-anyclick-tw-menu-surface {
+    @apply min-w-[220px] overflow-hidden;
+  }
+
+  .ac-anyclick-tw-header {
+    @apply flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500;
+  }
+
+  .ac-anyclick-tw-menu-list {
+    @apply flex flex-col;
+  }
+
+  .ac-anyclick-tw-menu-item {
+    @apply flex min-h-10 w-full items-center gap-3 border-0 bg-transparent px-4 py-2 text-left text-sm text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ac-anyclick-tw-menu-back {
+    @apply border-b border-slate-200;
+  }
+
+  .ac-anyclick-tw-menu-icon {
+    @apply inline-flex h-5 w-5 items-center justify-center;
+  }
+
+  .ac-anyclick-tw-menu-label {
+    @apply inline-flex flex-1 items-center gap-2;
+  }
+
+  .ac-anyclick-tw-submenu-indicator {
+    @apply ml-auto opacity-60;
+  }
+
+  .ac-anyclick-tw-comment-section,
+  .ac-anyclick-tw-inspect-content,
+  .ac-anyclick-tw-message-list {
+    @apply flex flex-col gap-2 p-3;
+  }
+
+  .ac-anyclick-tw-action {
+    @apply inline-flex min-h-8 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ac-anyclick-tw-action-primary {
+    @apply border-transparent bg-sky-600 text-white hover:bg-sky-500;
+  }
+
+  .ac-anyclick-tw-icon-button {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent bg-transparent text-slate-600 transition hover:bg-slate-100;
+  }
+
+  .ac-anyclick-tw-field {
+    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-0 transition placeholder:text-slate-400 focus:border-sky-500;
+  }
+
+  .ac-anyclick-tw-textarea {
+    @apply min-h-[88px] resize-y;
+  }
+
+  .ac-anyclick-tw-badge {
+    @apply inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600;
+  }
+
+  .ac-anyclick-tw-screenshot-header {
+    @apply border-b-0;
+  }
+
+  .ac-anyclick-tw-tab {
+    @apply inline-flex min-h-7 items-center gap-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100;
+  }
+
+  .ac-anyclick-tw-tab-active {
+    @apply border-sky-200 bg-sky-50 text-sky-700;
+  }
+
+  .ac-anyclick-tw-preview {
+    @apply flex min-h-40 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2;
+  }
+
+  .ac-anyclick-tw-empty {
+    @apply flex flex-col items-center justify-center gap-2 p-6 text-center text-sm text-slate-500;
+  }
+
+  .ac-anyclick-tw-error {
+    @apply border border-rose-200 bg-rose-50 text-rose-700;
+  }
+
+  .ac-anyclick-tw-meta {
+    @apply text-center text-[11px] text-slate-500;
+  }
+}

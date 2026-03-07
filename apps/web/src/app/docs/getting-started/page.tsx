@@ -46,7 +46,7 @@ export default function GettingStartedPage() {
           Install the core packages you need. For a typical React + GitHub
           setup:
         </p>
-        <TerminalBlock code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github" />
+        <TerminalBlock code="npm install @ewjdev/anyclick-core @ewjdev/anyclick-react @ewjdev/anyclick-github" />
 
         <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 mt-6">
           <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
@@ -59,12 +59,12 @@ export default function GettingStartedPage() {
               React provider and UI components
             </li>
             <li>
-              <code className="text-violet-300">@ewjdev/anyclick-github</code> –
-              GitHub Issues adapter
+              <code className="text-violet-300">@ewjdev/anyclick-core</code> –
+              Core types and the browser HTTP adapter
             </li>
             <li>
-              <code className="text-violet-300">@ewjdev/anyclick-core</code> –
-              Automatically included as a dependency
+              <code className="text-violet-300">@ewjdev/anyclick-github</code> –
+              GitHub Issues adapter
             </li>
           </ul>
         </div>
@@ -148,7 +148,7 @@ export async function POST(request: Request) {
           code={`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import type { ReactNode } from 'react';
 
 const adapter = createHttpAdapter({

@@ -246,7 +246,7 @@ ${DEFAULT_SENSITIVE_SELECTORS.map((s) => `'${s}'`).join(",\n")}`}</CodeBlock>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -276,7 +276,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({

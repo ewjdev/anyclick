@@ -2,7 +2,7 @@
 
 import { CodeBlock } from "@/components/CodePreview";
 import { useEffect, useState } from "react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import {
   AlertCircle,

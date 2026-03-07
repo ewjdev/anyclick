@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
 
 const adapter = createHttpAdapter({

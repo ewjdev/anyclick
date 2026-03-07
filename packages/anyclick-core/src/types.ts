@@ -191,6 +191,22 @@ export interface AnyclickPayload {
 }
 
 /**
+ * Options for the browser-side HTTP adapter
+ */
+export interface HttpAdapterOptions {
+  /** URL of your backend endpoint that handles feedback */
+  endpoint: string;
+  /** Additional headers to include with requests */
+  headers?: Record<string, string>;
+  /** HTTP method to use (defaults to POST) */
+  method?: "POST" | "PUT";
+  /** Transform the payload before sending (e.g., add auth tokens) */
+  transformPayload?: (payload: AnyclickPayload) => Record<string, unknown>;
+  /** Request timeout in milliseconds */
+  timeout?: number;
+}
+
+/**
  * Adapter interface for submitting anyclick to any backend
  */
 export interface AnyclickAdapter {

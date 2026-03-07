@@ -22,7 +22,7 @@ Right-click any element in your app to capture feedback with full DOM context, s
 ### Installation
 
 ```bash
-yarn install @ewjdev/anyclick-react @ewjdev/anyclick-github
+yarn install @ewjdev/anyclick-core @ewjdev/anyclick-react @ewjdev/anyclick-github
 ```
 
 ### Usage
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
 "use client";
 
 import { FeedbackProvider } from "@ewjdev/anyclick-react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 

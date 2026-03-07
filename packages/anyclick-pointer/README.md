@@ -280,7 +280,7 @@ Use alongside `@ewjdev/anyclick-react` for a complete feedback experience:
 ```tsx
 import { FeedbackProvider } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 

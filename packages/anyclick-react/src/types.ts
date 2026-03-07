@@ -18,6 +18,11 @@ import type {
 } from "@ewjdev/anyclick-core";
 import { CompactModeConfig } from "./InspectDialog/InspectSimple";
 import type { QuickChatConfig } from "./QuickChat/types";
+import type {
+  AnyclickComponentOverrides,
+  AnyclickStyleAdapter,
+  AnyclickStyleSlot,
+} from "./styling/types";
 
 // ============================================================================
 // Theme Configuration
@@ -55,9 +60,9 @@ export interface AnyclickTheme {
   funMode?: boolean | FunModeThemeConfig;
   /** Configuration for element highlighting */
   highlightConfig?: HighlightConfig;
-  /** Custom class name for the context menu */
+  /** @deprecated Use `slotClassNames["menu.surface"]` or a style adapter instead. */
   menuClassName?: string;
-  /** Custom styles for the context menu */
+  /** @deprecated Use `slotStyles["menu.surface"]` or a style adapter instead. */
   menuStyle?: CSSProperties;
   /** Configuration for screenshot capture */
   screenshotConfig?: ScreenshotConfig;
@@ -346,13 +351,13 @@ export interface AnyclickProviderProps {
   maxInnerTextLength?: number;
   /** Maximum length for outerHTML capture */
   maxOuterHTMLLength?: number;
-  /** Custom class name for the context menu */
+  /** @deprecated Use `slotClassNames["menu.surface"]` or a style adapter instead. */
   menuClassName?: string;
   /** Custom menu items (defaults to Issue, Feature, Like) */
   menuItems?: ContextMenuItem[];
   /** Menu positioning mode (default: 'inView') */
   menuPositionMode?: MenuPositionMode;
-  /** Custom styles for the context menu */
+  /** @deprecated Use `slotStyles["menu.surface"]` or a style adapter instead. */
   menuStyle?: CSSProperties;
   /** Additional metadata to include with every submission */
   metadata?: Record<string, unknown>;
@@ -387,6 +392,14 @@ export interface AnyclickProviderProps {
    * Set to null or { disabled: true } to disable anyclick in this subtree.
    */
   theme?: AnyclickTheme | null;
+  /** Slot-level class overrides merged after inherited style providers. */
+  slotClassNames?: Partial<Record<AnyclickStyleSlot, string>>;
+  /** Slot-level inline style overrides merged after inherited style providers. */
+  slotStyles?: Partial<Record<AnyclickStyleSlot, CSSProperties>>;
+  /** Primitive component overrides for DOM replacement scenarios. */
+  components?: Partial<AnyclickComponentOverrides>;
+  /** Local style adapter merged on top of the nearest AnyclickStyleProvider. */
+  styleAdapter?: AnyclickStyleAdapter;
   /** Duration in ms to hold touch before triggering context menu (default: 500) */
   touchHoldDurationMs?: number;
   /** Maximum movement in px before touch hold is cancelled (default: 10) */

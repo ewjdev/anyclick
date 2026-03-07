@@ -111,7 +111,7 @@ export default function CursorLocalPage() {
 
 import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
 import type { FeedbackMenuItem } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
 import { Monitor, Cloud, Bug, Lightbulb } from 'lucide-react';
 

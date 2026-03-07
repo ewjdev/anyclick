@@ -75,7 +75,7 @@ export default function ReactDocsPage() {
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',
