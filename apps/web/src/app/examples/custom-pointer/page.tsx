@@ -562,17 +562,17 @@ function ThemeSwitcher() {
 }`}</CodeBlock>
       </div>
 
-      {/* Integration with FeedbackProvider */}
+      {/* Integration with AnyclickProvider */}
       <div className="mb-12">
         <h2 className="text-2xl font-bold mb-4">
-          Integration with FeedbackProvider
+          Integration with AnyclickProvider
         </h2>
         <p className="text-gray-400 mb-4">
           Combine with the feedback system for a complete experience:
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { PointerProvider } from '@ewjdev/anyclick-pointer';
 import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
@@ -580,7 +580,7 @@ const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       <PointerProvider
         theme={{
           colors: {
@@ -595,7 +595,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         {children}
       </PointerProvider>
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>

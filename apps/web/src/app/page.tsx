@@ -147,6 +147,8 @@ export default function Home() {
           filename="app/layout.tsx"
           language="tsx"
           code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
 import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -155,9 +157,11 @@ const adapter = createHttpAdapter({
 
 export default function RootLayout({ children }) {
   return (
-    <AnyclickProvider adapter={adapter}>
-      {children}
-    </AnyclickProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}
         />

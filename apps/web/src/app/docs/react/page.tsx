@@ -61,11 +61,14 @@ export default function ReactDocsPage() {
       {/* Installation */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Installation</h2>
-        <CodeBlock>{`npm install @ewjdev/anyclick-react`}</CodeBlock>
+        <CodeBlock>{`npm install @ewjdev/anyclick-react @ewjdev/anyclick-react-tailwind`}</CodeBlock>
         <p className="text-gray-400 text-sm mt-2">
           Requires React 19+ and includes{" "}
           <code className="text-cyan-400">@ewjdev/anyclick-core</code> as a
-          dependency.
+          dependency. The React package is headless by default, so pair it with
+          a style package such as{" "}
+          <code className="text-cyan-400">@ewjdev/anyclick-react-tailwind</code>
+          .
         </p>
       </section>
 
@@ -75,6 +78,8 @@ export default function ReactDocsPage() {
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
 import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -83,14 +88,17 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AnyclickProvider adapter={adapter}>
-      {children}
-    </AnyclickProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}</CodeBlock>
         <p className="text-gray-400 text-sm mt-2">
-          <strong>Note:</strong>{" "}
-          <code className="text-cyan-400">FeedbackProvider</code> is still
+          <strong>Note:</strong> use a companion style provider or your own{" "}
+          <code className="text-cyan-400">AnyclickStyleProvider</code>.
+          <code className="text-cyan-400">AnyclickProvider</code> is still
           exported for backward compatibility but is deprecated.
         </p>
       </section>
@@ -189,14 +197,34 @@ export function Providers({ children }: { children: React.ReactNode }) {
             description="Callback fired after failed submission."
           />
           <PropDef
+            name="styleAdapter"
+            type="AnyclickStyleAdapter"
+            description="Local style adapter merged on top of the nearest AnyclickStyleProvider."
+          />
+          <PropDef
+            name="slotClassNames"
+            type="Partial<Record<AnyclickStyleSlot, string>>"
+            description="Per-slot class overrides for menu, screenshot, quick chat, inspect, and shared primitives."
+          />
+          <PropDef
+            name="slotStyles"
+            type="Partial<Record<AnyclickStyleSlot, CSSProperties>>"
+            description="Per-slot inline style overrides merged after adapter defaults."
+          />
+          <PropDef
+            name="components"
+            type="Partial<AnyclickComponentOverrides>"
+            description="Primitive component overrides for DOM replacement scenarios such as MUI or local shadcn components."
+          />
+          <PropDef
             name="menuStyle"
             type="CSSProperties"
-            description="Custom inline styles for the context menu."
+            description="Deprecated compatibility shim. Maps to slotStyles['menu.surface']."
           />
           <PropDef
             name="menuClassName"
             type="string"
-            description="Custom CSS class name for the context menu."
+            description="Deprecated compatibility shim. Maps to slotClassNames['menu.surface']."
           />
           <PropDef
             name="disabled"
@@ -473,7 +501,7 @@ export { ContextMenu } from './ContextMenu';
 export { ScreenshotPreview } from './ScreenshotPreview';
 
 // Components (deprecated, for backward compatibility)
-export { FeedbackProvider } from './AnyclickProvider';
+export { AnyclickProvider } from './AnyclickProvider';
 
 // Context & Hooks (new)
 export { AnyclickContext, useAnyclick } from './context';

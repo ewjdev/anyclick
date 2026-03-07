@@ -97,7 +97,9 @@ export default function BasicExamplePage() {
           language="tsx"
           code={`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
 import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 // Create adapter pointing to your API
@@ -108,9 +110,11 @@ const adapter = createHttpAdapter({
 export function Providers({ children }: { children: React.ReactNode }) {
   // That's it! Default menu items are automatically included
   return (
-    <FeedbackProvider adapter={adapter}>
-      {children}
-    </FeedbackProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}
         />
