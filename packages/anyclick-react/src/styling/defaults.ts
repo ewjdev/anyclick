@@ -50,6 +50,10 @@ export const defaultAnyclickStyleTokens: AnyclickStyleTokens = {
   zIndexPinned: 9998,
 };
 
+function menuVar(variable: string, fallback: string): string {
+  return `var(${variable}, ${fallback})`;
+}
+
 function withInteractiveState(
   style: CSSProperties,
   input: AnyclickResolveSlotInput,
@@ -60,12 +64,16 @@ function withInteractiveState(
     opacity: state.disabled ? 0.6 : style.opacity,
     cursor: state.disabled ? "not-allowed" : style.cursor,
     backgroundColor:
-      state.error && style.backgroundColor === tokens.surface
+      state.error &&
+      (style.backgroundColor === tokens.surface ||
+        style.backgroundColor === menuVar("--anyclick-menu-bg", tokens.surface))
         ? tokens.dangerMuted
         : state.selected || state.active || state.hovered || state.pressed
-          ? tokens.surfaceMuted
+          ? menuVar("--anyclick-menu-hover", tokens.surfaceMuted)
           : style.backgroundColor,
-    borderColor: state.error ? tokens.danger : style.borderColor,
+    borderColor: state.error
+      ? tokens.danger
+      : style.borderColor,
   };
 }
 
@@ -82,11 +90,25 @@ function baseButtonStyle(input: AnyclickResolveSlotInput): CSSProperties {
       backgroundColor: destructive
         ? tokens.danger
         : emphasized
-          ? tokens.accent
-          : tokens.surface,
-      border: `1px solid ${destructive || emphasized ? "transparent" : tokens.border}`,
+          ? menuVar("--anyclick-menu-accent", tokens.accent)
+          : menuVar(
+              "--anyclick-menu-cancel-bg",
+              menuVar("--anyclick-menu-bg", tokens.surface),
+            ),
+      border: `1px solid ${
+        destructive || emphasized
+          ? "transparent"
+          : menuVar("--anyclick-menu-border", tokens.border)
+      }`,
       borderRadius: tokens.radiusSm,
-      color: destructive || emphasized ? tokens.accentText : tokens.text,
+      color: destructive
+        ? tokens.accentText
+        : emphasized
+          ? menuVar("--anyclick-menu-accent-text", tokens.accentText)
+          : menuVar(
+              "--anyclick-menu-cancel-text",
+              menuVar("--anyclick-menu-text", tokens.text),
+            ),
       cursor: "pointer",
       display: "inline-flex",
       fontFamily: tokens.fontFamily,
@@ -112,11 +134,17 @@ function baseFieldStyle(input: AnyclickResolveSlotInput): CSSProperties {
   return withInteractiveState(
     {
       appearance: "none",
-      backgroundColor: state.disabled ? tokens.surfaceMuted : tokens.surface,
-      border: `1px solid ${state.error ? tokens.danger : tokens.border}`,
+      backgroundColor: state.disabled
+        ? menuVar("--anyclick-menu-hover", tokens.surfaceMuted)
+        : menuVar("--anyclick-menu-input-bg", tokens.surface),
+      border: `1px solid ${
+        state.error
+          ? tokens.danger
+          : menuVar("--anyclick-menu-input-border", tokens.border)
+      }`,
       borderRadius: tokens.radiusSm,
       boxSizing: "border-box",
-      color: tokens.text,
+      color: menuVar("--anyclick-menu-text", tokens.text),
       fontFamily: tokens.fontFamily,
       fontSize: tokens.fontSizeMd,
       lineHeight: tokens.lineHeightBase,
@@ -140,11 +168,11 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
       };
     case "menu.surface":
       return {
-        backgroundColor: tokens.surface,
-        border: `1px solid ${tokens.border}`,
+        backgroundColor: menuVar("--anyclick-menu-bg", tokens.surface),
+        border: `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
         borderRadius: tokens.radiusMd,
         boxShadow: tokens.shadowMd,
-        color: tokens.text,
+        color: menuVar("--anyclick-menu-text", tokens.text),
         fontFamily: tokens.fontFamily,
         fontSize: tokens.fontSizeMd,
         minWidth: "220px",
@@ -159,8 +187,10 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
       return {
         alignItems: "center",
         borderBottom:
-          slot === "quickChat.header" ? undefined : `1px solid ${tokens.border}`,
-        color: tokens.textMuted,
+          slot === "quickChat.header"
+            ? undefined
+            : `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
+        color: menuVar("--anyclick-menu-text-muted", tokens.textMuted),
         display: "flex",
         fontSize: tokens.fontSizeXs,
         fontWeight: 700,
@@ -190,7 +220,7 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
           appearance: "none",
           backgroundColor: "transparent",
           border: "none",
-          color: tokens.text,
+          color: menuVar("--anyclick-menu-text", tokens.text),
           cursor: "pointer",
           display: "flex",
           fontFamily: tokens.fontFamily,
@@ -228,9 +258,9 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
             : state.tone === "warning"
               ? "rgba(217, 119, 6, 0.12)"
               : state.tone === "info" || state.tone === "accent"
-                ? tokens.accentMuted
-                : tokens.surfaceMuted,
-        border: `1px solid ${tokens.border}`,
+                ? menuVar("--anyclick-menu-hover", tokens.accentMuted)
+                : menuVar("--anyclick-menu-hover", tokens.surfaceMuted),
+        border: `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
         borderRadius: tokens.radiusFull,
         color:
           state.tone === "success"
@@ -238,8 +268,8 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
             : state.tone === "warning"
               ? tokens.warning
               : state.tone === "info" || state.tone === "accent"
-                ? tokens.accent
-                : tokens.textMuted,
+                ? menuVar("--anyclick-menu-accent", tokens.accent)
+                : menuVar("--anyclick-menu-text-muted", tokens.textMuted),
         display: "inline-flex",
         fontSize: tokens.fontSizeXs,
         fontWeight: 600,
@@ -254,7 +284,7 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
       };
     case "comment.section":
       return {
-        borderTop: `1px solid ${tokens.border}`,
+        borderTop: `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
         display: "flex",
         flexDirection: "column",
         gap: tokens.spacingSm,
@@ -279,14 +309,14 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
     case "quickChat.surface":
     case "inspect.surface":
       return {
-        backgroundColor: tokens.surface,
+        backgroundColor: menuVar("--anyclick-menu-bg", tokens.surface),
         border:
           slot === "quickChat.surface" && state.expanded
-            ? `1px solid ${tokens.border}`
-            : `1px solid ${tokens.border}`,
+            ? `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`
+            : `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
         borderRadius: state.expanded ? "0" : tokens.radiusMd,
         boxShadow: state.expanded ? tokens.shadowLg : tokens.shadowSm,
-        color: tokens.text,
+        color: menuVar("--anyclick-menu-text", tokens.text),
         display: "flex",
         flexDirection: "column",
         fontFamily: tokens.fontFamily,
@@ -309,8 +339,8 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
     case "screenshot.preview":
       return {
         alignItems: "center",
-        backgroundColor: tokens.surfaceMuted,
-        border: `1px solid ${tokens.border}`,
+        backgroundColor: menuVar("--anyclick-menu-hover", tokens.surfaceMuted),
+        border: `1px solid ${menuVar("--anyclick-menu-border", tokens.border)}`,
         borderRadius: tokens.radiusSm,
         display: "flex",
         justifyContent: "center",
@@ -322,7 +352,10 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
     case "screenshot.error":
       return {
         alignItems: "center",
-        color: slot === "screenshot.error" ? tokens.danger : tokens.textMuted,
+        color:
+          slot === "screenshot.error"
+            ? tokens.danger
+            : menuVar("--anyclick-menu-text-muted", tokens.textMuted),
         display: "flex",
         flexDirection: "column",
         gap: tokens.spacingSm,
@@ -332,7 +365,7 @@ function slotStyle(input: AnyclickResolveSlotInput): CSSProperties {
       };
     case "screenshot.meta":
       return {
-        color: tokens.textMuted,
+        color: menuVar("--anyclick-menu-text-muted", tokens.textMuted),
         fontSize: tokens.fontSizeXs,
         textAlign: "center",
       };
@@ -371,4 +404,3 @@ export const fallbackAnyclickStyleAdapter: AnyclickStyleAdapter = {
   }),
   tokens: defaultAnyclickStyleTokens,
 };
-

@@ -6,7 +6,10 @@
   }
 
   .ac-anyclick-tw-surface {
-    @apply rounded-xl border border-slate-200 bg-white text-slate-900 shadow-2xl;
+    @apply rounded-xl shadow-2xl;
+    background: var(--anyclick-menu-bg, #ffffff);
+    border: 1px solid var(--anyclick-menu-border, #e2e8f0);
+    color: var(--anyclick-menu-text, #0f172a);
   }
 
   .ac-anyclick-tw-menu-surface {
@@ -14,7 +17,9 @@
   }
 
   .ac-anyclick-tw-header {
-    @apply flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500;
+    @apply flex items-center justify-between gap-2 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em];
+    border-bottom: 1px solid var(--anyclick-menu-border, #e2e8f0);
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
   }
 
   .ac-anyclick-tw-menu-list {
@@ -22,23 +27,33 @@
   }
 
   .ac-anyclick-tw-menu-item {
-    @apply flex min-h-10 w-full items-center gap-3 border-0 bg-transparent px-4 py-2 text-left text-sm text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply flex min-h-10 w-full items-center gap-3 border-0 bg-transparent px-4 py-2 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-60;
+    color: var(--anyclick-menu-text, #0f172a);
+  }
+
+  .ac-anyclick-tw-menu-item:hover,
+  .ac-anyclick-tw-menu-item:focus-visible {
+    background: var(--anyclick-menu-hover, #f1f5f9);
+    color: var(--anyclick-menu-text, #0f172a);
   }
 
   .ac-anyclick-tw-menu-back {
-    @apply border-b border-slate-200;
+    border-bottom: 1px solid var(--anyclick-menu-border, #e2e8f0);
   }
 
   .ac-anyclick-tw-menu-icon {
     @apply inline-flex h-5 w-5 items-center justify-center;
+    color: currentColor;
   }
 
   .ac-anyclick-tw-menu-label {
     @apply inline-flex flex-1 items-center gap-2;
+    color: inherit;
   }
 
   .ac-anyclick-tw-submenu-indicator {
     @apply ml-auto opacity-60;
+    color: inherit;
   }
 
   .ac-anyclick-tw-comment-section,
@@ -48,27 +63,59 @@
   }
 
   .ac-anyclick-tw-action {
-    @apply inline-flex min-h-8 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-8 items-center justify-center gap-2 rounded-md px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+    background: var(--anyclick-menu-cancel-bg, color-mix(in srgb, var(--anyclick-menu-bg, #ffffff) 88%, #ffffff));
+    border: 1px solid var(--anyclick-menu-border, #e2e8f0);
+    color: var(--anyclick-menu-cancel-text, var(--anyclick-menu-text, #0f172a));
   }
 
   .ac-anyclick-tw-action-primary {
-    @apply border-transparent bg-sky-600 text-white hover:bg-sky-500;
+    background: var(--anyclick-menu-accent, #0284c7);
+    border-color: transparent;
+    color: var(--anyclick-menu-accent-text, #ffffff);
   }
 
   .ac-anyclick-tw-icon-button {
-    @apply inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent bg-transparent text-slate-600 transition hover:bg-slate-100;
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent bg-transparent transition;
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
+  }
+
+  .ac-anyclick-tw-action:hover,
+  .ac-anyclick-tw-action:focus-visible,
+  .ac-anyclick-tw-icon-button:hover,
+  .ac-anyclick-tw-icon-button:focus-visible {
+    background: var(--anyclick-menu-hover, #f1f5f9);
+  }
+
+  .ac-anyclick-tw-action-primary:hover,
+  .ac-anyclick-tw-action-primary:focus-visible {
+    filter: brightness(1.05);
   }
 
   .ac-anyclick-tw-field {
-    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-0 transition placeholder:text-slate-400 focus:border-sky-500;
+    @apply w-full rounded-md px-3 py-2 text-sm outline-none ring-0 transition;
+    background: var(--anyclick-menu-input-bg, #ffffff);
+    border: 1px solid var(--anyclick-menu-input-border, var(--anyclick-menu-border, #e2e8f0));
+    color: var(--anyclick-menu-text, #0f172a);
   }
 
   .ac-anyclick-tw-textarea {
     @apply min-h-[88px] resize-y;
   }
 
+  .ac-anyclick-tw-field::placeholder {
+    color: color-mix(in srgb, var(--anyclick-menu-text, #0f172a) 55%, transparent);
+  }
+
+  .ac-anyclick-tw-field:focus-visible {
+    border-color: var(--anyclick-menu-accent, #0284c7);
+  }
+
   .ac-anyclick-tw-badge {
-    @apply inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold;
+    background: color-mix(in srgb, var(--anyclick-menu-hover, #f1f5f9) 85%, transparent);
+    border: 1px solid var(--anyclick-menu-border, #e2e8f0);
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
   }
 
   .ac-anyclick-tw-screenshot-header {
@@ -76,26 +123,36 @@
   }
 
   .ac-anyclick-tw-tab {
-    @apply inline-flex min-h-7 items-center gap-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100;
+    @apply inline-flex min-h-7 items-center gap-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-xs font-medium transition;
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
   }
 
   .ac-anyclick-tw-tab-active {
-    @apply border-sky-200 bg-sky-50 text-sky-700;
+    background: color-mix(in srgb, var(--anyclick-menu-accent, #0284c7) 14%, transparent);
+    border-color: color-mix(in srgb, var(--anyclick-menu-accent, #0284c7) 35%, transparent);
+    color: var(--anyclick-menu-accent, #0284c7);
   }
 
   .ac-anyclick-tw-preview {
-    @apply flex min-h-40 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-2;
+    @apply flex min-h-40 items-center justify-center rounded-lg p-2;
+    background: color-mix(in srgb, var(--anyclick-menu-hover, #f8fafc) 70%, transparent);
+    border: 1px solid var(--anyclick-menu-border, #e2e8f0);
   }
 
   .ac-anyclick-tw-empty {
-    @apply flex flex-col items-center justify-center gap-2 p-6 text-center text-sm text-slate-500;
+    @apply flex flex-col items-center justify-center gap-2 p-6 text-center text-sm;
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
   }
 
   .ac-anyclick-tw-error {
-    @apply border border-rose-200 bg-rose-50 text-rose-700;
+    @apply border;
+    background: color-mix(in srgb, #fb7185 12%, transparent);
+    border-color: color-mix(in srgb, #fb7185 45%, transparent);
+    color: #be123c;
   }
 
   .ac-anyclick-tw-meta {
-    @apply text-center text-[11px] text-slate-500;
+    @apply text-center text-[11px];
+    color: var(--anyclick-menu-text-muted, var(--anyclick-menu-text, #475569));
   }
 }
