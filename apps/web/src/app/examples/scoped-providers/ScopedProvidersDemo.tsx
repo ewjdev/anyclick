@@ -87,7 +87,10 @@ export function ScopedProvidersDemo() {
             hideDefaultCursor: true,
           }}
         >
-          <div className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
+          <div
+            data-testid="scoped-rose-section"
+            className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/30"
+          >
             <div className="flex items-center gap-2 mb-2">
               <Palette className="w-4 h-4 text-rose-400" />
               <span className="text-sm font-medium text-rose-400">
@@ -149,7 +152,10 @@ export function ScopedProvidersDemo() {
             hideDefaultCursor: true,
           }}
         >
-          <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+          <div
+            data-testid="scoped-emerald-section"
+            className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30"
+          >
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-4 h-4 text-emerald-400" />
               <span className="text-sm font-medium text-emerald-400">
@@ -270,7 +276,10 @@ export function ScopedProvidersDemo() {
             hideDefaultCursor: false, // Show default cursor
           }}
         >
-          <div className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/30">
+          <div
+            data-testid="scoped-disabled-section"
+            className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/30"
+          >
             <div className="flex items-center gap-2 mb-2">
               <ShieldOff className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-400">

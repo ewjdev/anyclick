@@ -71,6 +71,7 @@ export default function SensitiveMaskingExamplePage() {
             <div>
               <label className="block text-sm font-medium mb-2">Password</label>
               <input
+                data-testid="sensitive-password-input"
                 type="password"
                 placeholder="••••••••"
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -96,6 +97,7 @@ export default function SensitiveMaskingExamplePage() {
                 Card Number
               </label>
               <input
+                data-testid="sensitive-card-input"
                 type="text"
                 inputMode="numeric"
                 autoComplete="cc-number"
@@ -149,6 +151,7 @@ export default function SensitiveMaskingExamplePage() {
               <input
                 type="text"
                 data-sensitive="true"
+                data-testid="sensitive-custom-input"
                 placeholder="XXX-XX-XXXX"
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
