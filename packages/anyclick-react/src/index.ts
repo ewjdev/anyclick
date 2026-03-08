@@ -186,8 +186,14 @@ export type {
 export type {
   /** Style adapter contract for slot-based styling */
   AnyclickStyleAdapter,
+  /** Props for badge primitive overrides */
+  AnyclickBadgeProps,
+  /** Props for button primitive overrides */
+  AnyclickButtonProps,
   /** Primitive component override registry */
   AnyclickComponentOverrides,
+  /** Props for input primitive overrides */
+  AnyclickInputProps,
   /** Props for AnyclickStyleProvider */
   AnyclickStyleProviderProps,
   /** Style slot union */
@@ -198,6 +204,14 @@ export type {
   AnyclickSlotProps,
   /** Resolved style adapter after inheritance/merging */
   AnyclickResolvedStyleAdapter,
+  /** Props for surface primitive overrides */
+  AnyclickSurfaceProps,
+  /** Props for tab primitive overrides */
+  AnyclickTabProps,
+  /** Props for tabs primitive overrides */
+  AnyclickTabsProps,
+  /** Props for textarea primitive overrides */
+  AnyclickTextareaProps,
   /** Semantic style tokens */
   AnyclickStyleTokens,
 } from "./styling";
