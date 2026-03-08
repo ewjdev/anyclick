@@ -16,7 +16,7 @@
     "build": "turbo run build",
     "changeset": "changeset",
     "clean": "turbo run clean && rm -rf node_modules",
-    "dev": "turbo run dev --concurrency=15",
+    "dev": "turbo run dev --concurrency=20",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore",
     "release": "turbo run build && changeset publish",

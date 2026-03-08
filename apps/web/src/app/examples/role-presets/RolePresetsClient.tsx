@@ -23,7 +23,7 @@ import Link from "next/link";
 const presetSnippet = `'use client';
 
 import { AnyclickProvider, createPresetMenu } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import type { CSSProperties, ReactNode } from "react";
 import { useRef } from "react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import {

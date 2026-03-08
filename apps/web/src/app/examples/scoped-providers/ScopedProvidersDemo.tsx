@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import {
   Layers,
   Palette,

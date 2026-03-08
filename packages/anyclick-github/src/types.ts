@@ -1,7 +1,7 @@
 import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 /**
- * Options for the HTTP adapter (browser-side)
+ * @deprecated Import HttpAdapterOptions from "@ewjdev/anyclick-core" instead.
  */
 export interface HttpAdapterOptions {
   /** URL of your backend endpoint that handles feedback */

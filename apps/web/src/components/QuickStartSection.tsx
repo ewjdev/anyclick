@@ -19,7 +19,7 @@ const QuickStartSection = () => {
           <div className="flex-1">
             <h3 className="font-semibold mb-3">Install the packages</h3>
             <TerminalBlock
-              code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github"
+              code="npm install @ewjdev/anyclick-core @ewjdev/anyclick-react @ewjdev/anyclick-react-tailwind @ewjdev/anyclick-github"
               showCopy={true}
             />
           </div>
@@ -63,15 +63,19 @@ export async function POST(req) {
               filename="app/layout.tsx"
               language="tsx"
               code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 
 export default function Layout({ children }) {
   return (
-    <AnyclickProvider adapter={adapter}>
-      {children}
-    </AnyclickProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}
             />

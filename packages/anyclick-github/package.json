@@ -1,8 +1,8 @@
 {
   "name": "@ewjdev/anyclick-github",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": false,
-  "description": "GitHub adapter for UI feedback - includes browser HTTP adapter and Node-side GitHub integration",
+  "description": "GitHub adapter for UI feedback with server-side issue creation and screenshot asset management",
   "keywords": [
     "feedback",
     "ui",
@@ -57,7 +57,7 @@
     "setup": "node bin/setup-wrapper.js"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.4.0"
+    "@ewjdev/anyclick-core": "^1.5.0"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",

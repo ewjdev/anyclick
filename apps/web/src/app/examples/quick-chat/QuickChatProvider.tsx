@@ -1,5 +1,5 @@
 "use client";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import {
   AnyclickProvider,
   DEFAULT_QUICK_CHAT_CONFIG,

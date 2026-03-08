@@ -13,7 +13,15 @@ import {
   ShrinkIcon,
   XIcon,
 } from "lucide-react";
-import { menuStyles, screenshotPreviewStyles as styles } from "./styles";
+import {
+  AnyclickButton,
+  AnyclickIconButton,
+  AnyclickSurface,
+  AnyclickTab,
+  AnyclickTabs,
+  resolveSlotProps,
+  useAnyclickStyle,
+} from "./styling";
 import type { ScreenshotPreviewProps } from "./types";
 
 /** Screenshot preview tab types */
@@ -38,6 +46,16 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
 }: ScreenshotPreviewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("element");
   const [isExpanded, setIsExpanded] = useState(false);
+  const adapter = useAnyclickStyle();
+  const headerProps = resolveSlotProps(adapter, "screenshot.header");
+  const previewProps = resolveSlotProps(adapter, "screenshot.preview", {
+    expanded: isExpanded,
+  });
+  const emptyProps = resolveSlotProps(adapter, "screenshot.empty");
+  const errorProps = resolveSlotProps(adapter, "screenshot.error", {
+    error: true,
+  });
+  const metaProps = resolveSlotProps(adapter, "screenshot.meta");
 
   // Get error for a specific tab
   const getError = (key: TabType): ScreenshotError | undefined => {
@@ -86,51 +104,59 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
 
   if (isLoading) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loadingContainer}>
+      <AnyclickSurface slotName="screenshot.surface" style={{ gap: "12px", padding: "12px" }}>
+        <div
+          {...emptyProps.attrs}
+          className={emptyProps.className}
+          style={emptyProps.style}
+        >
           <Loader2Icon
             className="w-6 h-6 animate-spin"
             style={{ color: "#3b82f6" }}
           />
-          <span style={styles.loadingText}>Capturing screenshots...</span>
+          <span>Capturing screenshots...</span>
         </div>
-      </div>
+      </AnyclickSurface>
     );
   }
 
   if (!screenshots) {
     return (
-      <div style={styles.container}>
-        <div style={styles.emptyContainer}>
+      <AnyclickSurface slotName="screenshot.surface" style={{ gap: "12px", padding: "12px" }}>
+        <div
+          {...emptyProps.attrs}
+          className={emptyProps.className}
+          style={emptyProps.style}
+        >
           <ImageIcon className="w-8 h-8" style={{ color: "#9ca3af" }} />
-          <span style={styles.emptyText}>Screenshots unavailable</span>
-          <span style={styles.emptySubtext}>
+          <span>Screenshots unavailable</span>
+          <span style={{ color: adapter.tokens.textMuted, fontSize: adapter.tokens.fontSizeXs }}>
             Some elements can&apos;t be captured (e.g., gradient text)
           </span>
-          <div style={styles.emptyActions}>
-            <button
-              type="button"
+          <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+            <AnyclickButton
               disabled={isSubmitting}
               onClick={onRetake}
-              style={styles.retakeButtonOutline}
+              slotName="screenshot.action"
+              slotState={{ disabled: isSubmitting }}
             >
               <RefreshCwIcon className="w-4 h-4" />
               Try Again
-            </button>
-            <button
-              type="button"
+            </AnyclickButton>
+            <AnyclickButton
               disabled={isSubmitting}
               onClick={() =>
                 onConfirm({ capturedAt: new Date().toISOString() })
               }
-              style={styles.continueButton}
+              slotName="screenshot.action"
+              slotState={{ disabled: isSubmitting, tone: "accent" }}
             >
               <CheckIcon className="w-4 h-4" />
               Continue Without
-            </button>
+            </AnyclickButton>
           </div>
         </div>
-      </div>
+      </AnyclickSurface>
     );
   }
 
@@ -144,21 +170,43 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
   const activeError = getError(activeTab);
 
   return (
-    <div
+    <AnyclickSurface
+      slotName="screenshot.surface"
+      slotState={{ expanded: isExpanded }}
       style={{
-        ...styles.container,
-        ...(isExpanded ? styles.containerExpanded : {}),
+        gap: "8px",
         padding: "8px",
+        ...(isExpanded
+          ? {
+              left: "50%",
+              maxHeight: "90vh",
+              maxWidth: "800px",
+              position: "fixed",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: "90vw",
+              zIndex: 10000,
+            }
+          : {}),
       }}
     >
-      <div style={styles.header}>
-        <span style={styles.headerTitle}>Review Screenshots</span>
-        <div style={styles.headerActions}>
-          <span style={styles.sizeLabel}>{formatBytes(totalSize)}</span>
-          <button
-            type="button"
+      <div
+        {...headerProps.attrs}
+        className={headerProps.className}
+        style={headerProps.style}
+      >
+        <span>Review Screenshots</span>
+        <div style={{ alignItems: "center", display: "flex", gap: "8px" }}>
+          <span
+            {...metaProps.attrs}
+            className={metaProps.className}
+            style={metaProps.style}
+          >
+            {formatBytes(totalSize)}
+          </span>
+          <AnyclickIconButton
             onClick={() => setIsExpanded(!isExpanded)}
-            style={styles.iconButton}
+            slotName="screenshot.action"
             title={isExpanded ? "Collapse" : "Expand"}
           >
             {isExpanded ? (
@@ -166,21 +214,24 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
             ) : (
               <ExpandIcon className="w-4 h-4" />
             )}
-          </button>
+          </AnyclickIconButton>
         </div>
       </div>
 
       {/* Tabs */}
-      <div style={styles.tabContainer}>
+      <AnyclickTabs
+        slotName="screenshot.header"
+        style={{ borderBottom: `1px solid ${adapter.tokens.border}`, gap: "4px", paddingBottom: "8px" }}
+      >
         {tabs.map((tab) => (
-          <button
+          <AnyclickTab
             key={tab.key}
-            type="button"
             onClick={() => setActiveTab(tab.key)}
-            style={{
-              ...styles.tab,
-              ...(activeTab === tab.key ? styles.tabActive : {}),
-              ...(tab.error && !tab.data ? styles.tabError : {}),
+            slotName={activeTab === tab.key ? "screenshot.tabActive" : "screenshot.tab"}
+            slotState={{
+              error: Boolean(tab.error && !tab.data),
+              selected: activeTab === tab.key,
+              size: "sm",
             }}
           >
             {tab.error && !tab.data && (
@@ -191,35 +242,42 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
             )}
             {tab.label}
             {tab.data && (
-              <span style={styles.tabSize}>
+              <span style={{ fontSize: adapter.tokens.fontSizeXs, opacity: 0.7 }}>
                 {formatBytes(tab.data.sizeBytes)}
               </span>
             )}
-          </button>
+          </AnyclickTab>
         ))}
-      </div>
+      </AnyclickTabs>
 
       {/* Preview image */}
       <div
-        style={{
-          ...styles.previewContainer,
-          ...(isExpanded ? styles.previewContainerExpanded : {}),
-        }}
+        {...previewProps.attrs}
+        className={previewProps.className}
+        style={previewProps.style}
       >
         {activeScreenshot ? (
           <img
             alt={`${activeTab} screenshot`}
             src={activeScreenshot.dataUrl}
-            style={styles.previewImage}
+            style={{ maxHeight: "100%", maxWidth: "100%", objectFit: "contain" }}
           />
         ) : activeError ? (
-          <div style={styles.errorPreview}>
+          <div
+            {...errorProps.attrs}
+            className={errorProps.className}
+            style={errorProps.style}
+          >
             <AlertCircleIcon className="w-8 h-8" style={{ color: "#ef4444" }} />
-            <span style={styles.errorTitle}>Capture Failed</span>
-            <span style={styles.errorMessage}>{activeError.message}</span>
+            <span style={{ fontWeight: 700 }}>Capture Failed</span>
+            <span style={{ maxWidth: "250px" }}>{activeError.message}</span>
           </div>
         ) : (
-          <div style={styles.noPreview}>
+          <div
+            {...emptyProps.attrs}
+            className={emptyProps.className}
+            style={{ ...emptyProps.style, padding: "16px" }}
+          >
             <ImageIcon className="w-6 h-6" style={{ color: "#9ca3af" }} />
             <span>No {activeTab} screenshot</span>
           </div>
@@ -228,41 +286,52 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
 
       {/* Dimensions info */}
       {activeScreenshot && (
-        <div style={styles.dimensionsInfo}>
+        <div
+          {...metaProps.attrs}
+          className={metaProps.className}
+          style={metaProps.style}
+        >
           {activeScreenshot.width} × {activeScreenshot.height}px
         </div>
       )}
 
       {/* Actions */}
-      <div style={styles.actions}>
-        <button
-          type="button"
+      <div
+        style={{
+          alignItems: "center",
+          borderTop: `1px solid ${adapter.tokens.border}`,
+          display: "flex",
+          justifyContent: "space-between",
+          paddingTop: "8px",
+        }}
+      >
+        <AnyclickButton
           disabled={isSubmitting}
           onClick={onRetake}
-          style={styles.retakeButtonSmall}
+          slotName="screenshot.action"
+          slotState={{ disabled: isSubmitting }}
         >
           <RefreshCwIcon className="w-3 h-3" />
           Retake
-        </button>
-        <div style={styles.actionsRight}>
-          <button
-            type="button"
-            className="flex items-center gap-1"
+        </AnyclickButton>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <AnyclickButton
             disabled={isSubmitting}
             onClick={onCancel}
-            style={{ ...menuStyles.button, ...menuStyles.cancelButton }}
+            slotName="screenshot.action"
+            slotState={{ disabled: isSubmitting }}
           >
             <XIcon className="w-3 h-3" />
             Cancel
-          </button>
-          <button
-            type="button"
+          </AnyclickButton>
+          <AnyclickButton
             disabled={isSubmitting}
             onClick={() => onConfirm(screenshots)}
-            style={{
-              ...menuStyles.button,
-              ...menuStyles.submitButton,
-              ...(isSubmitting ? menuStyles.submitButtonDisabled : {}),
+            slotName="screenshot.action"
+            slotState={{
+              disabled: isSubmitting,
+              loading: isSubmitting,
+              tone: "accent",
             }}
           >
             {isSubmitting ? (
@@ -276,9 +345,9 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
                 Send
               </>
             )}
-          </button>
+          </AnyclickButton>
         </div>
       </div>
-    </div>
+    </AnyclickSurface>
   );
 });

@@ -82,7 +82,7 @@ export default function CustomMenuExamplePage() {
           <code className="text-cyan-400">icon</code> prop. Use any React
           component (Lucide, Heroicons, custom SVGs, etc.):
         </p>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { Bug, Lightbulb, Heart } from 'lucide-react';
 
 const menuItems = [
@@ -106,9 +106,9 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+<AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </div>
 
       {/* Submenus */}
@@ -154,7 +154,7 @@ const menuItems = [
           Show or hide menu items based on user roles using{" "}
           <code className="text-cyan-400">requiredRoles</code>:
         </p>
-        <CodeBlock>{`import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+        <CodeBlock>{`import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
 import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
 
 // Define all menu items with role requirements
@@ -194,13 +194,13 @@ function Providers({ children, currentUser }) {
   const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
   
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={adapter} 
       menuItems={menuItems}
       metadata={userContext} // Include user info in feedback
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
@@ -211,7 +211,7 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Apply custom styles or classes to the context menu:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   menuItems={menuItems}
   // Inline styles
@@ -224,7 +224,7 @@ function Providers({ children, currentUser }) {
   menuClassName="my-custom-menu"
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <CodeBlock filename="styles.css">{`/* Custom menu styling */
 .my-custom-menu {
@@ -247,7 +247,7 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Customize the colors used to highlight target and container elements:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   highlightConfig={{
     enabled: true,
@@ -271,7 +271,7 @@ function Providers({ children, currentUser }) {
   }}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </div>
 
       {/* Complete Example */}
@@ -279,7 +279,7 @@ function Providers({ children, currentUser }) {
         <h2 className="text-2xl font-bold mb-4">Complete Example</h2>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
 import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-';
 import { Bug, Lightbulb, Heart, Code, Monitor, Cloud, Shield } from 'lucide-react';
@@ -347,7 +347,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
   
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       menuItems={menuItems}
       metadata={userContext}
@@ -360,7 +360,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>

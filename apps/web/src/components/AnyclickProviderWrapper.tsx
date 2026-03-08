@@ -3,8 +3,9 @@
 import type { ReactNode } from "react";
 import { useEffect, useMemo } from "react";
 import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
+import { TailwindAnyclickStyleProvider } from "@ewjdev/anyclick-react-tailwind";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
@@ -13,8 +14,6 @@ const adapter = createHttpAdapter({
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   // Use chrome preset for developer-focused menu with inspect, copy, etc.
   const chromePreset = useMemo(() => createPresetMenu("chrome"), []);
-
-  console.count("AnyclickProviderWrapper");
 
   // Clean up any stale cursor hiding styles when PointerProvider is not used
   // This ensures the default cursor is restored if PointerProvider was removed
@@ -47,34 +46,35 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   // useHideCursor(true);
 
   return (
-    <AnyclickProvider
-      adapter={adapter}
-      menuItems={chromePreset.menuItems}
-      metadata={chromePreset.metadata}
-      header={<></>}
-      quickChatConfig={{
-        endpoint: "/api/anyclick/chat",
-        model: "gpt-5-nano",
-        maxResponseLength: 500,
-        showRedactionUI: true,
-        showSuggestions: true,
-        placeholder: "Ask about this element...",
-        title: "Quick Ask",
-      }}
-      theme={{
-        highlightConfig: {
-          enabled: false,
-        },
-      }}
-    >
-      {children}
-      <InspectDialogManager
-        ideConfig={{
-          protocol: "cursor",
-          basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider
+        adapter={adapter}
+        menuItems={chromePreset.menuItems}
+        metadata={chromePreset.metadata}
+        header={<></>}
+        quickChatConfig={{
+          endpoint: "/api/anyclick/chat",
+          model: "gpt-5-nano",
+          maxResponseLength: 500,
+          showRedactionUI: true,
+          showSuggestions: true,
+          placeholder: "Ask about this element...",
+          title: "Quick Ask",
         }}
-      />
-      {/* <PointerProvider
+        theme={{
+          highlightConfig: {
+            enabled: false,
+          },
+        }}
+      >
+        {children}
+        <InspectDialogManager
+          ideConfig={{
+            protocol: "cursor",
+            basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+          }}
+        />
+        {/* <PointerProvider
         theme={{
           colors: {
             pointerColor: "#3b82f6",
@@ -94,15 +94,16 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
           visibility: "always",
           hideDefaultCursor: true,
         }}
-      >
-        <InspectDialogManager
+        >
+          <InspectDialogManager
           ideConfig={{
             protocol: "cursor",
             basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
           }}
         />
       </PointerProvider> */}
-    </AnyclickProvider>
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }
 

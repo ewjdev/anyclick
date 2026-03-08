@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from "react";
-import type { ContextMenuItem } from "@ewjdev/anyclick-react";
 
 export interface ImmersiveTheme {
   id: string;
@@ -14,7 +13,6 @@ export interface ImmersiveTheme {
   backgroundImage?: string;
   floatingElements: FloatingElement[];
   cardContent: ReactNode;
-  menuItems: ContextMenuItem[];
   menuStyle: CSSProperties;
   pointerIcon: ReactNode;
 }

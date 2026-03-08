@@ -183,7 +183,7 @@ export default function QuickChatExamplePage() {
           code={`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',

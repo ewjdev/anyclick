@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
 import { CSSProperties, useMemo } from "react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { Check, Copy, FileCode, Terminal } from "lucide-react";
 

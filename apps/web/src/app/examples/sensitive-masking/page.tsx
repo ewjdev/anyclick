@@ -245,8 +245,8 @@ ${DEFAULT_SENSITIVE_SELECTORS.map((s) => `'${s}'`).join(",\n")}`}</CodeBlock>
         </h3>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -255,7 +255,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       screenshotConfig={{
         enabled: true,
@@ -266,7 +266,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
 
@@ -275,8 +275,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </h3>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -285,7 +285,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       screenshotConfig={{
         enabled: true,
@@ -302,7 +302,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>

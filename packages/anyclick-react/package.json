@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [
@@ -58,8 +58,7 @@
     "@ewjdev/anyclick-devtools": "^4.0.0",
     "ai": "^5.0.112",
     "lucide-react": "^0.544.0",
-    "zustand": "^5.0.2",
-    "tailwindcss": "4.1.17"
+    "zustand": "^5.0.2"
   },
   "peerDependencies": {
     "react": ">=19.2.1",
@@ -70,13 +69,10 @@
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
     "@vitejs/plugin-react": "^4.3.0",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
     "rimraf": "^6.0.1",
-    "vite": "^5.2.0",
-    "@tailwindcss/vite": "4.1.17"
+    "vite": "^5.2.0"
   },
   "engines": {
     "node": ">=18.18.0"

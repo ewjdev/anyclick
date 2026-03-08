@@ -79,16 +79,20 @@ export default function ScopedProvidersExamplePage() {
         <CodeBlock filename="components/Dashboard.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
 
 export function Dashboard({ children }) {
   return (
-    <AnyclickProvider 
-      adapter={dashboardAdapter}
-      scoped // Only captures events within this provider's children
-      menuItems={dashboardMenuItems}
-    >
-      {children}
-    </AnyclickProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider 
+        adapter={dashboardAdapter}
+        scoped // Only captures events within this provider's children
+        menuItems={dashboardMenuItems}
+      >
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}</CodeBlock>
 
@@ -218,7 +222,7 @@ export function PaymentForm({ children }) {
         <CodeBlock filename="app/layout.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 // Main app feedback goes to GitHub
 const githubAdapter = createHttpAdapter({

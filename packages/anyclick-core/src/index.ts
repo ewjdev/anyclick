@@ -16,6 +16,7 @@ export type {
   ScreenshotConfig,
   ScreenshotResult,
   ScreenshotError,
+  HttpAdapterOptions,
   AnyclickTriggerEvent,
   AnyclickMenuEvent,
 } from "./types";
@@ -54,6 +55,9 @@ export {
 
 // Client
 export { AnyclickClient, createAnyclickClient } from "./client";
+
+// Generic adapters
+export { HttpAdapter, createHttpAdapter } from "./httpAdapter";
 
 // Inspect utilities
 export {

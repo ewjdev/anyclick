@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import { Inter, Lato, Montserrat } from "next/font/google";
+import "@ewjdev/anyclick-react-tailwind/tailwind.css";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });

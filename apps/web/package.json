@@ -27,6 +27,7 @@
     "@ewjdev/anyclick-github": "*",
     "@ewjdev/anyclick-jira": "*",
     "@ewjdev/anyclick-react": "*",
+    "@ewjdev/anyclick-react-tailwind": "*",
     "@ewjdev/anyclick-uploadthing": "*",
     "@headlessui/react": "^2.2.8",
     "@heroicons/react": "^2.1.3",

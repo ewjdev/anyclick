@@ -3,7 +3,7 @@
 import { CodeBlock } from "@/components/CodePreview";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createGameModeAdapter } from "@ewjdev/anyclick-adapters";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { usePointer } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { ArrowRight, Car, Keyboard, Sparkles } from "lucide-react";
@@ -238,7 +238,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
         <CodeBlock filename="app/examples/modes/page.tsx">{`import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { createGameModeAdapter } from '@ewjdev/anyclick-adapters';
 import { usePointer } from '@ewjdev/anyclick-pointer';
 

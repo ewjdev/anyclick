@@ -1,48 +1,16 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { javascript } from "@codemirror/lang-javascript";
-import type { ContextMenuItem } from "@ewjdev/anyclick-react";
 import CodeMirror from "@uiw/react-codemirror";
-import { parseMenuItems } from "../parseMenuItems";
 import { DEFAULT_SOFTWARE_CODE } from "../softwareCode";
 import { matrixHighlightStyle, matrixTheme } from "../themes/matrixTheme";
 
-interface SoftwareEditorCardProps {
-  onMenuItemsChange: (items: ContextMenuItem[]) => void;
-}
-
-export function SoftwareEditorCard({
-  onMenuItemsChange,
-}: SoftwareEditorCardProps) {
-  const [code, setCode] = useState(DEFAULT_SOFTWARE_CODE);
-  const [parseError, setParseError] = useState(false);
-
-  const handleCodeChange = useCallback(
-    (value: string) => {
-      setCode(value);
-      const parsed = parseMenuItems(value);
-      if (parsed) {
-        setParseError(false);
-        onMenuItemsChange(parsed);
-      } else {
-        setParseError(true);
-      }
-    },
-    [onMenuItemsChange],
-  );
-
-  useEffect(() => {
-    const parsed = parseMenuItems(DEFAULT_SOFTWARE_CODE);
-    if (parsed) {
-      onMenuItemsChange(parsed);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+export function SoftwareEditorCard() {
+  const [code] = useState(DEFAULT_SOFTWARE_CODE);
 
   return (
-    <div className="relative w-full max-w-2xl">
+    <div className="relative w-full max-w-[780px]">
       <div
         className="rounded-xl overflow-hidden"
         style={{
@@ -79,17 +47,17 @@ export function SoftwareEditorCard({
           height="280px"
           theme={matrixTheme}
           extensions={[javascript(), matrixHighlightStyle]}
-          onChange={handleCodeChange}
+          editable={false}
           basicSetup={{
             lineNumbers: true,
-            highlightActiveLineGutter: true,
-            highlightActiveLine: true,
+            highlightActiveLineGutter: false,
+            highlightActiveLine: false,
             foldGutter: false,
-            dropCursor: true,
+            dropCursor: false,
             allowMultipleSelections: false,
-            indentOnInput: true,
+            indentOnInput: false,
             bracketMatching: true,
-            closeBrackets: true,
+            closeBrackets: false,
             autocompletion: false,
             rectangularSelection: false,
             crosshairCursor: false,
@@ -108,27 +76,17 @@ export function SoftwareEditorCard({
         >
           <div className="flex items-center gap-2">
             <div
-              className={cn(
-                "w-2 h-2 rounded-full",
-                parseError ? "bg-red-500" : "bg-green-500",
-              )}
+              className="w-2 h-2 rounded-full bg-amber-400"
               style={{
-                boxShadow: parseError
-                  ? "0 0 8px rgba(239, 68, 68, 0.5)"
-                  : "0 0 8px rgba(0, 255, 65, 0.5)",
+                boxShadow: "0 0 8px rgba(251, 191, 36, 0.6)",
               }}
             />
-            <span
-              className={cn(
-                "text-xs font-mono",
-                parseError ? "text-red-400" : "text-[#00ff41]/70",
-              )}
-            >
-              {parseError ? "Syntax error" : "Config valid"}
+            <span className="text-xs font-mono text-amber-300/90">
+              Workflow actions fixed for this demo
             </span>
           </div>
           <span className="text-[#00ff41]/40 text-xs font-mono">
-            Live Preview Active
+            Right-click to run prototype flows
           </span>
         </div>
       </div>

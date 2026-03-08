@@ -1,5 +1,11 @@
 # @ewjdev/anyclick-core
 
+## 1.5.0
+
+### Minor Changes
+
+- Move `createHttpAdapter` into `@ewjdev/anyclick-core` as the canonical browser-side transport and keep the `@ewjdev/anyclick-github` export as a deprecated compatibility alias.
+
 ## 1.4.0
 
 ### Minor Changes

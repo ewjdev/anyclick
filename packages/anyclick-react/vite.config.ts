@@ -1,18 +1,12 @@
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
 import { defineConfig } from "vite";
 
 // Library-friendly Vite config: externals react/react-dom, keeps tsup for dts.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  css: {
-    // Let Tailwind/PostCSS handle styling; classes are prefixed via config.
-    postcss: path.resolve(__dirname, "postcss.config.cjs"),
-  },
+  plugins: [react()],
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.ts"),
+      entry: new URL("./src/index.ts", import.meta.url).pathname,
       name: "AnyclickReact",
       fileName: (fmt) => `index.${fmt}.js`,
       formats: ["es", "cjs"],
