@@ -7,41 +7,95 @@
 
 ## Overview
 
-`@ewjdev/anyclick-react` provides a drop-in React component that adds feedback capture to your application. Right-click any element to open a customizable context menu for submitting feedback.
+`@ewjdev/anyclick-react` is now headless-by-default for styling. It provides the Anyclick behavior, structure, and accessibility model, while styling is supplied through a slot-based adapter layer. Right-click any element to open a customizable context menu for submitting feedback.
 
 ## Installation
 
 ```bash
-npm install @ewjdev/anyclick-react
+npm install @ewjdev/anyclick-core @ewjdev/anyclick-react
 # or
-yarn add @ewjdev/anyclick-react
+yarn add @ewjdev/anyclick-core @ewjdev/anyclick-react
 # or
-pnpm add @ewjdev/anyclick-react
+pnpm add @ewjdev/anyclick-core @ewjdev/anyclick-react
+```
+
+### Companion style packages
+
+```bash
+npm install @ewjdev/anyclick-react-tailwind
+# or
+npm install @ewjdev/anyclick-react-shadcn
+# or
+npm install @ewjdev/anyclick-react-mui
 ```
 
 ## Requirements
 
 - React 19+
-- @ewjdev/anyclick-core (included as dependency)
+- @ewjdev/anyclick-core
 
 ## Quick Start
 
 ```tsx
 "use client";
 
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import {
+  TailwindAnyclickStyleProvider,
+} from "@ewjdev/anyclick-react-tailwind";
+import "@ewjdev/anyclick-react-tailwind/tailwind.css";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
+  return (
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
+  );
 }
 ```
 
-That's it! Users can now right-click any element to submit feedback.
+For a plain unstyled fallback, render `AnyclickProvider` without a style provider. That path is usable for development and debugging, but the intended production setup is one of the companion packages or a custom `AnyclickStyleProvider`.
+
+### Style adapter setup
+
+Tailwind:
+
+```tsx
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import {
+  TailwindAnyclickStyleProvider,
+} from "@ewjdev/anyclick-react-tailwind";
+import "@ewjdev/anyclick-react-tailwind/tailwind.css";
+```
+
+shadcn-style classes:
+
+```tsx
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import {
+  ShadcnAnyclickStyleProvider,
+} from "@ewjdev/anyclick-react-shadcn";
+import "@ewjdev/anyclick-react-shadcn/shadcn.css";
+```
+
+MUI:
+
+```tsx
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import { MuiAnyclickStyleProvider } from "@ewjdev/anyclick-react-mui";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+```
+
+### Migration notes
+
+- `menuClassName` and `menuStyle` still work in v5, but they are now deprecated shims that map to `menu.surface`.
+- Use `slotClassNames`, `slotStyles`, `styleAdapter`, or `components` for new styling work.
+- `@ewjdev/anyclick-react` no longer imports Tailwind CSS for you.
 
 ### Advanced inspector (DevTools UI)
 

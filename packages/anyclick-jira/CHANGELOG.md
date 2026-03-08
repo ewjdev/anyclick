@@ -37,4 +37,3 @@
 - Node.js >= 18.18.0
 - Jira Cloud instance
 - Valid Jira API token with issue creation permissions
-

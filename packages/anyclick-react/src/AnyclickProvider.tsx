@@ -29,6 +29,11 @@ import { ContextMenu } from "./ContextMenu";
 import { AnyclickContext, useAnyclick } from "./context";
 import { findContainerParent } from "./highlight";
 import { type ProviderInstance, useProviderStore } from "./store";
+import {
+  AnyclickStyleProvider,
+  composeClassNames,
+  useAnyclickStyle,
+} from "./styling";
 import type {
   AnyclickContextValue,
   AnyclickProviderProps,
@@ -46,6 +51,28 @@ const defaultMenuItems: ContextMenuItem[] = [
 ];
 
 const OFFSCREEN_POSITION = { x: -9999, y: -9999 };
+const warnedFallbackProviders = new Set<string>();
+
+function StyleFallbackWarning({ providerId }: { providerId: string }) {
+  const style = useAnyclickStyle();
+
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV === "production" ||
+      !style.isFallback ||
+      warnedFallbackProviders.has(providerId)
+    ) {
+      return;
+    }
+
+    warnedFallbackProviders.add(providerId);
+    console.warn(
+      "[anyclick-react] Rendering with the unstyled fallback adapter. Add AnyclickStyleProvider or a companion style package for production styling.",
+    );
+  }, [providerId, style.isFallback]);
+
+  return null;
+}
 
 /**
  * AnyclickProvider component - wraps your app to enable feedback capture.
@@ -80,6 +107,7 @@ export function AnyclickProvider({
   maxOuterHTMLLength,
   menuClassName,
   menuItems = defaultMenuItems,
+  menuPositionMode,
   menuStyle,
   metadata,
   onSubmitError,
@@ -87,11 +115,15 @@ export function AnyclickProvider({
   quickChatConfig,
   scoped = false,
   screenshotConfig,
+  slotClassNames,
+  slotStyles,
+  styleAdapter,
   stripAttributes,
   targetFilter,
   theme,
   touchHoldDurationMs,
   touchMoveThreshold,
+  components,
 }: AnyclickProviderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -412,13 +444,30 @@ export function AnyclickProvider({
     [inheritedTheme, localTheme],
   );
 
-  // Apply merged theme styles
-  const effectiveMenuStyle = mergedTheme.menuStyle ?? menuStyle;
-  const effectiveMenuClassName = mergedTheme.menuClassName ?? menuClassName;
   const effectiveHighlightConfig =
     mergedTheme.highlightConfig ?? highlightConfig;
   const effectiveScreenshotConfig =
     mergedTheme.screenshotConfig ?? screenshotConfig;
+  const effectiveSlotClassNames = useMemo(() => {
+    const next = { ...(slotClassNames ?? {}) };
+    if (mergedTheme.menuClassName) {
+      next["menu.surface"] = composeClassNames(
+        next["menu.surface"],
+        mergedTheme.menuClassName,
+      );
+    }
+    return next;
+  }, [mergedTheme.menuClassName, slotClassNames]);
+  const effectiveSlotStyles = useMemo(() => {
+    const next = { ...(slotStyles ?? {}) };
+    if (mergedTheme.menuStyle) {
+      next["menu.surface"] = {
+        ...(next["menu.surface"] ?? {}),
+        ...mergedTheme.menuStyle,
+      };
+    }
+    return next;
+  }, [mergedTheme.menuStyle, slotStyles]);
 
   // Context value
   const contextValue: AnyclickContextValue = useMemo(
@@ -459,27 +508,34 @@ export function AnyclickProvider({
   );
 
   return (
-    <AnyclickContext.Provider value={contextValue}>
-      <div data-anyclick-root>
-        {content}
-        <ContextMenu
-          className={effectiveMenuClassName}
-          containerElement={containerElement}
-          header={header}
-          highlightConfig={effectiveHighlightConfig}
-          isSubmitting={isSubmitting}
-          items={menuItems}
-          onClose={closeMenu}
-          onSelect={handleMenuSelect}
-          position={menuPosition}
-          quickChatConfig={quickChatConfig}
-          screenshotConfig={effectiveScreenshotConfig}
-          style={effectiveMenuStyle}
-          targetElement={targetElement}
-          visible={menuVisible && !effectiveDisabled}
-        />
-      </div>
-    </AnyclickContext.Provider>
+    <AnyclickStyleProvider
+      components={components}
+      slotClassNames={effectiveSlotClassNames}
+      slotStyles={effectiveSlotStyles}
+      styleAdapter={styleAdapter}
+    >
+      <AnyclickContext.Provider value={contextValue}>
+        <StyleFallbackWarning providerId={providerId} />
+        <div data-anyclick-root>
+          {content}
+          <ContextMenu
+            containerElement={containerElement}
+            header={header}
+            highlightConfig={effectiveHighlightConfig}
+            isSubmitting={isSubmitting}
+            items={menuItems}
+            onClose={closeMenu}
+            onSelect={handleMenuSelect}
+            position={menuPosition}
+            positionMode={menuPositionMode}
+            quickChatConfig={quickChatConfig}
+            screenshotConfig={effectiveScreenshotConfig}
+            targetElement={targetElement}
+            visible={menuVisible && !effectiveDisabled}
+          />
+        </div>
+      </AnyclickContext.Provider>
+    </AnyclickStyleProvider>
   );
 }
 

@@ -46,7 +46,7 @@ export default function GettingStartedPage() {
           Install the core packages you need. For a typical React + GitHub
           setup:
         </p>
-        <TerminalBlock code="npm install @ewjdev/anyclick-react @ewjdev/anyclick-github" />
+        <TerminalBlock code="npm install @ewjdev/anyclick-core @ewjdev/anyclick-react @ewjdev/anyclick-react-tailwind @ewjdev/anyclick-github" />
 
         <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/20 mt-6">
           <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
@@ -56,15 +56,21 @@ export default function GettingStartedPage() {
           <ul className="text-sm text-gray-400 space-y-1">
             <li>
               <code className="text-violet-300">@ewjdev/anyclick-react</code> –
-              React provider and UI components
+              Headless React provider and UI behavior
+            </li>
+            <li>
+              <code className="text-violet-300">
+                @ewjdev/anyclick-react-tailwind
+              </code>{" "}
+              – Default Tailwind style adapter and provider
+            </li>
+            <li>
+              <code className="text-violet-300">@ewjdev/anyclick-core</code> –
+              Core types and the browser HTTP adapter
             </li>
             <li>
               <code className="text-violet-300">@ewjdev/anyclick-github</code> –
               GitHub Issues adapter
-            </li>
-            <li>
-              <code className="text-violet-300">@ewjdev/anyclick-core</code> –
-              Automatically included as a dependency
             </li>
           </ul>
         </div>
@@ -140,15 +146,18 @@ export async function POST(request: Request) {
         <h2 className="text-2xl font-bold mb-4">Step 4: Add the Provider</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
           Wrap your application with the{" "}
-          <code className="text-cyan-400">FeedbackProvider</code>:
+          <code className="text-cyan-400">AnyclickProvider</code> and a style
+          provider:
         </p>
         <CodeBlock
           filename="app/providers.tsx"
           language="tsx"
           code={`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { TailwindAnyclickStyleProvider } from '@ewjdev/anyclick-react-tailwind';
+import '@ewjdev/anyclick-react-tailwind/tailwind.css';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import type { ReactNode } from 'react';
 
 const adapter = createHttpAdapter({
@@ -157,9 +166,11 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <FeedbackProvider adapter={adapter}>
-      {children}
-    </FeedbackProvider>
+    <TailwindAnyclickStyleProvider>
+      <AnyclickProvider adapter={adapter}>
+        {children}
+      </AnyclickProvider>
+    </TailwindAnyclickStyleProvider>
   );
 }`}
         />
@@ -213,7 +224,7 @@ export default function RootLayout({
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Configuration Options</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
-          The <code className="text-cyan-400">FeedbackProvider</code> accepts
+          The <code className="text-cyan-400">AnyclickProvider</code> accepts
           several configuration options:
         </p>
         <div className="overflow-x-auto">

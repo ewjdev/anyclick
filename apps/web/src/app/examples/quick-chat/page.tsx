@@ -44,7 +44,10 @@ export default function QuickChatExamplePage() {
 
       {/* Demo Area */}
       <QuickChatProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+        <div
+          data-testid="quick-chat-target"
+          className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20"
+        >
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MousePointerClick className="w-5 h-5 text-violet-400" />
             Try It
@@ -183,7 +186,7 @@ export default function QuickChatExamplePage() {
           code={`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',

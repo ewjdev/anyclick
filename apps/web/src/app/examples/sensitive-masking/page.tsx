@@ -71,6 +71,7 @@ export default function SensitiveMaskingExamplePage() {
             <div>
               <label className="block text-sm font-medium mb-2">Password</label>
               <input
+                data-testid="sensitive-password-input"
                 type="password"
                 placeholder="••••••••"
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-violet-500"
@@ -96,6 +97,7 @@ export default function SensitiveMaskingExamplePage() {
                 Card Number
               </label>
               <input
+                data-testid="sensitive-card-input"
                 type="text"
                 inputMode="numeric"
                 autoComplete="cc-number"
@@ -149,6 +151,7 @@ export default function SensitiveMaskingExamplePage() {
               <input
                 type="text"
                 data-sensitive="true"
+                data-testid="sensitive-custom-input"
                 placeholder="XXX-XX-XXXX"
                 className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
@@ -245,8 +248,8 @@ ${DEFAULT_SENSITIVE_SELECTORS.map((s) => `'${s}'`).join(",\n")}`}</CodeBlock>
         </h3>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -255,7 +258,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       screenshotConfig={{
         enabled: true,
@@ -266,7 +269,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
 
@@ -275,8 +278,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </h3>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-core';
 import { DEFAULT_SENSITIVE_SELECTORS } from '@ewjdev/anyclick-core';
 
 const adapter = createHttpAdapter({
@@ -285,7 +288,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       screenshotConfig={{
         enabled: true,
@@ -302,7 +305,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>

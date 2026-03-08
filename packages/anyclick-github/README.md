@@ -7,12 +7,12 @@
 
 ## Overview
 
-`@ewjdev/anyclick-github` provides adapters for integrating anyclick with GitHub Issues. Includes a browser-side HTTP adapter and a server-side GitHub API client.
+`@ewjdev/anyclick-github` provides the server-side GitHub integration for anyclick. The browser-side HTTP adapter now lives in `@ewjdev/anyclick-core`; the old export from `@ewjdev/anyclick-github` remains as a deprecated compatibility alias.
 
 ## Installation
 
 ```bash
-npm install @ewjdev/anyclick-github
+npm install @ewjdev/anyclick-core @ewjdev/anyclick-github
 ```
 
 ## Setup
@@ -57,11 +57,13 @@ const exists = await github.mediaBranchExists();
 
 ### Browser Side
 
+Use the generic HTTP adapter from `@ewjdev/anyclick-core`:
+
 ```tsx
 "use client";
 
 import { FeedbackProvider } from "@ewjdev/anyclick-react";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
@@ -104,7 +106,11 @@ export async function POST(request: Request) {
 
 ### HTTP Adapter (Browser)
 
+Import this from `@ewjdev/anyclick-core`. The legacy `@ewjdev/anyclick-github` export is deprecated.
+
 ```typescript
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
+
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
   headers: {

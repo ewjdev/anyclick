@@ -90,7 +90,7 @@ Route different feedback types to different adapters:
 
 ```typescript
 import { createLocalAdapter } from "@ewjdev/anyclick-cursor-local";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 
 function createRoutingAdapter(config) {
   return {

@@ -14,6 +14,12 @@ import {
   highlightTarget,
 } from "../highlight";
 import {
+  AnyclickIconButton,
+  AnyclickSurface,
+  resolveSlotProps,
+  useAnyclickStyle,
+} from "../styling";
+import {
   type IDEConfig,
   type SourceLocation,
   findSourceLocationInAncestors,
@@ -175,6 +181,8 @@ export function InspectSimple({
   className,
   highlightColors,
 }: InspectSimpleProps) {
+  const adapter = useAnyclickStyle();
+  const { tokens } = adapter;
   const [info, setInfo] = useState<ElementInspectInfo | null>(null);
   const [sourceLocation, setSourceLocation] = useState<SourceLocation | null>(
     null,
@@ -302,15 +310,14 @@ export function InspectSimple({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 9999,
+        zIndex: tokens.zIndexSurface,
         width: "100%",
         maxWidth: "100%",
-        background: "#0f172a",
-        color: "#e2e8f0",
-        borderTop: "1px solid #1e293b",
+        color: tokens.text,
+        borderTop: `1px solid ${tokens.border}`,
         borderRadius: "16px 16px 0 0",
-        boxShadow: "0 -8px 32px rgba(0,0,0,0.4)",
-        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+        boxShadow: tokens.shadowLg,
+        fontFamily: tokens.fontFamily,
         fontSize: 13,
         overflow: "hidden",
         ...style,
@@ -319,19 +326,21 @@ export function InspectSimple({
         position: "fixed",
         right: 16,
         bottom: 16,
-        zIndex: 9999,
+        zIndex: tokens.zIndexSurface,
         width: 320,
         maxWidth: "90vw",
-        background: "#0f172a",
-        color: "#e2e8f0",
-        border: "1px solid #1e293b",
+        color: tokens.text,
+        border: `1px solid ${tokens.border}`,
         borderRadius: 12,
-        boxShadow: "0 18px 48px rgba(0,0,0,0.45)",
-        fontFamily: "Inter, system-ui, -apple-system, sans-serif",
+        boxShadow: tokens.shadowLg,
+        fontFamily: tokens.fontFamily,
         fontSize: 13,
         overflow: "hidden",
         ...style,
       };
+  const headerProps = resolveSlotProps(adapter, "inspect.header");
+  const contentProps = resolveSlotProps(adapter, "inspect.content");
+  const actionState = { size: "sm" as const };
 
   return (
     <>
@@ -349,20 +358,19 @@ export function InspectSimple({
         role="presentation"
       />
 
-      <div
+      <AnyclickSurface
         ref={dialogRef}
         className={`anyclick-tiny-inspect ${className ?? ""}`}
+        slotName="inspect.surface"
         style={dialogStyles}
       >
         {/* Header with close button */}
         <div
+          {...headerProps.attrs}
+          className={headerProps.className}
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            ...headerProps.style,
             padding: isMobile ? "12px 16px" : "8px 10px",
-            background: "#0b1220",
-            borderBottom: "1px solid #1e293b",
           }}
         >
           {/* Mobile drawer handle */}
@@ -376,7 +384,7 @@ export function InspectSimple({
                 width: 36,
                 height: 4,
                 borderRadius: 2,
-                background: "#475569",
+                background: tokens.textMuted,
               }}
             />
           )}
@@ -386,44 +394,44 @@ export function InspectSimple({
               style={{
                 padding: "3px 8px",
                 borderRadius: 6,
-                background: "#1e293b",
-                color: "#e2e8f0",
+                background: tokens.surfaceMuted,
+                color: tokens.text,
                 fontSize: 12,
                 fontWeight: 600,
-                fontFamily: "monospace",
+                fontFamily: tokens.fontMono,
               }}
             >
               {identityLabel}
             </span>
             {sourceLocation && (
-              <button
-                type="button"
+              <AnyclickIconButton
                 onClick={handleOpenIDE}
                 title={formatSourceLocation(sourceLocation)}
-                style={iconBtnStyle}
+                slotName="inspect.action"
+                slotState={actionState}
               >
                 <ExternalLink size={14} />
-              </button>
+              </AnyclickIconButton>
             )}
           </div>
 
-          <button
-            type="button"
+          <AnyclickIconButton
             onClick={onClose}
-            style={iconBtnStyle}
             aria-label="Close inspector"
+            slotName="inspect.action"
+            slotState={actionState}
           >
             <X size={16} />
-          </button>
+          </AnyclickIconButton>
         </div>
 
         {/* Compact content */}
         <div
+          {...contentProps.attrs}
+          className={contentProps.className}
           style={{
+            ...contentProps.style,
             padding: isMobile ? "12px 16px 20px" : "10px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
           }}
         >
           {/* Selector row */}
@@ -431,8 +439,8 @@ export function InspectSimple({
             <code
               style={{
                 fontSize: 11,
-                color: "#94a3b8",
-                background: "#111827",
+                color: tokens.textMuted,
+                background: tokens.surfaceMuted,
                 padding: "6px 8px",
                 borderRadius: 6,
                 wordBreak: "break-all",
@@ -449,11 +457,11 @@ export function InspectSimple({
               style={{
                 fontSize: 12,
                 color: status.startsWith("✓")
-                  ? "#4ade80"
+                  ? tokens.success
                   : status.toLowerCase().includes("failed") ||
                       status.toLowerCase().includes("error")
-                    ? "#f87171"
-                    : "#94a3b8",
+                    ? tokens.danger
+                    : tokens.textMuted,
                 padding: "4px 0",
                 fontWeight: 500,
               }}
@@ -470,78 +478,46 @@ export function InspectSimple({
               gap: 6,
             }}
           >
-            <button
-              type="button"
+            <AnyclickIconButton
               onClick={handleCopySelector}
-              style={iconActionStyle}
               title="Copy CSS selector"
               aria-label="Copy CSS selector"
+              slotName="inspect.action"
+              slotState={actionState}
             >
               <Copy size={15} />
-            </button>
-            <button
-              type="button"
+            </AnyclickIconButton>
+            <AnyclickIconButton
               onClick={handleCopyText}
-              style={iconActionStyle}
               title="Copy text content"
               aria-label="Copy text content"
+              slotName="inspect.action"
+              slotState={actionState}
             >
               <FileText size={15} />
-            </button>
-            <button
-              type="button"
+            </AnyclickIconButton>
+            <AnyclickIconButton
               onClick={handleCopyOuterHTML}
-              style={iconActionStyle}
               title="Copy HTML markup"
               aria-label="Copy HTML markup"
+              slotName="inspect.action"
+              slotState={actionState}
             >
               <Code size={15} />
-            </button>
-            <button
-              type="button"
+            </AnyclickIconButton>
+            <AnyclickIconButton
               onClick={handleSaveScreenshot}
-              style={{
-                ...iconActionStyle,
-                ...(saving ? { opacity: 0.5, cursor: "wait" } : {}),
-              }}
               disabled={saving}
               title="Save screenshot"
               aria-label="Save screenshot"
+              slotName="inspect.action"
+              slotState={{ ...actionState, disabled: saving, loading: saving }}
             >
               <Camera size={15} />
-            </button>
+            </AnyclickIconButton>
           </div>
         </div>
-      </div>
+      </AnyclickSurface>
     </>
   );
 }
-
-const iconBtnStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 28,
-  height: 28,
-  borderRadius: 6,
-  border: "1px solid #1e293b",
-  background: "#0b1220",
-  color: "#94a3b8",
-  cursor: "pointer",
-  padding: 0,
-};
-
-const iconActionStyle: React.CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: 32,
-  height: 32,
-  borderRadius: 8,
-  border: "1px solid #1e293b",
-  background: "#0b1220",
-  color: "#94a3b8",
-  cursor: "pointer",
-  padding: 0,
-  transition: "background 0.15s, color 0.15s, border-color 0.15s",
-};

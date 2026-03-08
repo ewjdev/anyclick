@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@layer components {
+  .ac-anyclick-shadcn-overlay {
+    @apply fixed inset-0 bg-transparent;
+  }
+
+  .ac-anyclick-shadcn-surface {
+    @apply rounded-xl border border-border bg-background text-foreground shadow-sm;
+  }
+
+  .ac-anyclick-shadcn-header {
+    @apply flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground;
+  }
+
+  .ac-anyclick-shadcn-list,
+  .ac-anyclick-shadcn-section {
+    @apply flex flex-col gap-2 p-3;
+  }
+
+  .ac-anyclick-shadcn-menu-item {
+    @apply flex min-h-10 w-full items-center gap-3 rounded-md border-0 bg-transparent px-4 py-2 text-left text-sm text-foreground transition hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .ac-anyclick-shadcn-menu-back {
+    @apply border-b border-border;
+  }
+
+  .ac-anyclick-shadcn-menu-icon {
+    @apply inline-flex h-5 w-5 items-center justify-center;
+  }
+
+  .ac-anyclick-shadcn-menu-label {
+    @apply inline-flex flex-1 items-center gap-2;
+  }
+
+  .ac-anyclick-shadcn-submenu-indicator {
+    @apply ml-auto opacity-60;
+  }
+
+  .ac-anyclick-shadcn-action {
+    @apply inline-flex min-h-8 items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground transition hover:bg-accent/10 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ac-anyclick-shadcn-action-primary {
+    @apply border-primary bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .ac-anyclick-shadcn-icon-button {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent bg-transparent text-muted-foreground transition hover:bg-accent/10;
+  }
+
+  .ac-anyclick-shadcn-field {
+    @apply w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring;
+  }
+
+  .ac-anyclick-shadcn-textarea {
+    @apply min-h-[88px] resize-y;
+  }
+
+  .ac-anyclick-shadcn-badge {
+    @apply inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground;
+  }
+
+  .ac-anyclick-shadcn-tab {
+    @apply inline-flex min-h-7 items-center gap-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-xs font-medium text-muted-foreground transition hover:bg-accent/10;
+  }
+
+  .ac-anyclick-shadcn-tab-active {
+    @apply border-border bg-accent/10 text-foreground;
+  }
+
+  .ac-anyclick-shadcn-preview {
+    @apply flex min-h-40 items-center justify-center rounded-lg border border-border bg-muted/40 p-2;
+  }
+
+  .ac-anyclick-shadcn-empty {
+    @apply flex flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground;
+  }
+
+  .ac-anyclick-shadcn-error {
+    @apply border border-destructive/20 bg-destructive/10 text-destructive;
+  }
+
+  .ac-anyclick-shadcn-meta {
+    @apply text-center text-[11px] text-muted-foreground;
+  }
+}

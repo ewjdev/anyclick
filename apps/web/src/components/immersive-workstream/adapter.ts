@@ -1,3 +1,3 @@
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
 
 export const adapter = createHttpAdapter({ endpoint: "/api/feedback" });

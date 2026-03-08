@@ -49,6 +49,16 @@ await client.submitAnalytic(element, "issue", {
 client.detach();
 ```
 
+## HTTP Adapter
+
+```typescript
+import { createHttpAdapter } from "@ewjdev/anyclick-core";
+
+const adapter = createHttpAdapter({
+  endpoint: "/api/feedback",
+});
+```
+
 ## API Reference
 
 ### DOM Utilities
@@ -163,7 +173,7 @@ For full documentation, visit [anyclick.ewj.dev/docs/core](https://anyclick.ewj.
 ## Related Packages
 
 - [`@ewjdev/anyclick-react`](https://www.npmjs.com/package/@ewjdev/anyclick-react) - React provider and UI
-- [`@ewjdev/anyclick-`](https://www.npmjs.com/package/@ewjdev/anyclick-github) - GitHub Issues integration
+- [`@ewjdev/anyclick-github`](https://www.npmjs.com/package/@ewjdev/anyclick-github) - GitHub Issues integration
 - [`@ewjdev/anyclick-cursor`](https://www.npmjs.com/package/@ewjdev/anyclick-cursor) - Cursor AI integration
 - [`@ewjdev/anyclick-cursor-local`](https://www.npmjs.com/package/@ewjdev/anyclick-cursor-local) - Local Cursor development
 

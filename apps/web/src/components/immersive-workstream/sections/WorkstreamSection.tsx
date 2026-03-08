@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useInView, useScroll, useTransform } from "motion/react";
 import type { ImmersiveTheme } from "../types";
 import { DefaultWorkstreamSection } from "./DefaultWorkstreamSection";
+import { EcommerceSection } from "./EcommerceSection";
 import { HealthcareSection } from "./HealthcareSection";
 import { SoftwareDevelopmentSection } from "./SoftwareDevelopmentSection";
 
@@ -43,6 +44,21 @@ export function WorkstreamSection({ theme }: WorkstreamSectionProps) {
           className="relative min-h-screen w-full overflow-hidden"
         >
           <HealthcareSection
+            theme={theme}
+            scrollYProgress={scrollYProgress}
+            isInView={isInView}
+            bgY={bgY}
+          />
+        </section>
+      );
+    case "ecommerce":
+      return (
+        <section
+          ref={sectionRef}
+          id={theme.id}
+          className="relative min-h-screen w-full overflow-hidden"
+        >
+          <EcommerceSection
             theme={theme}
             scrollYProgress={scrollYProgress}
             isInView={isInView}

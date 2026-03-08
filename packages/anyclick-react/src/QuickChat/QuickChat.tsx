@@ -31,7 +31,15 @@ import {
   Send,
   X,
 } from "lucide-react";
-import { quickChatKeyframes, quickChatStyles } from "./styles";
+import {
+  AnyclickButton,
+  AnyclickIconButton,
+  AnyclickSurface,
+  AnyclickTextarea,
+  resolveSlotProps,
+  useAnyclickStyle,
+} from "../styling";
+import { quickChatKeyframes } from "./styles";
 import type { QuickChatProps } from "./types";
 import { useQuickChat } from "./useQuickChat";
 
@@ -51,14 +59,19 @@ function injectStyles() {
  * Loading dots component.
  */
 const LoadingDots = React.memo(function LoadingDots() {
+  const { tokens } = useAnyclickStyle();
   return (
-    <div style={quickChatStyles.loadingDots}>
+    <div style={{ display: "flex", gap: tokens.spacingXs }}>
       {[0, 1, 2].map((i) => (
         <div
           key={i}
           style={{
-            ...quickChatStyles.loadingDot,
+            animation: "pulse 0.8s ease-in-out infinite",
             animationDelay: `${i * 0.16}s`,
+            backgroundColor: tokens.accent,
+            borderRadius: tokens.radiusFull,
+            height: "6px",
+            width: "6px",
           }}
         />
       ))}
@@ -82,6 +95,8 @@ export function QuickChat({
   initialInput,
   onInitialInputConsumed,
 }: QuickChatProps) {
+  const adapter = useAnyclickStyle();
+  const { tokens } = adapter;
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputFocused, setInputFocused] = useState(false);
@@ -301,48 +316,65 @@ export function QuickChat({
   // Use different styles based on pinned state
   const containerStyles = isPinned
     ? {
-        ...quickChatStyles.pinnedContainer,
         animation: "slideInFromRight 0.25s ease-out",
+        borderLeft: `1px solid ${tokens.border}`,
+        bottom: 0,
+        boxShadow: "-4px 0 24px rgba(15, 23, 42, 0.16)",
+        position: "fixed" as const,
+        right: 0,
+        top: 0,
+        width: "340px",
+        zIndex: tokens.zIndexPinned,
         ...style,
       }
     : {
-        ...quickChatStyles.container,
         animation: "fadeIn 0.15s ease-out",
+        maxHeight: "360px",
         ...style,
       };
 
+  const headerProps = resolveSlotProps(adapter, "quickChat.header");
+  const messageListProps = resolveSlotProps(adapter, "quickChat.messageList", {
+    expanded: isPinned,
+  });
+  const inputSlotProps = resolveSlotProps(adapter, "quickChat.input");
+
   return (
-    <div className={className} style={containerStyles}>
+    <AnyclickSurface
+      className={className}
+      slotName="quickChat.surface"
+      slotState={{ expanded: isPinned }}
+      style={containerStyles}
+    >
       {/* Header with context badge */}
       <div
+        {...headerProps.attrs}
+        className={headerProps.className}
         style={{
-          ...quickChatStyles.header,
+          ...headerProps.style,
           padding: isPinned ? "12px 12px 8px 12px" : "6px 8px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {!isPinned && (
-            <button
-              type="button"
+            <AnyclickIconButton
               onClick={onClose}
-              style={{
-                ...quickChatStyles.iconButton,
-                marginLeft: "-4px",
-              }}
+              slotName="quickChat.submit"
+              style={{ marginLeft: "-4px" }}
               title="Back to menu"
             >
               <ChevronLeft size={16} />
-            </button>
+            </AnyclickIconButton>
           )}
           {/* Context badge */}
           {mergedConfig.showRedactionUI && contextChunks.length > 0 && (
             <>
-              <button
-                type="button"
+              <AnyclickButton
                 onClick={() => setShowContext(!showContext)}
-                style={{
-                  ...quickChatStyles.contextBadge,
-                  ...(showContext ? quickChatStyles.contextBadgeActive : {}),
+                slotName="shared.button"
+                slotState={{
+                  selected: showContext,
+                  size: "sm",
                 }}
                 title="Edit context"
               >
@@ -354,82 +386,91 @@ export function QuickChat({
                 ) : (
                   <ChevronDown size={10} />
                 )}
-              </button>
+              </AnyclickButton>
               {/* All/None toggles when dropdown is open */}
               {showContext && (
                 <div style={{ display: "flex", gap: "2px" }}>
-                  <button
-                    type="button"
+                  <AnyclickButton
                     onClick={() => toggleAllChunks(true)}
-                    style={quickChatStyles.contextToggleSmall}
+                    slotName="shared.button"
+                    slotState={{ size: "sm" }}
                     title="Include all"
                   >
                     All
-                  </button>
-                  <button
-                    type="button"
+                  </AnyclickButton>
+                  <AnyclickButton
                     onClick={() => toggleAllChunks(false)}
-                    style={quickChatStyles.contextToggleSmall}
+                    slotName="shared.button"
+                    slotState={{ size: "sm" }}
                     title="Exclude all"
                   >
                     None
-                  </button>
+                  </AnyclickButton>
                 </div>
               )}
             </>
           )}
         </div>
-        <div style={quickChatStyles.headerActions}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           {messages.length > 0 && (
-            <button
-              type="button"
+            <AnyclickIconButton
               onClick={clearMessages}
-              style={quickChatStyles.iconButton}
+              slotName="quickChat.submit"
               title="Clear chat"
             >
               <RefreshCw size={14} />
-            </button>
+            </AnyclickIconButton>
           )}
-          <button
-            type="button"
+          <AnyclickIconButton
             onClick={handlePinToggle}
-            style={{
-              ...quickChatStyles.iconButton,
-              ...(isPinned ? quickChatStyles.iconButtonActive : {}),
-            }}
+            slotName="quickChat.submit"
+            slotState={{ selected: isPinned }}
             title={isPinned ? "Unpin (closes with menu)" : "Pin (stays open)"}
           >
             {isPinned ? <PinOff size={14} /> : <Pin size={14} />}
-          </button>
-          <button
-            type="button"
+          </AnyclickIconButton>
+          <AnyclickIconButton
             onClick={handleClose}
-            style={quickChatStyles.iconButton}
+            slotName="quickChat.submit"
             title="Close"
           >
             <X size={14} />
-          </button>
+          </AnyclickIconButton>
         </div>
       </div>
 
       {/* Context dropdown - compact list */}
       {showContext && contextChunks.length > 0 && (
-        <div style={quickChatStyles.contextDropdown}>
+        <div
+          style={{
+            backgroundColor: tokens.surfaceMuted,
+            borderRadius: tokens.radiusSm,
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+            margin: "0 8px 6px 8px",
+            maxHeight: "96px",
+            overflowY: "auto",
+            padding: "6px 8px",
+          }}
+        >
           {contextChunks.map((chunk) => (
             <label
               key={chunk.id}
               style={{
-                ...quickChatStyles.contextChunkCompact,
-                ...(chunk.included ? {} : quickChatStyles.contextChunkExcluded),
+                alignItems: "center",
+                color: chunk.included ? tokens.text : tokens.textMuted,
+                display: "flex",
+                gap: "6px",
+                opacity: chunk.included ? 1 : 0.65,
               }}
             >
               <input
                 type="checkbox"
                 checked={chunk.included}
                 onChange={() => toggleChunk(chunk.id)}
-                style={quickChatStyles.contextCheckbox}
               />
-              <span style={quickChatStyles.contextLabel}>{chunk.label}</span>
+              <span>{chunk.label}</span>
             </label>
           ))}
         </div>
@@ -439,26 +480,36 @@ export function QuickChat({
       {mergedConfig.showSuggestions &&
         messages.length === 0 &&
         suggestedPrompts.length > 0 && (
-          <div style={quickChatStyles.suggestionsContainer}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+              overflowX: "auto",
+              padding: "6px 8px",
+            }}
+          >
             {isLoadingSuggestions ? (
               <LoadingDots />
             ) : (
               suggestedPrompts.map((prompt) => (
-                <button
+                <AnyclickButton
                   key={prompt.id}
-                  type="button"
                   onClick={() => selectSuggestion(prompt)}
                   onMouseEnter={() => setHoveredSuggestion(prompt.id)}
                   onMouseLeave={() => setHoveredSuggestion(null)}
+                  slotName="shared.button"
+                  slotState={{
+                    hovered: hoveredSuggestion === prompt.id,
+                    size: "sm",
+                  }}
                   style={{
-                    ...quickChatStyles.suggestionChip,
-                    ...(hoveredSuggestion === prompt.id
-                      ? quickChatStyles.suggestionChipHover
-                      : {}),
+                    justifyContent: "flex-start",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {prompt.text}
-                </button>
+                </AnyclickButton>
               ))
             )}
           </div>
@@ -466,25 +517,35 @@ export function QuickChat({
 
       {/* Messages area */}
       <div
-        style={
-          isPinned
-            ? quickChatStyles.pinnedMessagesArea
-            : quickChatStyles.messagesArea
-        }
+        {...messageListProps.attrs}
+        className={messageListProps.className}
+        style={messageListProps.style}
       >
         {/* Keep generic errors visible, but rate-limit uses a sticky banner below */}
         {error && !rateLimitNotice && (
-          <div style={quickChatStyles.errorContainer}>
-            <AlertCircle size={20} style={quickChatStyles.errorIcon} />
-            <span style={quickChatStyles.errorText}>{error}</span>
-            <button
-              type="button"
+          <div
+            style={{
+              alignItems: "center",
+              backgroundColor: tokens.dangerMuted,
+              border: `1px solid ${tokens.danger}`,
+              borderRadius: tokens.radiusSm,
+              color: tokens.danger,
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              padding: "12px",
+            }}
+          >
+            <AlertCircle size={20} />
+            <span>{error}</span>
+            <AnyclickButton
               onClick={() => sendMessage()}
-              style={quickChatStyles.errorRetry}
+              slotName="quickChat.submit"
+              slotState={{ tone: "danger", size: "sm" }}
             >
               <RefreshCw size={10} />
               Retry
-            </button>
+            </AnyclickButton>
           </div>
         )}
         {debugInfo && (
@@ -536,49 +597,75 @@ export function QuickChat({
             <div
               key={message.id}
               style={{
-                ...quickChatStyles.message,
                 animation: "fadeIn 0.2s ease-out",
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
               }}
             >
               <div
-                style={
-                  message.role === "user"
-                    ? quickChatStyles.messageUser
-                    : quickChatStyles.messageAssistant
-                }
+                style={{
+                  alignSelf:
+                    message.role === "user" ? "flex-end" : "flex-start",
+                  backgroundColor:
+                    message.role === "user" ? tokens.accent : tokens.surfaceMuted,
+                  borderRadius:
+                    message.role === "user"
+                      ? "12px 12px 4px 12px"
+                      : "12px 12px 12px 4px",
+                  color:
+                    message.role === "user" ? tokens.accentText : tokens.text,
+                  lineHeight: 1.4,
+                  maxWidth: message.role === "user" ? "85%" : "100%",
+                  padding:
+                    message.role === "user" ? "6px 10px" : "8px 10px",
+                  wordBreak: "break-word",
+                }}
               >
                 {message.content}
                 {message.isStreaming && (
-                  <span style={quickChatStyles.streamingIndicator} />
+                  <span
+                    style={{
+                      animation: "blink 1s infinite",
+                      backgroundColor: tokens.accent,
+                      borderRadius: "1px",
+                      display: "inline-block",
+                      height: "14px",
+                      marginLeft: "4px",
+                      width: "4px",
+                    }}
+                  />
                 )}
                 {message.role === "assistant" &&
                   !message.isStreaming &&
                   message.content.endsWith("...") && (
-                    <span style={quickChatStyles.truncated}>(truncated)</span>
+                    <span style={{ marginLeft: "4px", opacity: 0.7 }}>
+                      (truncated)
+                    </span>
                   )}
               </div>
               {message.role === "assistant" &&
                 !message.isStreaming &&
                 message.content && (
-                  <div style={quickChatStyles.messageActions}>
-                    <button
-                      type="button"
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                    <AnyclickButton
                       onClick={() => handleCopy(message.content)}
-                      style={quickChatStyles.actionButton}
+                      slotName="shared.button"
+                      slotState={{ size: "sm" }}
                     >
                       <Copy size={10} />
                       Copy
-                    </button>
+                    </AnyclickButton>
                     {message.actions?.map((action) => (
-                      <button
+                      <AnyclickButton
                         key={action.id}
-                        type="button"
                         onClick={action.onClick}
-                        style={quickChatStyles.actionButton}
+                        slotName="shared.button"
+                        slotState={{ size: "sm" }}
                       >
                         {action.icon}
                         {action.label}
-                      </button>
+                      </AnyclickButton>
                     ))}
                   </div>
                 )}
@@ -745,8 +832,15 @@ export function QuickChat({
       )}
 
       {/* Input area */}
-      <div style={quickChatStyles.inputContainer}>
-        <textarea
+      <div
+        style={{
+          borderTop: `1px solid ${tokens.border}`,
+          display: "flex",
+          gap: "8px",
+          padding: "8px",
+        }}
+      >
+        <AnyclickTextarea
           ref={inputRef}
           value={input}
           onChange={handleInputChange}
@@ -756,37 +850,35 @@ export function QuickChat({
           placeholder={mergedConfig.placeholder}
           disabled={isSending}
           rows={1}
+          slotName="quickChat.input"
+          slotState={{ active: inputFocused, disabled: isSending }}
           style={{
-            ...quickChatStyles.input,
-            ...(inputFocused ? quickChatStyles.inputFocused : {}),
+            ...inputSlotProps.style,
+            flex: 1,
+            minHeight: "40px",
           }}
         />
         <div style={{ display: "flex", gap: "4px" }}>
           {/* t3.chat button */}
           {mergedConfig.t3chat?.enabled !== false && (
-            <button
-              type="button"
+            <AnyclickIconButton
               onClick={handleSendToT3Chat}
               disabled={!input.trim()}
               title={mergedConfig.t3chat?.label ?? "Ask t3.chat"}
-              style={{
-                ...quickChatStyles.sendButton,
-                backgroundColor: "#7c3aed",
-                ...(!input.trim() ? quickChatStyles.sendButtonDisabled : {}),
-              }}
+              slotName="quickChat.submit"
+              slotState={{ disabled: !input.trim(), tone: "accent" }}
             >
               <ExternalLink size={14} />
-            </button>
+            </AnyclickIconButton>
           )}
-          <button
-            type="button"
+          <AnyclickIconButton
             onClick={handleSend}
             disabled={isSending || !input.trim()}
-            style={{
-              ...quickChatStyles.sendButton,
-              ...(isSending || !input.trim()
-                ? quickChatStyles.sendButtonDisabled
-                : {}),
+            slotName="quickChat.submit"
+            slotState={{
+              disabled: isSending || !input.trim(),
+              loading: isSending,
+              tone: "accent",
             }}
           >
             {isSending ? (
@@ -803,9 +895,9 @@ export function QuickChat({
             ) : (
               <Send size={14} />
             )}
-          </button>
+          </AnyclickIconButton>
         </div>
       </div>
-    </div>
+    </AnyclickSurface>
   );
 }

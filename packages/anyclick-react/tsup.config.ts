@@ -10,9 +10,4 @@ export default defineConfig({
     "process.env.NODE_ENV": JSON.stringify("production"),
     process: "{}",
   },
-  esbuildOptions(options) {
-    // Allow tailwindcss v4 style export to resolve
-    options.conditions = ["style", "import", "module", "default"];
-    options.banner ??= {};
-  },
 });
