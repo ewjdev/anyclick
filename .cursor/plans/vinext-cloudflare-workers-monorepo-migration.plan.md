@@ -39,6 +39,101 @@ Start with a single `apps/web` Vinext deployment. Add `apps/api` only if route s
 - Keep npm package publishing, Changesets, roadmap sync, and feedback cleanup workflows on GitHub Actions.
 - Use Cloudflare Workers as the first production target.
 
+## Systems engineering recommendation
+
+Recommended path: choose Option A, a single `apps/web` Vinext Worker for the MVP. Do not create `apps/api` during the first implementation pass. Keep route paths stable, keep Upstash Redis for chat history and rate limiting, and make Node v24 plus Vinext compatibility the first execution gate.
+
+This path minimizes moving parts while proving the highest-risk question: can the current Next.js 16 app, route handlers, streaming chat, uploads, and local packages run correctly under Vinext on Cloudflare Workers?
+
+Only split into `apps/api` after the single Worker fails a measurable gate.
+
+## Options to choose from
+
+| Option | Shape                                                       | Choose when                                                                 | Tradeoff                                                 | Recommendation      |
+| ------ | ----------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- | ------------------- |
+| A      | `apps/web` only, Vinext Worker owns pages and API routes    | First migration pass, unknown Vinext compatibility, fastest parity test     | Larger single Worker and shared release cycle            | Use this first      |
+| B      | `apps/web` Vinext Worker plus `apps/api` Worker             | API routes need separate limits, deploy cadence, bindings, or observability | More routing, CORS, deployment, and local dev complexity | Keep as fallback    |
+| C      | Keep Vercel live while Cloudflare runs preview traffic      | Production risk must be near zero during migration                          | Temporary dual deploy and secret duplication             | Use during rollout  |
+| D      | Move storage to Cloudflare KV/R2/Durable Objects during MVP | Upstash becomes a blocker or payload size exceeds Worker limits             | Adds data migration and new failure modes                | Defer unless forced |
+
+Default choices if no one overrides them:
+
+- Runtime: Node v24 for local development, CI, Vinext builds, Wrangler deploys, and publishing.
+- App topology: Option A.
+- Storage: keep Upstash Redis first.
+- API route paths: unchanged.
+- Package publishing: unchanged.
+- Deployment rollout: preview Worker first, production cutover only after route parity.
+- Rollback: keep Vercel deploy credentials and workflow available until Cloudflare production traffic has passed parity.
+
+## Decisions required before implementation
+
+| Decision              | Default                           | Owner action                                                        |
+| --------------------- | --------------------------------- | ------------------------------------------------------------------- |
+| Worker topology       | Single `apps/web` Worker          | Approve Option A or explicitly choose Option B                      |
+| Storage backend       | Keep Upstash Redis                | Approve deferring KV/Durable Objects migration                      |
+| Node version          | Node v24                          | Approve engine, version-file, and CI updates                        |
+| Upload media strategy | Keep UploadThing                  | Approve R2 as fallback only if UploadThing fails Workers validation |
+| Cursor local support  | Development only                  | Confirm it must never deploy to Cloudflare production               |
+| Production rollout    | Cloudflare preview before cutover | Confirm Vercel remains rollback path through first release          |
+
+## Unambiguous execution order
+
+1. Create a migration PR that only updates Node v24 requirements and CI script drift.
+2. Create a Vinext scaffold PR that adds Vinext scripts and generated Worker/Vite config without changing default `next` scripts.
+3. Run `vinext check` and commit a compatibility report.
+4. Fix compatibility issues in the smallest possible PRs, starting with route handlers and package `Buffer` usage.
+5. Add a runtime env adapter so route code can read Cloudflare bindings in Workers and local env in development.
+6. Build and preview the single `apps/web` Vinext Worker.
+7. Run route parity tests against the preview Worker.
+8. Decide whether Option A passes. If it fails due to limits, observability, or deploy coupling, switch to Option B.
+9. Keep Vercel as rollback until Cloudflare preview and production parity are both complete.
+10. Remove or disable the Vercel deploy workflow only after production Cloudflare cutover is accepted.
+
+## Gate criteria
+
+Do not advance past a gate until every item passes.
+
+### Gate 1: Node v24 tooling
+
+- `node --version` reports v24 locally and in CI.
+- `yarn install --frozen-lockfile` succeeds.
+- `yarn build` succeeds.
+- Package publish dry-run or Changesets build path succeeds.
+
+### Gate 2: Vinext compatibility
+
+- `yarn workspace web-app vinext:check` succeeds or has documented, accepted exceptions.
+- `yarn workspace web-app vinext:build` succeeds.
+- Generated `vite.config.ts`, `wrangler.jsonc`, and Worker entry files are committed.
+- Default Next scripts still work until Vinext parity is accepted.
+
+### Gate 3: API parity
+
+- `/api/feedback` validates GitHub path and rejects production `cursor_local`.
+- `/api/ac/jira?action=status` responds correctly with and without Jira env bindings.
+- `/api/anyclick/chat` streams a response from the Worker preview.
+- `/api/anyclick/chat/history` can save, load, and clear history.
+- `/api/uploadthing` validates credentials and at least one upload path.
+
+### Gate 4: Production readiness
+
+- Cloudflare preview deploy is tested in a browser.
+- Secrets and bindings are documented and configured.
+- Rollback path to Vercel is documented.
+- Vercel deploy is not removed until Cloudflare production behavior is accepted.
+
+## Recommended implementation notes
+
+- Keep Vinext adoption additive first: add `vinext:*` scripts before replacing `dev`, `build`, or `start`.
+- Treat `process.env` access as a migration smell in route handlers. Centralize it behind one runtime env adapter instead of changing every route differently.
+- Do not migrate Upstash to KV in the first pass. Storage migration should be a separate decision with its own tests.
+- Do not create `apps/api` until the single Worker has failed a gate for a concrete reason.
+- Prefer small Worker-safe helpers for encoding over broad compatibility flags, especially in package code that is published to npm.
+- Keep `@ewjdev/anyclick-cursor-local` out of production Worker bundles.
+- Update `@types/node` to a Node v24-compatible version in the same PR that updates package engines, then verify package builds.
+- Add missing env documentation for `OPENAI_API_KEY`, `UPLOADTHING_TOKEN`, and `QUICKCHAT_KV_*` before preview deploy.
+
 ## Vinext migration strategy
 
 ### 1. Compatibility scan
