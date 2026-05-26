@@ -13,6 +13,7 @@ Vinext replaces the previous OpenNext direction for this plan. The main idea is 
 - `packages/*` contains publishable `@ewjdev/anyclick-*` packages built with `tsup`.
 - Backend behavior currently lives in `apps/web/src/app/api/**/route.ts`.
 - Deployment is currently Vercel-oriented.
+- Root `package.json` currently allows Node `>=20.9.0`; the migration should standardize local and CI tooling on Node v24.
 
 ## Target repo shape
 
@@ -33,6 +34,7 @@ Start with a single `apps/web` Vinext deployment. Add `apps/api` only if route s
 
 - Use Vinext, not `@opennextjs/cloudflare`.
 - Keep Yarn 1 and Turborepo unless Vinext compatibility forces a narrow tooling change.
+- Support Node v24 for local development, CI, Vinext builds, Wrangler deploys, and package publishing.
 - Preserve the existing Next.js App Router files during the first migration pass.
 - Keep npm package publishing, Changesets, roadmap sync, and feedback cleanup workflows on GitHub Actions.
 - Use Cloudflare Workers as the first production target.
@@ -71,7 +73,27 @@ Keep existing Next scripts during the first pass and add Vinext scripts beside t
 
 After Vinext is proven, switch the default web scripts from `next` to `vinext`.
 
-### 3. Cloudflare config generation
+### 3. Node v24 support
+
+Node v24 is the required build and tooling runtime for this migration. Cloudflare Workers still run on the Workers runtime, so Node v24 support means the repository tools, local development commands, CI jobs, Vinext build, Wrangler deploy, and publishing workflows all run cleanly on Node v24.
+
+Required changes:
+
+- Update root `package.json` engines to require Node v24, for example `>=24.0.0`.
+- Add or update a checked-in Node version file such as `.nvmrc` or `.node-version` with `24`.
+- Change GitHub Actions `actions/setup-node` jobs from Node 22 to Node 24.
+- Verify Yarn 1, Turborepo, `tsup`, TypeScript, Vinext, Wrangler, Changesets, and Next-compatible scripts under Node v24.
+- Document Node v24 in `AGENTS.md`, `CONTRIBUTING.md`, and any Cloudflare setup notes.
+
+Validation commands:
+
+- `node --version`
+- `yarn install --frozen-lockfile`
+- `yarn build`
+- `yarn workspace web-app vinext:check`
+- `yarn workspace web-app vinext:build`
+
+### 4. Cloudflare config generation
 
 Use `vinext init` or `vinext deploy` to generate the initial Worker/Vite files, then commit the generated files explicitly so the deployment is reviewable:
 
@@ -82,7 +104,7 @@ Use `vinext init` or `vinext deploy` to generate the initial Worker/Vite files, 
 
 Do not rely on generated config staying implicit in CI.
 
-### 4. Environment and bindings
+### 5. Environment and bindings
 
 Replace production runtime dependence on `process.env` with Cloudflare bindings where route handlers execute in Workers.
 
@@ -110,7 +132,7 @@ Native Cloudflare storage options:
 - Use Durable Objects only if rate limiting needs strong per-IP coordination beyond Upstash/KV behavior.
 - Use R2 for future screenshot/media storage if GitHub issue payload size becomes a constraint.
 
-### 5. API route migration checklist
+### 6. API route migration checklist
 
 Keep route paths stable so existing clients and demos do not need a first-pass rewrite.
 
@@ -122,7 +144,7 @@ Keep route paths stable so existing clients and demos do not need a first-pass r
 | `/api/anyclick/chat/history` | Upstash-backed chat history          | Keep Upstash first, later evaluate KV                   |
 | `/api/uploadthing`           | UploadThing file/url/data URL upload | Verify multipart parsing and UploadThing server adapter |
 
-### 6. Package compatibility audit
+### 7. Package compatibility audit
 
 Most packages stay publishable and runtime-agnostic. Server-facing packages need a Worker audit:
 
@@ -134,7 +156,7 @@ Most packages stay publishable and runtime-agnostic. Server-facing packages need
 
 Prefer small Worker-safe helpers over enabling broad compatibility flags everywhere.
 
-### 7. Web app migration
+### 8. Web app migration
 
 - Keep `apps/web/src/app` in place.
 - Remove root `.env.local` loading from `next.config.js` once Cloudflare bindings are wired.
@@ -142,11 +164,12 @@ Prefer small Worker-safe helpers over enabling broad compatibility flags everywh
 - Validate docs/demo pages against Vinext dev and deployed Workers preview.
 - Re-check any `next/image`, font, or image optimization behavior because Vinext handles those differently from Vercel.
 
-### 8. CI/CD changes
+### 9. CI/CD changes
 
 Replace Vercel deployment with Cloudflare deployment:
 
 - Add Cloudflare API token and account ID secrets.
+- Update every `actions/setup-node` step to `node-version: '24'`.
 - Add a workflow job for `yarn workspace web-app vinext:check`.
 - Add a workflow job for `yarn workspace web-app vinext:build`.
 - Add a deploy job using `vinext deploy` on `main`.
@@ -168,6 +191,7 @@ Clean up existing CI drift while touching workflows:
 ### Phase 2: Vinext scaffold
 
 - Add Vinext dependency and non-destructive scripts.
+- Add Node v24 version files and update package engines.
 - Generate and commit Vinext/Vite/Worker config.
 - Ensure `vinext dev` starts locally.
 - Ensure `vinext build` completes.
@@ -208,6 +232,7 @@ Good reasons to split:
 
 Minimum evidence before switching production traffic:
 
+- `node --version` returns Node v24.
 - `yarn install --frozen-lockfile`
 - `yarn build`
 - `yarn workspace web-app vinext:check`
@@ -226,11 +251,13 @@ Manual browser validation is required before production cutover because this is 
 - Screenshot-heavy feedback payloads may hit Worker request size or CPU limits.
 - `Buffer` usage in server adapters may require Worker-safe replacements.
 - Cloudflare bindings require a cleaner env boundary than current `process.env` usage.
+- Node v24 may expose stale dependency, lockfile, or CI assumptions that were hidden under Node 22.
 - CI currently has script drift that may hide migration failures.
 
 ## Definition of done
 
 - Vinext plan and compatibility report are committed.
+- Local development, CI, and deploy tooling run on Node v24.
 - `apps/web` can run under Vinext locally.
 - `apps/web` can build for Cloudflare Workers.
 - Existing demos render under a Worker preview.
