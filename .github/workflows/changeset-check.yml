@@ -1,0 +1,62 @@
+name: Changeset Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  changeset:
+    name: Check for changeset
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changeset') }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Check for package changes
+        id: check-packages
+        run: |
+          # Get list of changed files in this PR
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          
+          # Check if any package files changed (excluding protocol which is private)
+          PACKAGE_CHANGED=false
+          for file in $CHANGED_FILES; do
+            if [[ "$file" == packages/* ]] && [[ "$file" != packages/anyclick-protocol/* ]]; then
+              PACKAGE_CHANGED=true
+              break
+            fi
+          done
+          
+          echo "packages_changed=$PACKAGE_CHANGED" >> $GITHUB_OUTPUT
+
+      - name: Check for changeset
+        if: steps.check-packages.outputs.packages_changed == 'true'
+        run: |
+          # Check if there are any new changeset files in this PR
+          CHANGESET_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '.changeset/*.md' | grep -v 'README.md' || true)
+          
+          if [ -z "$CHANGESET_FILES" ]; then
+            echo "::error::This PR modifies packages but does not include a changeset file."
+            echo ""
+            echo "To add a changeset, run: yarn changeset"
+            echo ""
+            echo "If this change doesn't require a version bump (e.g., docs-only, tests-only),"
+            echo "add the 'no-changeset' label to this PR."
+            exit 1
+          else
+            echo "✅ Found changeset file(s):"
+            echo "$CHANGESET_FILES"
+          fi
