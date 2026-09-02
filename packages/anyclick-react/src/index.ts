@@ -58,14 +58,6 @@ export { ContextMenu } from "./ContextMenu";
  */
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
-// ============================================================================
-// Deprecated Exports (Backward Compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use {@link AnyclickProvider} instead. Will be removed in v2.0.0.
- */
-export { FeedbackProvider } from "./AnyclickProvider";
 
 // ============================================================================
 // Context and Hooks
@@ -90,15 +82,6 @@ export { AnyclickContext } from "./context";
  */
 export { useAnyclick } from "./context";
 
-/**
- * @deprecated Use {@link AnyclickContext} instead. Will be removed in v2.0.0.
- */
-export { FeedbackContext } from "./context";
-
-/**
- * @deprecated Use {@link useAnyclick} instead. Will be removed in v2.0.0.
- */
-export { useFeedback } from "./context";
 
 // ============================================================================
 // Store (Advanced Use Cases)

@@ -172,7 +172,9 @@ const jira = createJiraAdapter({
   projectKey: "PROJ",
   formatSummary: (payload) => {
     // Custom summary logic
-    return `[Feedback] ${payload.element.selector}`;
+    const typeLabel = payload.type.charAt(0).toUpperCase() + payload.type.slice(1);
+    const prefix = payload.comment ? payload.comment.substring(0, 50) : payload.element.selector;
+    return `[${typeLabel}] ${prefix}`;
   },
   formatDescription: (payload) => {
     // Start with default and customize

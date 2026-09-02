@@ -118,8 +118,8 @@ export function isBlacklisted(element: Element): boolean {
   if (BLACKLISTED_TAGS.has(tagName)) return true;
 
   // Our own UI elements - only check the element itself, not ancestors
-  if (element.classList.contains("uifeedback-highlight-target")) return true;
-  if (element.classList.contains("uifeedback-highlight-container")) {
+  if (element.classList.contains("anyclick-highlight-target")) return true;
+  if (element.classList.contains("anyclick-highlight-container")) {
     return true;
   }
 

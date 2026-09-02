@@ -386,17 +386,6 @@ The package is optimized for performance:
 - Screenshot capture is lazy-loaded and async
 - Touch event handling uses passive listeners where possible
 
-## Migration from FeedbackProvider
-
-The `FeedbackProvider` component has been renamed to `AnyclickProvider`. The old name is still exported for backward compatibility but is deprecated:
-
-```tsx
-// Old (deprecated)
-import { FeedbackProvider, useFeedback } from "@ewjdev/anyclick-react";
-// New (recommended)
-import { AnyclickProvider, useAnyclick } from "@ewjdev/anyclick-react";
-```
-
 ## Exported Utilities
 
 ```tsx

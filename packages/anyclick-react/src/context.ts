@@ -23,11 +23,6 @@ import type { AnyclickContextValue } from "./types";
  */
 export const AnyclickContext = createContext<AnyclickContextValue | null>(null);
 
-/**
- * @deprecated Use {@link AnyclickContext} instead. Will be removed in v2.0.0.
- * @see {@link AnyclickContext}
- */
-export const FeedbackContext = AnyclickContext;
 
 /**
  * Hook to access anyclick context values and methods.
@@ -77,14 +72,3 @@ export function useAnyclick(): AnyclickContextValue {
   return context;
 }
 
-/**
- * @deprecated Use {@link useAnyclick} instead. Will be removed in v2.0.0.
- * @see {@link useAnyclick}
- */
-export function useFeedback(): AnyclickContextValue {
-  const context = useContext(AnyclickContext);
-  if (!context) {
-    throw new Error("useFeedback must be used within a FeedbackProvider");
-  }
-  return context;
-}

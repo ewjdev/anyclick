@@ -99,7 +99,7 @@ GITHUB_REPO=your-username/your-repository-name`}</CodeBlock>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { AnyclickProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',
@@ -129,7 +129,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           Create an API route that receives feedback and creates GitHub Issues:
         </p>
         <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -191,7 +191,7 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
+    const payload: AnyclickPayload = await request.json();
     const result = await github.createIssue(payload);
     
     return Response.json(result);
@@ -332,7 +332,7 @@ const github = createGitHubAdapter({
           adapter handles base64 decoding and GitHub&apos;s asset upload API.
         </p>
         <CodeBlock>{`// Screenshots are included in the payload
-const payload: FeedbackPayload = {
+const payload: AnyclickPayload = {
   // ... other fields
   screenshots: {
     target: {
@@ -364,7 +364,7 @@ const payload: FeedbackPayload = {
         <h2 className="text-2xl font-bold mb-4">Error Handling</h2>
         <CodeBlock filename="app/api/feedback/route.ts">{`export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
+    const payload: AnyclickPayload = await request.json();
     
     // Validate required fields
     if (!payload.type || !payload.element) {

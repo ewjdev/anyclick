@@ -141,7 +141,7 @@ export default function RootLayout({
           filename="app/api/feedback/route.ts"
           language="typescript"
           code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -153,7 +153,7 @@ const github = createGitHubAdapter({
 });
 
 export async function POST(request: Request) {
-  const payload: FeedbackPayload = await request.json();
+  const payload: AnyclickPayload = await request.json();
   const result = await github.createIssue(payload);
   return Response.json(result);
 }`}

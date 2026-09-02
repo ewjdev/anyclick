@@ -106,7 +106,3 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * @deprecated Use AnyclickProviderWrapper instead
- */
-export const FeedbackProviderWrapper = AnyclickProviderWrapper;

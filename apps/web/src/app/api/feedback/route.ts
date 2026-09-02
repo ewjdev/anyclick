@@ -233,16 +233,16 @@ export async function POST(req: Request) {
   const payload: AnyclickPayload = await req.json();
 
   // Log incoming payload for debugging
-  console.log("\n========== FEEDBACK API POST ==========");
-  console.log("[Feedback] Type:", payload.type);
-  console.log("[Feedback] Comment:", payload.comment?.substring(0, 100));
+  console.log("\n========== ANYCLICK API POST ==========");
+  console.log("[Anyclick] Type:", payload.type);
+  console.log("[Anyclick] Comment:", payload.comment?.substring(0, 100));
   console.log(
-    "[Feedback] Metadata keys:",
+    "[Anyclick] Metadata keys:",
     payload.metadata ? Object.keys(payload.metadata) : "none",
   );
   if (payload.metadata) {
     console.log(
-      "[Feedback] Metadata:",
+      "[Anyclick] Metadata:",
       JSON.stringify(payload.metadata, null, 2),
     );
   }
@@ -286,7 +286,7 @@ export async function POST(req: Request) {
         {
           success: false,
           error:
-            "Failed to connect to local cursor server. Make sure it's running with: npx uifeedback-local-server",
+            "Failed to connect to local cursor server. Make sure it's running with: npx anyclick-local-server",
         },
         { status: 503 },
       );
