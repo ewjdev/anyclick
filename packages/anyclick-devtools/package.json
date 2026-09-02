@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-devtools",
-  "version": "4.0.0",
+  "version": "5.1.0",
   "private": false,
   "description": "Advanced anyclick inspector and devtools UI (full InspectDialog)",
   "keywords": [
@@ -45,7 +45,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.5.0",
+    "@ewjdev/anyclick-core": "^5.1.0",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2"
   },
