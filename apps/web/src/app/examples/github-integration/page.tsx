@@ -1,4 +1,6 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Check,
@@ -15,6 +17,22 @@ export const metadata: Metadata = {
   description:
     "Full GitHub Issues integration with automatic issue creation and screenshot uploads.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+// Browser: post to your API route. Server: createGitHubAdapter({ token, owner, repo }).
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function GitHubIntegrationPage() {
   return (
@@ -37,29 +55,37 @@ export default function GitHubIntegrationPage() {
         </p>
       </div>
 
-      {/* What's included */}
-      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-emerald-400" />
-          What&apos;s Included
-        </h2>
-        <ul className="space-y-3">
-          {[
-            { icon: Check, text: "Automatic issue creation from feedback" },
-            { icon: Image, text: "Screenshot uploads as issue attachments" },
-            { icon: Tag, text: "Dynamic labels based on feedback type" },
-            { icon: ExternalLink, text: "Full DOM context in issue body" },
-          ].map((item, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-3 text-gray-300 text-sm"
-            >
-              <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              {item.text}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <ExampleStage
+        id="github-integration"
+        prompt="Right-click the list. Send it."
+        source={source}
+        note="What's different: the adapter. createHttpAdapter posts the payload to /api/feedback, where createGitHubAdapter turns it into an issue with labels and screenshot attachments. The reveal shows exactly what the route received."
+      >
+        <ExampleProvider>
+          <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+            <h3 className="font-medium mb-3">What&apos;s included</h3>
+            <ul className="space-y-3">
+              {[
+                { icon: Check, text: "Automatic issue creation from feedback" },
+                {
+                  icon: Image,
+                  text: "Screenshot uploads as issue attachments",
+                },
+                { icon: Tag, text: "Dynamic labels based on feedback type" },
+                { icon: ExternalLink, text: "Full DOM context in issue body" },
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 text-gray-300 text-sm"
+                >
+                  <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </ExampleProvider>
+      </ExampleStage>
 
       {/* Prerequisites */}
       <div className="mb-12">

@@ -1,14 +1,53 @@
 import { CodeBlock } from "@/components/CodePreview";
-import { ArrowRight, Shield } from "lucide-react";
+import { ExampleStage } from "@/components/ExampleStage";
+import {
+  ArrowRight,
+  Bug,
+  Code,
+  Heart,
+  Lightbulb,
+  Palette,
+  Shield,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CustomMenuDemoArea } from "./CustomMenuDemoArea";
+import { CustomMenuDemo } from "./CustomMenuDemo";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
   description:
     "Customized anyclick context menu with branded colors, icons, and role-based items.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { Bug, Cloud, Code, Heart, Lightbulb, Monitor } from 'lucide-react';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+const menuItems: ContextMenuItem[] = [
+  { type: 'bug', label: 'Report Bug', icon: <Bug className="w-4 h-4 text-rose-400" />, showComment: true },
+  { type: 'feature', label: 'Suggest Feature', icon: <Lightbulb className="w-4 h-4 text-amber-400" />, showComment: true },
+  { type: 'like', label: 'Love It!', icon: <Heart className="w-4 h-4 text-pink-400" />, showComment: false },
+  {
+    type: 'dev-tools', label: 'Developer Tools', icon: <Code className="w-4 h-4 text-cyan-400" />,
+    children: [
+      { type: 'dev-local', label: 'Fix locally', icon: <Monitor className="w-4 h-4" />, showComment: true },
+      { type: 'dev-cloud', label: 'Send to cloud agent', icon: <Cloud className="w-4 h-4" />, showComment: true },
+    ],
+  },
+];
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped menuItems={menuItems}>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function CustomMenuExamplePage() {
   return (
@@ -31,8 +70,22 @@ export default function CustomMenuExamplePage() {
         </p>
       </div>
 
-      {/* Demo Area */}
-      <CustomMenuDemoArea />
+      <ExampleStage
+        id="custom-menu"
+        prompt="Right-click the card."
+        source={source}
+        note="What's different: menuItems. Labels, icons, a submenu, and which items ask for a comment are all yours. Items with children open a second level."
+      >
+        <CustomMenuDemo>
+          <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+            <h3 className="font-medium mb-1">Order #4821</h3>
+            <p className="text-sm text-gray-400">
+              Shipped Tuesday. Right-click anywhere on this card to see the
+              branded menu with icons and a Developer Tools submenu.
+            </p>
+          </div>
+        </CustomMenuDemo>
+      </ExampleStage>
 
       {/* Custom Icons */}
       <div className="mb-12">
