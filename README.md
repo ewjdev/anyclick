@@ -86,6 +86,7 @@ Visit [anyclick.ewj.dev](https://anyclick.ewj.dev) for full documentation:
 - [React Provider](https://anyclick.ewj.dev/docs/react)
 - [Adapters](https://anyclick.ewj.dev/docs/adapters)
 - [Examples](https://anyclick.ewj.dev/examples)
+- [Execution Plan](./docs/EXECUTION-PLAN.md) — contributor-facing roadmap and priorities
 
 ## Development
 
