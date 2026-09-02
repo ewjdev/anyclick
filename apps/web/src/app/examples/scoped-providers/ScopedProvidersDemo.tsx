@@ -21,27 +21,62 @@ const demoAdapter = createHttpAdapter({
 export function ScopedProvidersDemo() {
   return (
     <div className="space-y-6">
-      {/* Global section - uses the parent provider from layout */}
-      <div className="p-4 rounded-lg bg-violet-500/10 border border-violet-500/30">
-        <div className="flex items-center gap-2 mb-2">
-          <Layers className="w-4 h-4 text-violet-400" />
-          <span className="text-sm font-medium text-violet-400">
-            Global Provider (Blue highlights + Blue pointer)
-          </span>
-        </div>
-        <p className="text-sm text-gray-400 mb-3">
-          This area uses the global provider with default blue highlights and
-          blue pointer. Right-click to see the blue highlight color.
-        </p>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded bg-violet-500/20 text-violet-400 text-sm hover:bg-violet-500/30 transition-colors">
-            Global Button
-          </button>
-          <span className="px-3 py-1.5 rounded bg-violet-500/10 text-violet-300 text-sm">
-            Click me too!
-          </span>
-        </div>
-      </div>
+      {/* Default themed section - uses blue theme */}
+      <AnyclickProvider
+        adapter={demoAdapter}
+        scoped
+        theme={{
+          highlightConfig: {
+            enabled: true,
+            colors: {
+              targetColor: "#3b82f6", // Blue
+              containerColor: "#8b5cf6", // Purple
+            },
+          },
+        }}
+      >
+        <PointerProvider
+          theme={{
+            colors: {
+              pointerColor: "#3b82f6",
+              circleColor: "rgba(59, 130, 246, 0.4)",
+            },
+            pointerIcon: (
+              <MousePointer2
+                size={24}
+                strokeWidth={2}
+                fill="rgba(59, 130, 246, 0.3)"
+                stroke="#3b82f6"
+              />
+            ),
+          }}
+          config={{
+            visibility: "always",
+            hideDefaultCursor: true,
+          }}
+        >
+          <div className="p-4 rounded-lg bg-violet-500/10 border border-violet-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers className="w-4 h-4 text-violet-400" />
+              <span className="text-sm font-medium text-violet-400">
+                Default Theme (Blue highlights + Blue pointer)
+              </span>
+            </div>
+            <p className="text-sm text-gray-400 mb-3">
+              This area demonstrates the default blue theme with blue highlights
+              and blue pointer. Right-click to see the blue highlight color.
+            </p>
+            <div className="flex gap-2">
+              <button className="px-3 py-1.5 rounded bg-violet-500/20 text-violet-400 text-sm hover:bg-violet-500/30 transition-colors">
+                Blue Button
+              </button>
+              <span className="px-3 py-1.5 rounded bg-violet-500/10 text-violet-300 text-sm">
+                Click me too!
+              </span>
+            </div>
+          </div>
+        </PointerProvider>
+      </AnyclickProvider>
 
       {/* Custom themed section - nested provider with rose theme + rose pointer */}
       <AnyclickProvider

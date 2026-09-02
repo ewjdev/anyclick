@@ -1,4 +1,4 @@
-import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
+import { ConditionalAnyclickWrapper } from "@/components/ConditionalAnyclickWrapper";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           lato.className,
         )}
       >
-        <AnyclickProviderWrapper>{children}</AnyclickProviderWrapper>
+        <ConditionalAnyclickWrapper>{children}</ConditionalAnyclickWrapper>
       </body>
     </html>
   );

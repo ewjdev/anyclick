@@ -1,15 +1,8 @@
 import { CodeBlock } from "@/components/CodePreview";
-import {
-  ArrowRight,
-  Bug,
-  Code,
-  Heart,
-  Lightbulb,
-  Palette,
-  Shield,
-} from "lucide-react";
+import { ArrowRight, Shield } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CustomMenuDemoArea } from "./CustomMenuDemoArea";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
@@ -39,40 +32,7 @@ export default function CustomMenuExamplePage() {
       </div>
 
       {/* Demo Area */}
-      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Palette className="w-5 h-5 text-cyan-400" />
-          Custom Menu Preview
-        </h2>
-        <p className="text-gray-400 text-sm mb-6">
-          Right-click this area to see a customized feedback menu with icons and
-          custom labels:
-        </p>
-
-        {/* Simulated menu preview */}
-        <div className="inline-block p-2 rounded-xl bg-[#1a1a2e] border border-white/10 shadow-xl">
-          <div className="space-y-1 min-w-[200px]">
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Bug className="w-4 h-4 text-rose-400" />
-              <span className="text-sm">Report Bug</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Lightbulb className="w-4 h-4 text-amber-400" />
-              <span className="text-sm">Suggest Feature</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Heart className="w-4 h-4 text-pink-400" />
-              <span className="text-sm">Love It!</span>
-            </button>
-            <div className="border-t border-white/5 my-1" />
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Code className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm">Developer Tools</span>
-              <ArrowRight className="w-3 h-3 ml-auto text-gray-500" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <CustomMenuDemoArea />
 
       {/* Custom Icons */}
       <div className="mb-12">

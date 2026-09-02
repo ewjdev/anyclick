@@ -8,12 +8,13 @@ import { usePointer } from "@ewjdev/anyclick-pointer";
 import { AnyclickProvider, type ContextMenuItem } from "@ewjdev/anyclick-react";
 import { ArrowRight, Car, Keyboard, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { PointerModesWrapper } from "./PointerModesWrapper";
 
 const demoAdapter = createHttpAdapter({
   endpoint: "/api/feedback",
 });
 
-export default function PointerModesPage() {
+function PointerModesPageContent() {
   const { setConfig } = usePointer();
   const [funEnabled, setFunEnabled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -309,5 +310,13 @@ export default function ModesExample() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function PointerModesPage() {
+  return (
+    <PointerModesWrapper>
+      <PointerModesPageContent />
+    </PointerModesWrapper>
   );
 }
