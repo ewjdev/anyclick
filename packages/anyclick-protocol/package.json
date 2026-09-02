@@ -1,7 +1,7 @@
 {
   "name": "@ewjdev/anyclick-protocol",
   "version": "0.2.0",
-  "private": false,
+  "private": true,
   "description": "Canonical protocol specification for Anyclick interaction events",
   "keywords": [
     "anyclick",
@@ -13,10 +13,6 @@
   ],
   "license": "MIT",
   "author": "ewjdev",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git",
