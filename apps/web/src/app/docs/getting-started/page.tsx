@@ -1,4 +1,6 @@
 import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
+import { ExampleStage } from "@/components/ExampleStage";
 import { ArrowRight, Box, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,6 +10,17 @@ export const metadata: Metadata = {
   description:
     "Learn how to install and configure anyclick in your application.",
 };
+
+const liveSource = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export function Providers({ children }) {
+  return <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
+}`;
 
 export default function GettingStartedPage() {
   return (
@@ -207,6 +220,28 @@ export default function RootLayout({
             context.
           </p>
         </div>
+      </section>
+
+      {/* Live */}
+      <section className="not-prose mb-12">
+        <h2 className="text-2xl font-bold mb-4">Try it here</h2>
+        <ExampleStage
+          id="docs-getting-started"
+          prompt="Right-click this box."
+          source={liveSource}
+          sourceFilename="app/providers.tsx"
+          className="mb-0"
+        >
+          <ExampleProvider>
+            <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+              <h3 className="font-medium mb-1">Your app</h3>
+              <p className="text-sm text-gray-400">
+                This box is wrapped in the provider above. That is the whole
+                integration.
+              </p>
+            </div>
+          </ExampleProvider>
+        </ExampleStage>
       </section>
 
       {/* Configuration Options */}

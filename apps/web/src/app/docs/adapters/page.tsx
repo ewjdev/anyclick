@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { SeeItLive } from "@/components/SeeItLive";
 import {
   ArrowRight,
   Cloud,
@@ -34,6 +35,10 @@ export default function AdaptersDocsPage() {
       {/* Adapter Overview */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Available Adapters</h2>
+        <SeeItLive
+          href="/examples/github-integration"
+          label="GitHub integration"
+        />
         <div className="grid gap-4">
           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
             <div className="flex items-center gap-3 mb-2">
@@ -567,6 +572,10 @@ function formatSlackMessage(payload: AnyclickPayload) {
       {/* Combining Adapters */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Combining Multiple Adapters</h2>
+        <SeeItLive
+          href="/examples/cursor-local"
+          label="Cursor local + GitHub"
+        />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Send feedback to multiple destinations:
         </p>

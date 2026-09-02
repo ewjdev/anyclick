@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Check,
@@ -15,6 +16,66 @@ export const metadata: Metadata = {
   description:
     "Upload screenshots and images to UploadThing with Anyclick context menus.",
 };
+
+const source = `"use client";
+
+import type { ReactNode } from "react";
+import {
+  AnyclickPayload,
+  AnyclickProvider,
+  type ContextMenuItem,
+  createUploadThingMenuItem,
+} from "@ewjdev/anyclick-react";
+import { createUploadThingAdapter } from "@ewjdev/anyclick-uploadthing";
+
+const menuItems: ContextMenuItem[] = [
+  { label: "Report Bug", type: "bug", showComment: true },
+  { label: "Feature Idea", type: "feature", showComment: true },
+  createUploadThingMenuItem({
+    endpoint: "/api/uploadthing",
+    onUploadComplete: (result) => {
+      if (result.url) {
+        console.log("Uploaded:", result.url);
+        // In a real app, you might copy to clipboard or show a notification
+      }
+    },
+    onUploadError: (error) => {
+      console.error("Upload failed:", error);
+    },
+  }),
+];
+
+const adapter = createUploadThingAdapter({
+  endpoint: "/api/uploadthing",
+  onUploadComplete: (result) => {
+    console.log("Uploaded:", result.url);
+  },
+  onUploadError: (error) => {
+    console.error("Upload failed:", error);
+  },
+});
+export default function UploadThingProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <AnyclickProvider
+      adapter={{
+        ...adapter,
+        submitAnyclick: async (payload: AnyclickPayload) => {
+          console.log("[submitAnyclick()]");
+          console.log({ payload });
+        },
+      }}
+      menuItems={menuItems}
+      screenshotConfig={{ enabled: true }}
+    >
+      {children}
+    </AnyclickProvider>
+  );
+}
+`;
 
 export default function UploadThingIntegrationPage() {
   return (
@@ -52,42 +113,50 @@ export default function UploadThingIntegrationPage() {
       </div>
 
       {/* Demo Area */}
-      <UploadThingProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MousePointerClick className="w-5 h-5 text-red-400" />
-            Try It
-          </h2>
-          <p className="text-gray-400 text-sm mb-6">
-            Right-click on any image below to see the upload option:
-          </p>
+      <ExampleStage
+        id="uploadthing-integration"
+        prompt="Right-click. Attach a file."
+        source={source}
+        note="What's different: the adapter uploads screenshots to UploadThing and links them from the payload."
+        reveal="none"
+      >
+        <UploadThingProvider>
+          <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-red-500/10 to-orange-500/10 border border-red-500/20">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <MousePointerClick className="w-5 h-5 text-red-400" />
+              Try It
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Right-click on any image below to see the upload option:
+            </p>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="aspect-video rounded-lg bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
-              <span className="text-white/80 text-sm">Sample Gradient 1</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="aspect-video rounded-lg bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center">
+                <span className="text-white/80 text-sm">Sample Gradient 1</span>
+              </div>
+              <div className="aspect-video rounded-lg bg-linear-to-br from-amber-500 to-red-500 flex items-center justify-center">
+                <span className="text-white/80 text-sm">Sample Gradient 2</span>
+              </div>
+              <div className="aspect-video rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                <Image className="w-8 h-8 text-gray-500" />
+              </div>
+              <div className="aspect-video rounded-lg overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/hero.png"
+                  alt="Sample image"
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
-            <div className="aspect-video rounded-lg bg-linear-to-br from-amber-500 to-red-500 flex items-center justify-center">
-              <span className="text-white/80 text-sm">Sample Gradient 2</span>
-            </div>
-            <div className="aspect-video rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-              <Image className="w-8 h-8 text-gray-500" />
-            </div>
-            <div className="aspect-video rounded-lg overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/hero.png"
-                alt="Sample image"
-                className="w-full h-full object-cover"
-              />
-            </div>
+
+            <p className="text-xs text-gray-500 mt-4">
+              Note: Actual uploads require UploadThing configuration. This demo
+              shows the menu integration.
+            </p>
           </div>
-
-          <p className="text-xs text-gray-500 mt-4">
-            Note: Actual uploads require UploadThing configuration. This demo
-            shows the menu integration.
-          </p>
-        </div>
-      </UploadThingProvider>
+        </UploadThingProvider>
+      </ExampleStage>
 
       {/* Features */}
       <div className="mb-12">

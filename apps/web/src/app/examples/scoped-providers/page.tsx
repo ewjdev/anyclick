@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import { ArrowRight, Check, MousePointerClick } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -9,6 +10,26 @@ export const metadata: Metadata = {
   description:
     "Learn how to use scoped providers and nested theming for granular control over feedback capture.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+
+// Outer provider handles the page; inner scoped providers own their subtree.
+// A scoped provider stops the event so parents never double-handle it.
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} menuItems={pageMenu}>
+      <AnyclickProvider adapter={adapter} scoped menuItems={cardMenu} theme={{ menuStyle: { borderColor: '#10b981' } }}>
+        <Card />
+      </AnyclickProvider>
+      <AnyclickProvider adapter={adapter} scoped theme={null}>
+        <ReadOnlyRegion /> {/* anyclick disabled here */}
+      </AnyclickProvider>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function ScopedProvidersExamplePage() {
   return (
@@ -33,18 +54,26 @@ export default function ScopedProvidersExamplePage() {
       </div>
 
       {/* Demo Area */}
-      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <MousePointerClick className="w-5 h-5 text-violet-400" />
-          Try It
-        </h2>
-        <p className="text-gray-400 text-sm mb-6">
-          Right-click elements in different sections to see how scoped providers
-          work. Notice the different highlight colors and behavior:
-        </p>
+      <ExampleStage
+        id="scoped-providers"
+        prompt="Right-click each region. Compare menus."
+        source={source}
+        note="What's different: scoped and theme. Each region mounts its own provider; themes merge down the tree and theme={null} switches a subtree off."
+        reveal="none"
+      >
+        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MousePointerClick className="w-5 h-5 text-violet-400" />
+            Try It
+          </h2>
+          <p className="text-gray-400 text-sm mb-6">
+            Right-click elements in different sections to see how scoped
+            providers work. Notice the different highlight colors and behavior:
+          </p>
 
-        <ScopedProvidersDemo />
-      </div>
+          <ScopedProvidersDemo />
+        </div>
+      </ExampleStage>
 
       {/* What you get */}
       <div className="mb-12">
