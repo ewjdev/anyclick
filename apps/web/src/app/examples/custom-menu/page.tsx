@@ -155,10 +155,10 @@ const menuItems = [
           <code className="text-cyan-400">requiredRoles</code>:
         </p>
         <CodeBlock>{`import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem, AnyclickUserContext } from '@ewjdev/anyclick-react';
 
 // Define all menu items with role requirements
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: ContextMenuItem[] = [
   // Everyone sees these
   { type: 'bug', label: 'Report Bug', showComment: true },
   { type: 'feature', label: 'Request Feature', showComment: true },
@@ -184,7 +184,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 
 function Providers({ children, currentUser }) {
   // Create user context from your auth system
-  const userContext: FeedbackUserContext = {
+  const userContext: AnyclickUserContext = {
     roles: currentUser?.roles || [],
     id: currentUser?.id,
     email: currentUser?.email,
@@ -280,14 +280,14 @@ function Providers({ children, currentUser }) {
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-';
+import type { ContextMenuItem, AnyclickUserContext } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import { Bug, Lightbulb, Heart, Code, Monitor, Cloud, Shield } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
 
 const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: ContextMenuItem[] = [
   { 
     type: 'bug', 
     label: 'Report Bug', 
@@ -338,7 +338,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 export function Providers({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   
-  const userContext: FeedbackUserContext = {
+  const userContext: AnyclickUserContext = {
     roles: user?.roles || [],
     id: user?.id,
     email: user?.email,

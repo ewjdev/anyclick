@@ -187,7 +187,7 @@ Example:
 ```
 feat(react): add support for custom menu icons
 
-Added an `icon` prop to FeedbackMenuItem that accepts a ReactNode.
+Added an `icon` prop to ContextMenuItem that accepts a ReactNode.
 Icons are rendered alongside the label in the context menu.
 
 Closes #123
@@ -227,7 +227,7 @@ Example changeset:
 
 Add custom icon support for menu items
 
-Users can now pass an `icon` prop to FeedbackMenuItem components.
+Users can now pass an `icon` prop to ContextMenuItem components.
 The icon is rendered alongside the label in the context menu.
 ```
 

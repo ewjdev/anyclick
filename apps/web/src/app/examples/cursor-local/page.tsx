@@ -110,7 +110,7 @@ export default function CursorLocalPage() {
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
 import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
 import { Monitor, Cloud, Bug, Lightbulb } from 'lucide-react';
@@ -131,7 +131,7 @@ const localAdapter = createLocalAdapter({
 const isDev = process.env.NODE_ENV === 'development';
 
 // Menu items with Cursor options
-const menuItems: FeedbackMenuItem[] = [
+const menuItems: ContextMenuItem[] = [
   { type: 'bug', label: 'Report Bug', icon: <Bug className="w-4 h-4" />, showComment: true },
   { type: 'feature', label: 'Suggest Feature', icon: <Lightbulb className="w-4 h-4" />, showComment: true },
   // Cursor options (dev only)
@@ -175,15 +175,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <p className="text-gray-400 mb-4">
           Route different feedback types to different adapters:
         </p>
-        <CodeBlock filename="app/providers.tsx">{`import type { FeedbackAdapter, FeedbackPayload } from '@ewjdev/anyclick-core';
+        <CodeBlock filename="app/providers.tsx">{`import type { AnyclickAdapter, AnyclickPayload } from '@ewjdev/anyclick-core';
 
 // Create a router adapter
 function createRoutingAdapter(config: {
-  local: FeedbackAdapter;
-  github: FeedbackAdapter;
-}): FeedbackAdapter {
+  local: AnyclickAdapter;
+  github: AnyclickAdapter;
+}): AnyclickAdapter {
   return {
-    async submit(payload: FeedbackPayload) {
+    async submit(payload: AnyclickPayload) {
       // Route Cursor types to local adapter
       if (payload.type === 'cursor_local' || payload.type === 'cursor_cloud') {
         return config.local.submit(payload);

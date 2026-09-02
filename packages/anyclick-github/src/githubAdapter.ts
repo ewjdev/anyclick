@@ -175,7 +175,7 @@ Validation failed. This could mean:
    * Format the metadata comment to embed in issue body
    */
   private formatMetadataComment(metadata: UIFeedbackMetadata): string {
-    return `\n\n<!-- uifeedback-metadata: ${JSON.stringify(metadata)} -->`;
+    return `\n\n<!-- anyclick-metadata: ${JSON.stringify(metadata)} -->`;
   }
 
   /**

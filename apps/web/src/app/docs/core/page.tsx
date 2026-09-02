@@ -64,16 +64,16 @@ export default function CoreDocsPage() {
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Main Exports</h2>
 
-        {/* FeedbackClient */}
+        {/* AnyclickClient */}
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5 mb-6">
-          <h3 className="text-lg font-semibold mb-2">FeedbackClient</h3>
+          <h3 className="text-lg font-semibold mb-2">AnyclickClient</h3>
           <p className="text-gray-400 text-sm mb-4">
             The main client class that handles context menu events, DOM capture,
             and feedback submission.
           </p>
-          <CodeBlock>{`import { createFeedbackClient } from '@ewjdev/anyclick-core';
+          <CodeBlock>{`import { createAnyclickClient } from '@ewjdev/anyclick-core';
 
-const client = createFeedbackClient({
+const client = createAnyclickClient({
   adapter: myAdapter,
   targetFilter: (event, target) => true, // Optional filter
   maxInnerTextLength: 500,
@@ -163,13 +163,13 @@ if (isScreenshotSupported()) {
           <p className="text-gray-400 text-sm mb-4">
             Build the full feedback payload with page and element context.
           </p>
-          <CodeBlock>{`import { buildFeedbackPayload, buildPageContext } from '@ewjdev/anyclick-core';
+          <CodeBlock>{`import { buildAnyclickPayload, buildPageContext } from '@ewjdev/anyclick-core';
 
 // Build page context (URL, viewport, etc.)
 const pageContext = buildPageContext();
 
-// Build complete feedback payload
-const payload = buildFeedbackPayload({
+// Build complete anyclick payload
+const payload = buildAnyclickPayload({
   element,
   type: 'issue',
   comment: 'Something is wrong here',
@@ -183,17 +183,17 @@ const payload = buildFeedbackPayload({
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Types</h2>
 
-        {/* FeedbackPayload */}
+        {/* AnyclickPayload */}
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5 mb-6">
-          <h3 className="text-lg font-semibold mb-4">FeedbackPayload</h3>
+          <h3 className="text-lg font-semibold mb-4">AnyclickPayload</h3>
           <p className="text-gray-400 text-sm mb-4">
             The main payload structure sent to adapters.
           </p>
           <div className="divide-y divide-white/5">
             <TypeDef
               name="type"
-              type="FeedbackType"
-              description="The feedback type (e.g., 'issue', 'feature', 'like')"
+              type="AnyclickType"
+              description="The anyclick type (e.g., 'issue', 'feature', 'like')"
             />
             <TypeDef
               name="timestamp"
@@ -273,17 +273,17 @@ const payload = buildFeedbackPayload({
           </div>
         </div>
 
-        {/* FeedbackAdapter */}
+        {/* AnyclickAdapter */}
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
-          <h3 className="text-lg font-semibold mb-4">FeedbackAdapter</h3>
+          <h3 className="text-lg font-semibold mb-4">AnyclickAdapter</h3>
           <p className="text-gray-400 text-sm mb-4">
             Interface that adapters must implement.
           </p>
-          <CodeBlock>{`interface FeedbackAdapter {
-  submit(payload: FeedbackPayload): Promise<FeedbackResult>;
+          <CodeBlock>{`interface AnyclickAdapter {
+  submit(payload: AnyclickPayload): Promise<AnyclickResult>;
 }
 
-interface FeedbackResult {
+interface AnyclickResult {
   success: boolean;
   id?: string;        // Created resource ID (e.g., issue number)
   url?: string;       // URL to the created resource
@@ -343,13 +343,13 @@ interface FeedbackResult {
         <h2 className="text-2xl font-bold mb-4">Building Custom Adapters</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
           You can build custom adapters by implementing the{" "}
-          <code className="text-cyan-400">FeedbackAdapter</code> interface:
+          <code className="text-cyan-400">AnyclickAdapter</code> interface:
         </p>
-        <CodeBlock filename="my-custom-adapter.ts">{`import type { FeedbackAdapter, FeedbackPayload, FeedbackResult } from '@ewjdev/anyclick-core';
+        <CodeBlock filename="my-custom-adapter.ts">{`import type { AnyclickAdapter, AnyclickPayload, AnyclickResult } from '@ewjdev/anyclick-core';
 
-export function createCustomAdapter(config: MyConfig): FeedbackAdapter {
+export function createCustomAdapter(config: MyConfig): AnyclickAdapter {
   return {
-    async submit(payload: FeedbackPayload): Promise<FeedbackResult> {
+    async submit(payload: AnyclickPayload): Promise<AnyclickResult> {
       try {
         // Your custom logic here
         const response = await fetch(config.endpoint, {

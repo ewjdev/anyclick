@@ -54,10 +54,10 @@ function parseArgs(): LocalServerConfig {
 
 function printHelp(): void {
   console.log(`
-uifeedback-local-server - Local Cursor CLI server for UI feedback
+anyclick-local-server - Local Cursor CLI server for Anyclick
 
 Usage:
-  uifeedback-local-server [options]
+  anyclick-local-server [options]
 
 Options:
   -p, --port <port>     Port to run the server on (default: ${DEFAULT_PORT})
@@ -69,13 +69,13 @@ Options:
 
 Examples:
   # Start with defaults
-  uifeedback-local-server
+  anyclick-local-server
 
   # Custom port and working directory
-  uifeedback-local-server -p 4000 -d /path/to/project
+  anyclick-local-server -p 4000 -d /path/to/project
 
   # Use print mode for headless execution
-  uifeedback-local-server -m print
+  anyclick-local-server -m print
 `);
 }
 
@@ -238,7 +238,7 @@ export function createLocalServer(config: LocalServerConfig = {}): void {
 
     console.log(`
 ╔════════════════════════════════════════════════════════════════╗
-║           UI Feedback Local Server                             ║
+║           Anyclick Local Server                                ║
 ╠════════════════════════════════════════════════════════════════╣
 ║  Server running at: http://${host}:${port}                       
 ║  cursor-agent installed: ${installed ? "✓ Yes" : "✗ No - install with:"}

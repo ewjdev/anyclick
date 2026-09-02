@@ -88,11 +88,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     </AnyclickProvider>
   );
 }`}</CodeBlock>
-        <p className="text-gray-400 text-sm mt-2">
-          <strong>Note:</strong>{" "}
-          <code className="text-cyan-400">FeedbackProvider</code> is still
-          exported for backward compatibility but is deprecated.
-        </p>
       </section>
 
       {/* Props Reference */}
@@ -102,7 +97,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
           <PropDef
             name="adapter"
-            type="FeedbackAdapter"
+            type="AnyclickAdapter"
             description="The adapter to use for submitting feedback. See adapters documentation for available options."
             required
           />
@@ -125,7 +120,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           />
           <PropDef
             name="menuItems"
-            type="FeedbackMenuItem[]"
+            type="ContextMenuItem[]"
             defaultValue="[issue, feature, like]"
             description="Custom menu items to show in the context menu. Each item can have type, label, icon, and children for submenus."
           />
@@ -180,12 +175,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
           />
           <PropDef
             name="onSubmitSuccess"
-            type="(payload: FeedbackPayload) => void"
+            type="(payload: AnyclickPayload) => void"
             description="Callback fired after successful submission."
           />
           <PropDef
             name="onSubmitError"
-            type="(error: Error, payload: FeedbackPayload) => void"
+            type="(error: Error, payload: AnyclickPayload) => void"
             description="Callback fired after failed submission."
           />
           <PropDef
@@ -324,9 +319,9 @@ const menuItems = [
           Show different menu items based on user roles:
         </p>
         <CodeBlock>{`import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem, AnyclickUserContext } from '@ewjdev/anyclick-react';
 
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: ContextMenuItem[] = [
   { type: 'issue', label: 'Report Issue', showComment: true },
   { type: 'feature', label: 'Request Feature', showComment: true },
   // Only visible to developers
@@ -338,7 +333,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 ];
 
 function Providers({ children, user }) {
-  const userContext: FeedbackUserContext = {
+  const userContext: AnyclickUserContext = {
     roles: user.roles,
     id: user.id,
     email: user.email,
@@ -457,29 +452,18 @@ function MyComponent() {
     </button>
   );
 }`}</CodeBlock>
-        <p className="text-gray-400 text-sm mt-2">
-          <strong>Note:</strong>{" "}
-          <code className="text-cyan-400">useFeedback</code> is still exported
-          for backward compatibility.
-        </p>
       </section>
 
       {/* Exports */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">All Exports</h2>
-        <CodeBlock>{`// Components (new)
+        <CodeBlock>{`// Components
 export { AnyclickProvider } from './AnyclickProvider';
 export { ContextMenu } from './ContextMenu';
 export { ScreenshotPreview } from './ScreenshotPreview';
 
-// Components (deprecated, for backward compatibility)
-export { FeedbackProvider } from './AnyclickProvider';
-
-// Context & Hooks (new)
+// Context & Hooks
 export { AnyclickContext, useAnyclick } from './context';
-
-// Context & Hooks (deprecated)
-export { FeedbackContext, useFeedback } from './context';
 
 // Store (for advanced use cases)
 export { useProviderStore, generateProviderId } from './store';
@@ -492,8 +476,8 @@ export type {
   AnyclickProviderProps,
   AnyclickContextValue,
   AnyclickTheme,
-  FeedbackMenuItem,
-  FeedbackUserContext,
+  ContextMenuItem,
+  AnyclickUserContext,
   ContextMenuProps,
   ScreenshotPreviewProps,
   HighlightConfig,

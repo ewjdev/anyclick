@@ -107,7 +107,7 @@ GITHUB_REPO=your-username/your-repo-name`}
           filename="app/api/feedback/route.ts"
           language="typescript"
           code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -120,7 +120,7 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
+    const payload: AnyclickPayload = await request.json();
     const result = await github.createIssue(payload);
     
     return Response.json(result);
@@ -236,7 +236,7 @@ export default function RootLayout({
                 <td className="py-3 px-4">
                   <code className="text-cyan-400">adapter</code>
                 </td>
-                <td className="py-3 px-4 text-gray-400">FeedbackAdapter</td>
+                <td className="py-3 px-4 text-gray-400">AnyclickAdapter</td>
                 <td className="py-3 px-4 text-gray-400">
                   Required. The adapter for submitting feedback.
                 </td>
@@ -245,7 +245,7 @@ export default function RootLayout({
                 <td className="py-3 px-4">
                   <code className="text-cyan-400">menuItems</code>
                 </td>
-                <td className="py-3 px-4 text-gray-400">FeedbackMenuItem[]</td>
+                <td className="py-3 px-4 text-gray-400">ContextMenuItem[]</td>
                 <td className="py-3 px-4 text-gray-400">
                   Custom menu items (default: issue, feature, like)
                 </td>
