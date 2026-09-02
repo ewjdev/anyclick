@@ -50,7 +50,7 @@
     "dev": "tsup src/index.ts src/server.ts --format esm,cjs --dts --sourcemap --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.4.0"
+    "@ewjdev/anyclick-core": "^1.5.0"
   },
   "devDependencies": {
     "tsup": "^8.3.5",
