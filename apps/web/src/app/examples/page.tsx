@@ -29,6 +29,8 @@ const examples = [
     description:
       "Minimal implementation with default configuration. Perfect starting point for new integrations.",
     href: "/examples/basic",
+    whatsDifferent:
+      "Default menu, scoped provider, GitHub adapter. The baseline.",
     icon: Box,
     color: "violet",
     tags: ["React", "Provider", "Default Menu"],
@@ -38,6 +40,7 @@ const examples = [
     description:
       "AI-powered quick answers about any element. Get styling tips, accessibility insights, and more from the context menu.",
     href: "/examples/quick-chat",
+    whatsDifferent: "quickChatConfig adds an AI quick-ask to the menu.",
     icon: MessageSquare,
     color: "violet",
     tags: ["AI", "Chat", "Context", "Streaming"],
@@ -47,6 +50,7 @@ const examples = [
     description:
       "Send selected text to t3.chat for AI-powered answers. Perfect for quick research and code questions.",
     href: "/examples/t3chat-integration",
+    whatsDifferent: "Chrome preset plus a t3.chat hand-off.",
     icon: MessageSquare,
     color: "purple",
     tags: ["t3.chat", "AI", "Text Selection", "External"],
@@ -56,6 +60,7 @@ const examples = [
     description:
       "Right-click on images to upload them directly to UploadThing. Share screenshots and diagrams instantly.",
     href: "/examples/uploadthing-integration",
+    whatsDifferent: "Adapter uploads screenshots to UploadThing.",
     icon: Upload,
     color: "red",
     tags: ["UploadThing", "Images", "Screenshots", "Upload"],
@@ -65,6 +70,7 @@ const examples = [
     description:
       "Drop-in menus for QA, PM, Designer, and Developer with coming-soon tags baked in.",
     href: "/examples/role-presets",
+    whatsDifferent: "menuItems filtered by the current user's roles.",
     icon: Users,
     color: "cyan",
     tags: ["Presets", "Roles", "Menu", "DX"],
@@ -74,6 +80,7 @@ const examples = [
     description:
       "Replace the default cursor with a beautiful themed pointer. Includes right-click circle animation and press effects.",
     href: "/examples/custom-pointer",
+    whatsDifferent: "PointerProvider themes the cursor inside one region.",
     icon: MousePointer2,
     color: "rose",
     tags: ["Cursor", "Animation", "Theming", "CSS"],
@@ -83,6 +90,7 @@ const examples = [
     description:
       "Customized context menu with branded colors, icons, and role-based menu items.",
     href: "/examples/custom-menu",
+    whatsDifferent: "menuItems with icons, a submenu and custom labels.",
     icon: Palette,
     color: "cyan",
     tags: ["Theming", "Icons", "Submenus", "Role-Based"],
@@ -92,6 +100,7 @@ const examples = [
     description:
       "Full GitHub Issues integration with automatic issue creation and screenshot uploads.",
     href: "/examples/github-integration",
+    whatsDifferent: "createHttpAdapter to a route that opens GitHub issues.",
     icon: GitBranch,
     color: "emerald",
     tags: ["GitHub", "Issues", "Screenshots", "Markdown"],
@@ -101,6 +110,7 @@ const examples = [
     description:
       "Create Jira issues with rich ADF descriptions and automatic screenshot attachments.",
     href: "/examples/jira-integration",
+    whatsDifferent: "A multi-step Jira menu built on the same payload.",
     icon: Ticket,
     color: "blue",
     tags: ["Jira", "Issues", "ADF", "Attachments"],
@@ -110,6 +120,7 @@ const examples = [
     description:
       "Development workflow with local Cursor integration for instant AI-powered code fixes.",
     href: "/examples/cursor-local",
+    whatsDifferent: "Second adapter posts to a local cursor-agent server.",
     icon: Terminal,
     color: "amber",
     tags: ["Cursor", "Development", "AI", "Local"],
@@ -119,6 +130,8 @@ const examples = [
     description:
       "Automatic masking of passwords, credit cards, and other sensitive data in screenshots.",
     href: "/examples/sensitive-masking",
+    whatsDifferent:
+      "screenshotConfig.sensitiveSelectors masks fields in captures.",
     icon: Shield,
     color: "emerald",
     tags: ["Privacy", "Security", "Screenshots", "Masking"],
@@ -128,6 +141,7 @@ const examples = [
     description:
       "Control feedback capture at a granular level with scoped providers and nested theming.",
     href: "/examples/scoped-providers",
+    whatsDifferent: "Nested scoped providers with merged themes.",
     icon: Layers,
     color: "fuchsia",
     tags: ["Scoped", "Nested", "Theming", "Advanced"],
@@ -137,6 +151,7 @@ const examples = [
     description:
       "Switch between normal and fun go-kart mode inside scoped providers using the FunModeBridge.",
     href: "/examples/modes",
+    whatsDifferent: "Pointer visibility modes inside a scoped provider.",
     icon: Gauge,
     color: "cyan",
     tags: ["Modes", "Fun", "Keyboard", "Scoped"],
@@ -157,26 +172,8 @@ export default function ExamplesPage() {
           </h1>
         </div>
         <p className="text-lg text-gray-400 leading-relaxed max-w-2xl">
-          Explore these interactive examples to see anyclick in action. Each
-          example demonstrates different features and configuration options.
+          Every example is one working customization. Open one and right-click.
         </p>
-      </div>
-
-      {/* Try it callout */}
-      <div className="p-6 rounded-2xl bg-linear-to-r from-violet-500/10 via-cyan-500/10 to-emerald-500/10 border border-violet-500/20 mb-12">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-violet-500 to-cyan-500 flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="font-semibold mb-2">Try it below!</h2>
-            <p className="text-gray-400 text-sm">
-              Each example page demonstrates a different integration. Click into
-              any example to see anyclick in action with right-click feedback
-              menus connected to various services.
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Examples Grid */}
@@ -205,6 +202,9 @@ export default function ExamplesPage() {
                   </div>
                   <p className="text-gray-400 text-sm mb-4">
                     {example.description}
+                  </p>
+                  <p className="text-xs text-violet-300/90 mb-3">
+                    What&apos;s different: {example.whatsDifferent}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {example.tags.map((tag) => (

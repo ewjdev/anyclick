@@ -1,13 +1,29 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
+import { ExampleStage } from "@/components/ExampleStage";
 import { ArrowRight, Check, MousePointerClick } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BasicDemoArea } from "./BasicDemoArea";
 
 export const metadata: Metadata = {
   title: "Basic Setup Example",
   description: "Minimal anyclick implementation with default configuration.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function BasicExamplePage() {
   return (
@@ -30,8 +46,38 @@ export default function BasicExamplePage() {
         </p>
       </div>
 
-      {/* Demo Area */}
-      <BasicDemoArea />
+      <ExampleStage
+        id="basic"
+        prompt="Right-click any of these."
+        source={source}
+        note="What's different: nothing. This is the default menu (issue, feature, like) with a scoped provider and the GitHub adapter behind /api/feedback. Every other example changes one thing about this."
+      >
+        <ExampleProvider>
+          <div className="space-y-4">
+            <button className="px-4 py-2 rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-medium transition-colors">
+              Primary Button
+            </button>
+            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+              <h3 className="font-medium mb-1">Card Component</h3>
+              <p className="text-sm text-gray-400">
+                A sample card. Right-click it to report an issue or request a
+                feature.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm">
+                Tag 1
+              </span>
+              <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm">
+                Tag 2
+              </span>
+              <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-sm">
+                Tag 3
+              </span>
+            </div>
+          </div>
+        </ExampleProvider>
+      </ExampleStage>
 
       {/* What you get */}
       <div className="mb-12">

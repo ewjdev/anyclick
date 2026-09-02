@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { SeeItLive } from "@/components/SeeItLive";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -205,6 +206,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {/* Scoped Providers */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Scoped Providers</h2>
+        <SeeItLive
+          href="/examples/scoped-providers"
+          label="scoped & nested providers"
+        />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Use the <code className="text-cyan-400">scoped</code> prop to limit
           feedback capture to a specific section of your app:
@@ -269,6 +274,7 @@ export function Providers({ children }) {
       {/* Custom Menu Items */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Custom Menu Items</h2>
+        <SeeItLive href="/examples/custom-menu" label="custom menu" />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Customize the feedback menu with your own items, icons, and submenus:
         </p>
@@ -315,6 +321,7 @@ const menuItems = [
       {/* Role-Based Filtering */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Role-Based Menu Filtering</h2>
+        <SeeItLive href="/examples/role-presets" label="role-based presets" />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Show different menu items based on user roles:
         </p>
@@ -387,6 +394,10 @@ function Providers({ children, user }) {
       {/* Screenshot Configuration */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Screenshot Configuration</h2>
+        <SeeItLive
+          href="/examples/sensitive-masking"
+          label="sensitive masking"
+        />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Control screenshot capture behavior:
         </p>
