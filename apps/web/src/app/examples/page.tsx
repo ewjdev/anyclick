@@ -169,11 +169,11 @@ export default function ExamplesPage() {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="font-semibold mb-2">Try it on this page!</h2>
+            <h2 className="font-semibold mb-2">Try it below!</h2>
             <p className="text-gray-400 text-sm">
-              This entire documentation site uses anyclick. Right-click any
-              element to see the feedback menu in action. The feedback is
-              connected to our GitHub repository.
+              Each example page demonstrates a different integration. Click into
+              any example to see anyclick in action with right-click feedback
+              menus connected to various services.
             </p>
           </div>
         </div>
