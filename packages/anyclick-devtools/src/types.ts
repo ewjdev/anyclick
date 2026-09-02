@@ -493,8 +493,10 @@ export interface ScreenshotPreviewProps {
   isLoading: boolean;
   /** Whether submission is in progress */
   isSubmitting: boolean;
-  /** Callback when user cancels */
+  /** Callback when user cancels (goes back to previous view) */
   onCancel: () => void;
+  /** Callback when user wants to close the entire menu */
+  onClose: () => void;
   /** Callback when user confirms screenshots */
   onConfirm: (screenshots: ScreenshotData) => void;
   /** Callback when user wants to retake screenshots */
