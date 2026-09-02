@@ -109,7 +109,7 @@ export default function CursorLocalPage() {
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
 import type { FeedbackMenuItem } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
@@ -157,12 +157,12 @@ const menuItems: FeedbackMenuItem[] = [
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={isDev ? localAdapter : githubAdapter}
       menuItems={menuItems}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
@@ -200,9 +200,9 @@ const adapter = createRoutingAdapter({
   github: githubAdapter,
 });
 
-<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+<AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </div>
 
       {/* Server Configuration */}

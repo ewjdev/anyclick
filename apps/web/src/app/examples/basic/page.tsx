@@ -97,7 +97,7 @@ export default function BasicExamplePage() {
           language="tsx"
           code={`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 // Create adapter pointing to your API
@@ -108,9 +108,9 @@ const adapter = createHttpAdapter({
 export function Providers({ children }: { children: React.ReactNode }) {
   // That's it! Default menu items are automatically included
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}
         />
@@ -154,7 +154,7 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   const payload: FeedbackPayload = await request.json();
-  const result = await github.submit(payload);
+  const result = await github.createIssue(payload);
   return Response.json(result);
 }`}
         />

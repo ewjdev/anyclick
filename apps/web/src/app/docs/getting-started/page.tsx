@@ -121,7 +121,7 @@ const github = createGitHubAdapter({
 export async function POST(request: Request) {
   try {
     const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const result = await github.createIssue(payload);
     
     return Response.json(result);
   } catch (error) {
@@ -140,14 +140,14 @@ export async function POST(request: Request) {
         <h2 className="text-2xl font-bold mb-4">Step 4: Add the Provider</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
           Wrap your application with the{" "}
-          <code className="text-cyan-400">FeedbackProvider</code>:
+          <code className="text-cyan-400">AnyclickProvider</code>:
         </p>
         <CodeBlock
           filename="app/providers.tsx"
           language="tsx"
           code={`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import type { ReactNode } from 'react';
 
@@ -157,9 +157,9 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}
         />
@@ -213,7 +213,7 @@ export default function RootLayout({
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Configuration Options</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
-          The <code className="text-cyan-400">FeedbackProvider</code> accepts
+          The <code className="text-cyan-400">AnyclickProvider</code> accepts
           several configuration options:
         </p>
         <div className="overflow-x-auto">

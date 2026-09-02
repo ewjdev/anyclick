@@ -199,7 +199,7 @@ export default function RootLayout({ children }) {
               GitHub
             </a>
             <a
-              href="https://www.npmjs.com/org/anyclick"
+              href="https://www.npmjs.com/package/@ewjdev/anyclick-react"
               className="hover:text-white transition-colors"
               target="_blank"
               rel="noopener noreferrer"

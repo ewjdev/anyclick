@@ -18,7 +18,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-core"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/core",
+  "homepage": "https://anyclick.dev/docs/core",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },

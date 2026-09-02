@@ -106,7 +106,7 @@ export default function AdaptersDocsPage() {
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 const adapter = createHttpAdapter({
@@ -119,9 +119,9 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
 
@@ -156,7 +156,7 @@ const github = createGitHubAdapter({
 export async function POST(request: Request) {
   try {
     const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const result = await github.createIssue(payload);
     return Response.json(result);
   } catch (error) {
     console.error('Feedback error:', error);
@@ -379,13 +379,12 @@ export async function POST(request: Request) {
         <CodeBlock>{`npm install @ewjdev/anyclick-cursor`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Usage</h3>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createCursorAdapter } from '@ewjdev/anyclick-cursor';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
-const cursorAdapter = createCursorAdapter({
-  // Cursor Cloud Agent configuration
-  apiKey: process.env.NEXT_PUBLIC_CURSOR_API_KEY,
-  projectId: 'your-project-id',
+// Browser-side: use HTTP adapter to call your server endpoint
+const adapter = createHttpAdapter({
+  endpoint: '/api/feedback',
 });
 
 // Use with custom menu items
@@ -399,12 +398,12 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider 
-  adapter={cursorAdapter} 
+<AnyclickProvider 
+  adapter={adapter} 
   menuItems={menuItems}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">
           Format for Cursor Agent
@@ -445,7 +444,7 @@ const agentPrompt = formatForCursorAgent(payload);
 npm run feedback-server`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Browser-Side Setup</h3>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
 
 // Only use in development
@@ -459,9 +458,9 @@ const adapter = process.env.NODE_ENV === 'development'
   ? localAdapter 
   : productionAdapter;
 
-<FeedbackProvider adapter={adapter}>
+<AnyclickProvider adapter={adapter}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">
           Server Configuration

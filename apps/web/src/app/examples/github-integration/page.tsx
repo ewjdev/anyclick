@@ -98,7 +98,7 @@ GITHUB_REPO=your-username/your-repository-name`}</CodeBlock>
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-';
 
 const adapter = createHttpAdapter({
@@ -107,7 +107,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={adapter}
       // Enable screenshot capture for GitHub
       screenshotConfig={{
@@ -117,7 +117,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
@@ -192,7 +192,7 @@ const github = createGitHubAdapter({
 export async function POST(request: Request) {
   try {
     const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const result = await github.createIssue(payload);
     
     return Response.json(result);
   } catch (error) {
@@ -374,7 +374,7 @@ const payload: FeedbackPayload = {
       );
     }
     
-    const result = await github.submit(payload);
+    const result = await github.createIssue(payload);
     
     if (!result.success) {
       console.error('GitHub API error:', result.error);

@@ -34,7 +34,7 @@ npm run feedback-server
 ```tsx
 "use client";
 
-import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { createLocalAdapter } from "@ewjdev/anyclick-cursor-local";
 
 const adapter = createLocalAdapter({
@@ -42,7 +42,7 @@ const adapter = createLocalAdapter({
   projectPath: process.cwd(),
 });
 
-<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
+<AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
 ```
 
 ## Features
@@ -135,7 +135,7 @@ npx anyclick-local-server --output .my-feedback
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.ewj.dev/docs/adapters)
+For full documentation, visit [anyclick.dev/docs/adapters](https://anyclick.dev/docs/adapters)
 
 ## Related Packages
 
@@ -145,4 +145,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

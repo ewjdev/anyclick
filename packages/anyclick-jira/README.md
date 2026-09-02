@@ -289,7 +289,7 @@ MIT
 
 ## Links
 
-- [Documentation](https://anyclick.ewj.dev/docs/adapters)
+- [Documentation](https://anyclick.dev/docs/adapters)
 - [GitHub Repository](https://github.com/ewjdev/anyclick)
 - [Report Issues](https://github.com/ewjdev/anyclick/issues)
 

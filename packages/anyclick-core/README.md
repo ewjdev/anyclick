@@ -158,7 +158,7 @@ const client = createAnyclickClient({
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/core](https://anyclick.ewj.dev/docs/core)
+For full documentation, visit [anyclick.dev/docs/core](https://anyclick.dev/docs/core)
 
 ## Related Packages
 
@@ -169,4 +169,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/core](https://anyclick.ewj.
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

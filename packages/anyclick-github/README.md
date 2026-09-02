@@ -60,14 +60,14 @@ const exists = await github.mediaBranchExists();
 ```tsx
 "use client";
 
-import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
 const adapter = createHttpAdapter({
   endpoint: "/api/feedback",
 });
 
-<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
+<AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
 ```
 
 ### Server Side
@@ -88,7 +88,7 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   const payload = await request.json();
-  const result = await github.submit(payload);
+  const result = await github.createIssue(payload);
   return Response.json(result);
 }
 ```
@@ -200,7 +200,7 @@ const github = createGitHubAdapter({
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.ewj.dev/docs/adapters)
+For full documentation, visit [anyclick.dev/docs/adapters](https://anyclick.dev/docs/adapters)
 
 ## Related Packages
 
@@ -209,4 +209,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)
