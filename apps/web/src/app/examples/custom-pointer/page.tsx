@@ -17,6 +17,7 @@ import {
   Target,
 } from "lucide-react";
 import Link from "next/link";
+import { CustomPointerWrapper } from "./CustomPointerWrapper";
 
 // Interactive color picker
 function ColorPicker({
@@ -92,7 +93,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export default function CustomPointerExamplePage() {
+function CustomPointerExamplePageContent() {
   // Get the pointer context to dynamically update the theme
   const { setTheme, theme, setInteractionState } = usePointer();
 
@@ -713,5 +714,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function CustomPointerExamplePage() {
+  return (
+    <CustomPointerWrapper>
+      <CustomPointerExamplePageContent />
+    </CustomPointerWrapper>
   );
 }
