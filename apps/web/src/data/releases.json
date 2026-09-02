@@ -2,7 +2,10 @@
   "releases": [
     {
       "id": "anyclick-1.0.0",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react"
+      ],
       "version": "1.0.0",
       "type": "major",
       "date": "2024-10-15",
@@ -19,7 +22,10 @@
     },
     {
       "id": "anyclick-1.1.0",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react"
+      ],
       "version": "1.1.0",
       "type": "minor",
       "date": "2024-11-01",
@@ -36,7 +42,10 @@
     },
     {
       "id": "anyclick-1.1.1",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react"
+      ],
       "version": "1.1.1",
       "type": "patch",
       "date": "2024-11-05",
@@ -48,7 +57,11 @@
     },
     {
       "id": "anyclick-1.2.0",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react", "@ewjdev/anyclick-pointer"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react",
+        "@ewjdev/anyclick-pointer"
+      ],
       "version": "1.2.0",
       "type": "minor",
       "date": "2024-11-15",
@@ -65,7 +78,10 @@
     },
     {
       "id": "anyclick-1.3.0",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react"
+      ],
       "version": "1.3.0",
       "type": "minor",
       "date": "2024-11-25",
@@ -82,7 +98,14 @@
     },
     {
       "id": "anyclick-1.4.0",
-      "packages": ["@ewjdev/anyclick-core", "@ewjdev/anyclick-react", "@ewjdev/anyclick-pointer", "@ewjdev/anyclick-github", "@ewjdev/anyclick-devtools", "@ewjdev/anyclick-adapters"],
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-react",
+        "@ewjdev/anyclick-pointer",
+        "@ewjdev/anyclick-github",
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-adapters"
+      ],
       "version": "1.4.0",
       "type": "minor",
       "date": "2024-12-01",
@@ -95,11 +118,13 @@
         "Documentation updates"
       ],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-github",
-      "era": "today"
+      "era": "past"
     },
     {
       "id": "anyclick-1.4.1",
-      "packages": ["@ewjdev/anyclick-react"],
+      "packages": [
+        "@ewjdev/anyclick-react"
+      ],
       "version": "1.4.1",
       "type": "patch",
       "date": "2024-12-05",
@@ -107,6 +132,77 @@
       "details": "Added documentation improvements and code cleanup.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-react",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-2.0.0",
+      "packages": [
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-react"
+      ],
+      "version": "2.0.0",
+      "type": "major",
+      "date": "2026-09-02",
+      "summary": "**BREAKING:** Replace `InspectDialog` with `InspectSimple`",
+      "details": "Release of version 2.0.0 with major changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-devtools",
+      "era": "today"
+    },
+    {
+      "id": "anyclick-3.0.0",
+      "packages": [
+        "@ewjdev/anyclick-adapters",
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-github",
+        "@ewjdev/anyclick-pointer",
+        "@ewjdev/anyclick-react"
+      ],
+      "version": "3.0.0",
+      "type": "minor",
+      "date": "2026-09-02",
+      "summary": "Add QuickChat component and presets for inline AI chat in context menu",
+      "details": "Release of version 3.0.0 with minor changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
+      "era": "today"
+    },
+    {
+      "id": "anyclick-4.0.0",
+      "packages": [
+        "@ewjdev/anyclick-adapters",
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-pointer",
+        "@ewjdev/anyclick-react"
+      ],
+      "version": "4.0.0",
+      "type": "major",
+      "date": "2026-09-02",
+      "summary": "Remove GoKartPointer export and GoKartState type from anyclick-pointer package. The GoKartPointer component and GoKartState type are no longer exported. This is a breaking change for any code that imports these exports.",
+      "details": "Release of version 4.0.0 with major changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
+      "era": "today"
+    },
+    {
+      "id": "anyclick-5.1.0",
+      "packages": [
+        "@ewjdev/anyclick-adapters",
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-cursor",
+        "@ewjdev/anyclick-cursor-local",
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-github",
+        "@ewjdev/anyclick-pointer",
+        "@ewjdev/anyclick-react"
+      ],
+      "version": "5.1.0",
+      "type": "minor",
+      "date": "2026-09-02",
+      "summary": "Rebrand from Feedback to Anyclick",
+      "details": "Release of version 5.1.0 with minor changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
       "era": "today"
     }
   ],
@@ -164,24 +260,6 @@
       ]
     }
   ],
-  "currentVersion": "1.4.1",
-  "lastUpdated": "2024-12-05"
+  "currentVersion": "5.1.0",
+  "lastUpdated": "2026-09-02"
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
