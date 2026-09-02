@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Bug,
@@ -17,6 +18,36 @@ export const metadata: Metadata = {
   description:
     "Customized anyclick context menu with branded colors, icons, and role-based items.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { Bug, Cloud, Code, Heart, Lightbulb, Monitor } from 'lucide-react';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+const menuItems: ContextMenuItem[] = [
+  { type: 'bug', label: 'Report Bug', icon: <Bug className="w-4 h-4 text-rose-400" />, showComment: true },
+  { type: 'feature', label: 'Suggest Feature', icon: <Lightbulb className="w-4 h-4 text-amber-400" />, showComment: true },
+  { type: 'like', label: 'Love It!', icon: <Heart className="w-4 h-4 text-pink-400" />, showComment: false },
+  {
+    type: 'dev-tools', label: 'Developer Tools', icon: <Code className="w-4 h-4 text-cyan-400" />,
+    children: [
+      { type: 'dev-local', label: 'Fix locally', icon: <Monitor className="w-4 h-4" />, showComment: true },
+      { type: 'dev-cloud', label: 'Send to cloud agent', icon: <Cloud className="w-4 h-4" />, showComment: true },
+    ],
+  },
+];
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped menuItems={menuItems}>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function CustomMenuExamplePage() {
   return (
@@ -39,43 +70,22 @@ export default function CustomMenuExamplePage() {
         </p>
       </div>
 
-      {/* Demo Area */}
-      <CustomMenuDemo>
-        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Palette className="w-5 h-5 text-cyan-400" />
-            Custom Menu Preview
-          </h2>
-          <p className="text-gray-400 text-sm mb-6">
-            Right-click this area to see a customized feedback menu with icons
-            and custom labels:
-          </p>
-
-          {/* Simulated menu preview */}
-          <div className="inline-block p-2 rounded-xl bg-[#1a1a2e] border border-white/10 shadow-xl">
-            <div className="space-y-1 min-w-[200px]">
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-                <Bug className="w-4 h-4 text-rose-400" />
-                <span className="text-sm">Report Bug</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-                <Lightbulb className="w-4 h-4 text-amber-400" />
-                <span className="text-sm">Suggest Feature</span>
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-                <Heart className="w-4 h-4 text-pink-400" />
-                <span className="text-sm">Love It!</span>
-              </button>
-              <div className="border-t border-white/5 my-1" />
-              <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-                <Code className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm">Developer Tools</span>
-                <ArrowRight className="w-3 h-3 ml-auto text-gray-500" />
-              </button>
-            </div>
+      <ExampleStage
+        id="custom-menu"
+        prompt="Right-click the card."
+        source={source}
+        note="What's different: menuItems. Labels, icons, a submenu, and which items ask for a comment are all yours. Items with children open a second level."
+      >
+        <CustomMenuDemo>
+          <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+            <h3 className="font-medium mb-1">Order #4821</h3>
+            <p className="text-sm text-gray-400">
+              Shipped Tuesday. Right-click anywhere on this card to see the
+              branded menu with icons and a Developer Tools submenu.
+            </p>
           </div>
-        </div>
-      </CustomMenuDemo>
+        </CustomMenuDemo>
+      </ExampleStage>
 
       {/* Custom Icons */}
       <div className="mb-12">

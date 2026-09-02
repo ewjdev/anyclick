@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { SeeItLive } from "@/components/SeeItLive";
 import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -295,6 +296,10 @@ interface AnyclickResult {
       {/* Screenshot Types */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Screenshot Configuration</h2>
+        <SeeItLive
+          href="/examples/sensitive-masking"
+          label="sensitive masking"
+        />
 
         <div className="p-6 rounded-xl bg-white/[0.02] border border-white/5">
           <h3 className="text-lg font-semibold mb-4">ScreenshotConfig</h3>
@@ -341,6 +346,10 @@ interface AnyclickResult {
       {/* Custom Adapters */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Building Custom Adapters</h2>
+        <SeeItLive
+          href="/examples/github-integration"
+          label="GitHub integration"
+        />
         <p className="text-gray-400 mb-4 leading-relaxed">
           You can build custom adapters by implementing the{" "}
           <code className="text-cyan-400">AnyclickAdapter</code> interface:
