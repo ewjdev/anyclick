@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
 import {
   ArrowRight,
   Check,
@@ -38,28 +39,30 @@ export default function GitHubIntegrationPage() {
       </div>
 
       {/* What's included */}
-      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-emerald-400" />
-          What&apos;s Included
-        </h2>
-        <ul className="space-y-3">
-          {[
-            { icon: Check, text: "Automatic issue creation from feedback" },
-            { icon: Image, text: "Screenshot uploads as issue attachments" },
-            { icon: Tag, text: "Dynamic labels based on feedback type" },
-            { icon: ExternalLink, text: "Full DOM context in issue body" },
-          ].map((item, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-3 text-gray-300 text-sm"
-            >
-              <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              {item.text}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <ExampleProvider>
+        <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <GitBranch className="w-5 h-5 text-emerald-400" />
+            What&apos;s Included
+          </h2>
+          <ul className="space-y-3">
+            {[
+              { icon: Check, text: "Automatic issue creation from feedback" },
+              { icon: Image, text: "Screenshot uploads as issue attachments" },
+              { icon: Tag, text: "Dynamic labels based on feedback type" },
+              { icon: ExternalLink, text: "Full DOM context in issue body" },
+            ].map((item, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-3 text-gray-300 text-sm"
+              >
+                <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                {item.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </ExampleProvider>
 
       {/* Prerequisites */}
       <div className="mb-12">

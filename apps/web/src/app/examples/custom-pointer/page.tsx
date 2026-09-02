@@ -1,8 +1,9 @@
 "use client";
 
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
 import { useCallback, useEffect, useState } from "react";
-import { usePointer } from "@ewjdev/anyclick-pointer";
+import { PointerProvider, usePointer } from "@ewjdev/anyclick-pointer";
 import {
   ArrowRight,
   Check,
@@ -93,6 +94,18 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 export default function CustomPointerExamplePage() {
+  // The pointer only renders inside a PointerProvider, and the page needs its
+  // own (scoped) AnyclickProvider so right-click opens a menu here.
+  return (
+    <PointerProvider>
+      <ExampleProvider>
+        <CustomPointerContent />
+      </ExampleProvider>
+    </PointerProvider>
+  );
+}
+
+function CustomPointerContent() {
   // Get the pointer context to dynamically update the theme
   const { setTheme, theme, setInteractionState } = usePointer();
 

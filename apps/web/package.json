@@ -26,6 +26,7 @@
     "@ewjdev/anyclick-devtools": "*",
     "@ewjdev/anyclick-github": "*",
     "@ewjdev/anyclick-jira": "*",
+    "@ewjdev/anyclick-pointer": "*",
     "@ewjdev/anyclick-react": "*",
     "@ewjdev/anyclick-uploadthing": "*",
     "@headlessui/react": "^2.2.8",

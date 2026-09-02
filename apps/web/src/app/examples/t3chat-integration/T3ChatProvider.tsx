@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
 
@@ -24,6 +25,10 @@ export default function T3ChatProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      {/* The chrome preset's "Inspect" item needs this manager. The site-wide
+          one is not mounted under /examples, so mount it here. Remove if the
+          root wrapper is ever un-gated for /examples. */}
+      <InspectDialogManager />
     </AnyclickProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
 import { ArrowRight, FolderOpen, Monitor, Zap } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -31,46 +32,48 @@ export default function CursorLocalPage() {
       </div>
 
       {/* How it works */}
-      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-amber-500/10 to-rose-500/10 border border-amber-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-amber-400" />
-          How It Works
-        </h2>
-        <ol className="space-y-4">
-          <li className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
-              1
-            </span>
-            <span className="text-gray-300">
-              Right-click an element and select &quot;Fix with Cursor&quot;
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
-              2
-            </span>
-            <span className="text-gray-300">
-              Feedback is sent to a local server running on your machine
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
-              3
-            </span>
-            <span className="text-gray-300">
-              Server saves feedback to a file and invokes cursor-agent
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
-              4
-            </span>
-            <span className="text-gray-300">
-              Cursor AI analyzes the context and proposes a fix
-            </span>
-          </li>
-        </ol>
-      </div>
+      <ExampleProvider>
+        <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-amber-500/10 to-rose-500/10 border border-amber-500/20">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-400" />
+            How It Works
+          </h2>
+          <ol className="space-y-4">
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
+                1
+              </span>
+              <span className="text-gray-300">
+                Right-click an element and select &quot;Fix with Cursor&quot;
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
+                2
+              </span>
+              <span className="text-gray-300">
+                Feedback is sent to a local server running on your machine
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
+                3
+              </span>
+              <span className="text-gray-300">
+                Server saves feedback to a file and invokes cursor-agent
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
+                4
+              </span>
+              <span className="text-gray-300">
+                Cursor AI analyzes the context and proposes a fix
+              </span>
+            </li>
+          </ol>
+        </div>
+      </ExampleProvider>
 
       {/* Installation */}
       <div className="mb-12">

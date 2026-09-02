@@ -1,54 +1,31 @@
 "use client";
 
+import { feedbackAdapter } from "@/lib/adapters";
 import type { ReactNode } from "react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
-import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
+import { usePathname } from "next/navigation";
 
-const adapter = createHttpAdapter({
-  endpoint: "/api/feedback",
-});
+/**
+ * Routes that mount their own providers. The site-wide provider must not run
+ * here, otherwise right-click opens the generic developer menu instead of the
+ * page's own customization. One page, one provider.
+ */
+const SELF_PROVIDED_PREFIXES = ["/examples", "/docs"];
 
 export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
-  // Use chrome preset for developer-focused menu with inspect, copy, etc.
+  const pathname = usePathname();
+  // Chrome preset: developer-focused menu with inspect, copy, etc.
   const chromePreset = useMemo(() => createPresetMenu("chrome"), []);
 
-  console.count("AnyclickProviderWrapper");
-
-  // Clean up any stale cursor hiding styles when PointerProvider is not used
-  // This ensures the default cursor is restored if PointerProvider was removed
-  useEffect(() => {
-    // Remove any existing cursor hiding style element
-    const cursorHideStyle = document.getElementById(
-      "anyclick-pointer-cursor-hide",
-    );
-    if (cursorHideStyle) {
-      cursorHideStyle.remove();
-    }
-
-    // Also check periodically for any stale styles (for debugging)
-    const interval = setInterval(() => {
-      const staleStyle = document.getElementById(
-        "anyclick-pointer-cursor-hide",
-      );
-      if (staleStyle) {
-        console.warn(
-          "[AnyclickProviderWrapper] Found stale cursor hiding style, removing it",
-        );
-        staleStyle.remove();
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Option: Use this hook if you want to hide cursor without custom pointer
-  // useHideCursor(true);
+  if (SELF_PROVIDED_PREFIXES.some((p) => pathname?.startsWith(p))) {
+    return <>{children}</>;
+  }
 
   return (
     <AnyclickProvider
-      adapter={adapter}
+      adapter={feedbackAdapter}
       menuItems={chromePreset.menuItems}
       metadata={chromePreset.metadata}
       header={<></>}
@@ -71,38 +48,9 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
       <InspectDialogManager
         ideConfig={{
           protocol: "cursor",
-          basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
+          basePath: process.env.NEXT_PUBLIC_ANYCLICK_IDE_BASE_PATH,
         }}
       />
-      {/* <PointerProvider
-        theme={{
-          colors: {
-            pointerColor: "#3b82f6",
-            circleColor: "rgba(59, 130, 246, 0.4)",
-          },
-          // Semi-transparent fill (30% opacity of pointer color)
-          pointerIcon: (
-            <MousePointer2
-              size={24}
-              strokeWidth={2}
-              fill="rgba(59, 130, 246, 0.3)"
-              stroke="#3b82f6"
-            />
-          ),
-        }}
-        config={{
-          visibility: "always",
-          hideDefaultCursor: true,
-        }}
-      >
-        <InspectDialogManager
-          ideConfig={{
-            protocol: "cursor",
-            basePath: "/Users/ericjohnson/Desktop/projects/anyclick",
-          }}
-        />
-      </PointerProvider> */}
     </AnyclickProvider>
   );
 }
-

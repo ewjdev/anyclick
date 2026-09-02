@@ -18,5 +18,6 @@ module.exports = {
     "@ewjdev/anyclick-cursor-local",
     "@ewjdev/anyclick-github",
     "@ewjdev/anyclick-jira",
+    "@ewjdev/anyclick-pointer",
   ],
 };
