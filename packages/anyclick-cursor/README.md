@@ -17,16 +17,35 @@ npm install @ewjdev/anyclick-cursor
 
 ## Quick Start
 
-```tsx
-import { FeedbackProvider } from "@ewjdev/anyclick-react";
+The Cursor adapter should only be used server-side to keep your API key secure.
+
+**Server-side API route:**
+
+```typescript
+// app/api/feedback/route.ts
 import { createCursorAdapter } from "@ewjdev/anyclick-cursor";
 
-const adapter = createCursorAdapter({
-  apiKey: process.env.NEXT_PUBLIC_CURSOR_API_KEY,
+const cursor = createCursorAdapter({
+  apiKey: process.env.CURSOR_API_KEY, // Server-only, never expose to browser
   projectId: "your-project-id",
 });
 
-<FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
+export async function POST(request: Request) {
+  const payload = await request.json();
+  const result = await cursor.submit(payload);
+  return Response.json(result);
+}
+```
+
+**Browser-side provider:**
+
+```tsx
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+
+const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
+
+<AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
 ```
 
 ## Features
@@ -38,8 +57,9 @@ const adapter = createCursorAdapter({
 ## Configuration
 
 ```typescript
-const adapter = createCursorAdapter({
-  apiKey: process.env.CURSOR_API_KEY,
+// Server-side only
+const cursor = createCursorAdapter({
+  apiKey: process.env.CURSOR_API_KEY, // Keep server-side only
   projectId: "your-project-id",
 
   // Custom prompt formatting
@@ -80,14 +100,14 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+<AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>;
+</AnyclickProvider>;
 ```
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.ewj.dev/docs/adapters)
+For full documentation, visit [anyclick.dev/docs/adapters](https://anyclick.dev/docs/adapters)
 
 ## Related Packages
 
@@ -97,4 +117,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/adapters](https://anyclick.
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

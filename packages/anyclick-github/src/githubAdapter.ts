@@ -65,7 +65,6 @@ export class GitHubAdapter {
     console.log("🔍 Uploading asset to URL:", url);
     console.log(`   Branch: ${this.mediaBranch}`);
     console.log(`   Repo: ${this.owner}/${this.repo}`);
-    console.log(`   Token: ${this.token}`);
 
     const response = await fetch(url, {
       method: "PUT",

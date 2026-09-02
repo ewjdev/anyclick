@@ -428,7 +428,7 @@ export { openInIDE, buildIDEUrl, detectPreferredIDE };
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/react](https://anyclick.ewj.dev/docs/react)
+For full documentation, visit [anyclick.dev/docs/react](https://anyclick.dev/docs/react)
 
 ## Related Packages
 
@@ -439,4 +439,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/react](https://anyclick.ewj
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

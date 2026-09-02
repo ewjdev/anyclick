@@ -22,7 +22,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-protocol"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/protocol",
+  "homepage": "https://anyclick.dev/docs/protocol",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },

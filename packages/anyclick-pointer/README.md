@@ -273,12 +273,12 @@ export default function RootLayout({ children }) {
 }
 ```
 
-## Integration with FeedbackProvider
+## Integration with AnyclickProvider
 
 Use alongside `@ewjdev/anyclick-react` for a complete feedback experience:
 
 ```tsx
-import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
@@ -286,7 +286,7 @@ const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 
 function App() {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       <PointerProvider
         theme={{
           colors: {
@@ -301,7 +301,7 @@ function App() {
       >
         <YourApp />
       </PointerProvider>
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }
 ```

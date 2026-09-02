@@ -22,7 +22,7 @@ Right-click any element in your app to capture feedback with full DOM context, s
 ### Installation
 
 ```bash
-yarn install @ewjdev/anyclick-react @ewjdev/anyclick-github
+yarn add @ewjdev/anyclick-react @ewjdev/anyclick-github
 ```
 
 ### Usage
@@ -43,7 +43,7 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   const payload = await request.json();
-  const result = await github.submit(payload);
+  const result = await github.createIssue(payload);
   return Response.json(result);
 }
 ```
@@ -53,13 +53,13 @@ export async function POST(request: Request) {
 ```tsx
 "use client";
 
-import { FeedbackProvider } from "@ewjdev/anyclick-react";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <FeedbackProvider adapter={adapter}>{children}</FeedbackProvider>;
+  return <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
 }
 ```
 
@@ -79,13 +79,13 @@ That's it! Users can now right-click any element to submit feedback.
 
 ## Documentation
 
-Visit [anyclick.ewj.dev](https://anyclick.ewj.dev) for full documentation:
+Visit [anyclick.dev](https://anyclick.dev) for full documentation:
 
-- [Getting Started](https://anyclick.ewj.dev/docs/getting-started)
-- [Core Library](https://anyclick.ewj.dev/docs/core)
-- [React Provider](https://anyclick.ewj.dev/docs/react)
-- [Adapters](https://anyclick.ewj.dev/docs/adapters)
-- [Examples](https://anyclick.ewj.dev/examples)
+- [Getting Started](https://anyclick.dev/docs/getting-started)
+- [Core Library](https://anyclick.dev/docs/core)
+- [React Provider](https://anyclick.dev/docs/react)
+- [Adapters](https://anyclick.dev/docs/adapters)
+- [Examples](https://anyclick.dev/examples)
 
 ## Development
 
@@ -112,4 +112,4 @@ We welcome contributions! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for gu
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)
