@@ -42,7 +42,9 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react",
     "clean": "rimraf dist",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch"
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --external react --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@ewjdev/anyclick-core": "^5.1.0",
@@ -54,11 +56,18 @@
     "react-dom": ">=19.2.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
+    "jsdom": "^26.0.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
     "tsup": "^8.3.5",
     "typescript": "5.8.3",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "vitest": "^3.0.5"
   },
   "engines": {
     "node": ">=18.18.0"
