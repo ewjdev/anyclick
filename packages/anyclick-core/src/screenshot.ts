@@ -2,21 +2,20 @@
  * Screenshot capture utilities using html-to-image
  * Supports element, container, and viewport captures with sensitive element masking
  */
-
 import * as htmlToImage from "html-to-image";
-import type {
-  ScreenshotCapture,
-  ScreenshotData,
-  ScreenshotConfig,
-  ScreenshotCaptureMode,
-  ScreenshotResult,
-  ScreenshotError,
-} from "./types";
-import { DEFAULT_SENSITIVE_SELECTORS } from "./types";
 import {
   ELEMENT_CANNOT_BE_CAPTURED_ERROR,
   SCREENSHOT_TIMEOUT_ERROR,
 } from "./errors";
+import type {
+  ScreenshotCapture,
+  ScreenshotCaptureMode,
+  ScreenshotConfig,
+  ScreenshotData,
+  ScreenshotError,
+  ScreenshotResult,
+} from "./types";
+import { DEFAULT_SENSITIVE_SELECTORS } from "./types";
 
 /**
  * Default screenshot configuration
@@ -30,6 +29,113 @@ export const DEFAULT_SCREENSHOT_CONFIG: Required<ScreenshotConfig> = {
   maskColor: "#1a1a1a",
   showPreview: true,
 };
+
+/**
+ * Parse a CSS color string and determine if it's transparent or semi-transparent.
+ * Returns the color if it's opaque enough to use as a background, otherwise null.
+ */
+function parseOpaqueColor(colorStr: string): string | null {
+  if (!colorStr || colorStr === "transparent") {
+    return null;
+  }
+
+  // Handle rgba/rgb colors
+  const rgbaMatch = colorStr.match(
+    /rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/i,
+  );
+  if (rgbaMatch) {
+    const alpha = rgbaMatch[4] !== undefined ? parseFloat(rgbaMatch[4]) : 1;
+    // Consider colors with alpha >= 0.5 as "opaque enough" to use
+    if (alpha >= 0.5) {
+      const r = parseInt(rgbaMatch[1], 10);
+      const g = parseInt(rgbaMatch[2], 10);
+      const b = parseInt(rgbaMatch[3], 10);
+      // Return as rgb (html-to-image handles rgb well)
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+    return null;
+  }
+
+  // Handle hex colors (always opaque)
+  if (colorStr.startsWith("#")) {
+    return colorStr;
+  }
+
+  // Handle named colors (always opaque)
+  if (/^[a-z]+$/i.test(colorStr) && colorStr !== "transparent") {
+    return colorStr;
+  }
+
+  return null;
+}
+
+/**
+ * Check if an element has a background image (including gradients).
+ * Returns true if the element has a non-none background-image.
+ */
+function hasBackgroundImage(style: CSSStyleDeclaration): boolean {
+  const bgImage = style.backgroundImage;
+  return bgImage !== "none" && bgImage !== "";
+}
+
+/**
+ * Resolve the effective background color by walking up the ancestor tree.
+ * This finds the first ancestor (or the element itself) with a solid background color,
+ * or falls back to white if no background is found.
+ *
+ * @param element - The element to start from
+ * @returns The resolved background color string
+ */
+function resolveEffectiveBackground(element: HTMLElement): string {
+  let current: HTMLElement | null = element;
+  const MAX_ANCESTORS = 50; // Prevent infinite loops
+  let depth = 0;
+
+  while (current && depth < MAX_ANCESTORS) {
+    const style = window.getComputedStyle(current);
+    const bgColor = style.backgroundColor;
+
+    // Check for a solid (opaque) background color
+    const opaqueColor = parseOpaqueColor(bgColor);
+    if (opaqueColor) {
+      return opaqueColor;
+    }
+
+    // If element has a background-image (gradient), we can't easily extract a color,
+    // but we should still continue looking for a solid color behind it
+    // unless the background-image covers the whole element
+    if (hasBackgroundImage(style)) {
+      // Check if there's also a solid fallback color
+      // In CSS, background-color renders behind background-image
+      // So we continue looking up the tree for a solid color
+    }
+
+    // Move to parent
+    current = current.parentElement;
+    depth++;
+  }
+
+  // Check document body as final fallback
+  if (document.body) {
+    const bodyStyle = window.getComputedStyle(document.body);
+    const bodyColor = parseOpaqueColor(bodyStyle.backgroundColor);
+    if (bodyColor) {
+      return bodyColor;
+    }
+  }
+
+  // Check html element
+  if (document.documentElement) {
+    const htmlStyle = window.getComputedStyle(document.documentElement);
+    const htmlColor = parseOpaqueColor(htmlStyle.backgroundColor);
+    if (htmlColor) {
+      return htmlColor;
+    }
+  }
+
+  // Ultimate fallback: white (matches browser default)
+  return "#ffffff";
+}
 
 /**
  * Check if screenshot capture is supported in the current browser
@@ -135,16 +241,38 @@ async function captureNode(
     width?: number;
     height?: number;
     style?: Partial<CSSStyleDeclaration>;
+    isViewport?: boolean;
   } = {},
 ): Promise<ScreenshotResult> {
   try {
+    // Resolve the effective background color from ancestor elements
+    // For viewport captures, use the body's background; for element captures,
+    // walk up from the element to find the first solid background
+    const backgroundColor = options.isViewport
+      ? resolveEffectiveBackground(document.body)
+      : resolveEffectiveBackground(node);
+
+    // html-to-image copies the node's computed styles onto the root clone. A
+    // centered element therefore carries its resolved auto margins (for
+    // example, margin-left: 132px) into a canvas that is only as wide as the
+    // element itself, shifting the clone and clipping its right edge. Margins
+    // live outside the captured border box, so remove them from standalone
+    // element/container renders while preserving the viewport overrides.
+    const rootStyle: Partial<CSSStyleDeclaration> | undefined =
+      options.isViewport
+        ? options.style
+        : {
+            ...options.style,
+            margin: "0",
+          };
+
     // Prepare options for html-to-image
     const imageOptions: any = {
       quality: config.quality,
-      backgroundColor: "#ffffff",
+      backgroundColor,
       width: options.width,
       height: options.height,
-      style: options.style,
+      style: rootStyle,
       filter: createFilter(config.sensitiveSelectors),
       skipAutoScale: true,
       // Inject masking styles
@@ -266,6 +394,7 @@ export async function captureScreenshot(
           height: "100vh",
           overflow: "hidden",
         },
+        isViewport: true,
       });
     } else {
       const elementToCapture =
