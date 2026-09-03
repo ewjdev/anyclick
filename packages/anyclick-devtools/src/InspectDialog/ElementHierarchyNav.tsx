@@ -113,9 +113,16 @@ function isProviderBoundary(element: Element | null): boolean {
 /**
  * Dedicated data attributes for Anyclick-owned UI elements.
  * These markers identify actual inspector/tool UI that should never be inspectable.
+ *
+ * - `data-anyclick-ui`: General marker used by ContextMenu, QuickChat, and other UI.
+ *   Defined in anyclick-core as ANYCLICK_UI_ATTRIBUTE for screenshot exclusion.
+ * - Component-specific markers for finer-grained identification.
+ *
  * NOTE: Do NOT use highlight classes here - they are applied to legitimate page elements.
+ * NOTE: Do NOT add `data-anyclick-root` - it wraps application content that should be inspectable.
  */
 const ANYCLICK_UI_MARKERS = [
+  "data-anyclick-ui",
   "data-anyclick-inspector",
   "data-anyclick-menu",
   "data-anyclick-pointer",

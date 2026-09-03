@@ -105,6 +105,33 @@ describe("ElementHierarchyNav utilities", () => {
       expect(isAnyclickOwnedUI(div)).toBe(true);
     });
 
+    it("returns true for elements with data-anyclick-ui (ContextMenu/QuickChat marker)", () => {
+      const menu = document.createElement("div");
+      menu.setAttribute("data-anyclick-ui", "");
+      menu.setAttribute("role", "menu");
+      container.appendChild(menu);
+      expect(isAnyclickOwnedUI(menu)).toBe(true);
+    });
+
+    it("returns true for descendants of data-anyclick-ui (visible menu regression)", () => {
+      const menuRoot = document.createElement("div");
+      menuRoot.setAttribute("data-anyclick-ui", "");
+      menuRoot.setAttribute("aria-label", "Feedback options");
+      menuRoot.setAttribute("role", "menu");
+
+      const menuItem = document.createElement("button");
+      menuItem.setAttribute("role", "menuitem");
+      menuItem.textContent = "Submit Feedback";
+
+      menuRoot.appendChild(menuItem);
+      container.appendChild(menuRoot);
+
+      expect(isAnyclickOwnedUI(menuRoot)).toBe(true);
+      expect(isAnyclickOwnedUI(menuItem)).toBe(true);
+      expect(isBlacklisted(menuRoot)).toBe(true);
+      expect(isBlacklisted(menuItem)).toBe(true);
+    });
+
     it("returns true for descendants of Anyclick-owned UI", () => {
       const inspector = document.createElement("div");
       inspector.setAttribute("data-anyclick-inspector", "");
