@@ -41,6 +41,7 @@ const styles: Record<string, React.CSSProperties> = {
   lineDisabled: {
     opacity: 0.6,
     fontStyle: "italic",
+    cursor: "not-allowed",
   },
   tag: {
     color: "#569cd6",
@@ -110,20 +111,61 @@ function isProviderBoundary(element: Element | null): boolean {
 }
 
 /**
- * Check if element is blacklisted (can show in hierarchy but details are hidden)
- * Exported so InspectDialog can use it to conditionally hide details
+ * Dedicated data attributes for Anyclick-owned UI elements.
+ * These markers identify actual inspector/tool UI that should never be inspectable.
+ *
+ * - `data-anyclick-ui`: General marker used by ContextMenu, QuickChat, and other UI.
+ *   Defined in anyclick-core as ANYCLICK_UI_ATTRIBUTE for screenshot exclusion.
+ * - Component-specific markers for finer-grained identification.
+ *
+ * NOTE: Do NOT use highlight classes here - they are applied to legitimate page elements.
+ * NOTE: Do NOT add `data-anyclick-root` - it wraps application content that should be inspectable.
+ */
+const ANYCLICK_UI_MARKERS = [
+  "data-anyclick-ui",
+  "data-anyclick-inspector",
+  "data-anyclick-menu",
+  "data-anyclick-pointer",
+  "data-anyclick-toast",
+  "data-anyclick-overlay",
+] as const;
+
+/**
+ * Check if an element is part of the Anyclick-owned UI (inspector, menu, etc.).
+ * These elements should never be selectable as inspection targets.
+ *
+ * NOTE: We intentionally do NOT check for highlight classes here.
+ * `anyclick-highlight-target` and `anyclick-highlight-container` are temporary
+ * styling classes applied to legitimate page elements during inspection.
+ */
+export function isAnyclickOwnedUI(element: Element): boolean {
+  let current: Element | null = element;
+  while (current) {
+    for (const marker of ANYCLICK_UI_MARKERS) {
+      if (current.hasAttribute(marker)) return true;
+    }
+    current = current.parentElement;
+  }
+  return false;
+}
+
+/**
+ * Check if element is a structural/unsupported element (can show in hierarchy but details are hidden).
+ * These elements are not inspectable due to their nature (e.g., `<br>`, SVG elements).
+ * Exported so InspectDialog can use it to conditionally hide details.
+ */
+export function isStructuralElement(element: Element): boolean {
+  const tagName = element.tagName.toLowerCase();
+  return BLACKLISTED_TAGS.has(tagName);
+}
+
+/**
+ * Check if element is blacklisted (can show in hierarchy but details are hidden).
+ * An element is blacklisted if it's either a structural element or Anyclick-owned UI.
+ * Exported so InspectDialog can use it to conditionally hide details.
  */
 export function isBlacklisted(element: Element): boolean {
-  const tagName = element.tagName.toLowerCase();
-  if (BLACKLISTED_TAGS.has(tagName)) return true;
-
-  // Our own UI elements - only check the element itself, not ancestors
-  if (element.classList.contains("anyclick-highlight-target")) return true;
-  if (element.classList.contains("anyclick-highlight-container")) {
-    return true;
-  }
-
-  return false;
+  return isStructuralElement(element) || isAnyclickOwnedUI(element);
 }
 
 /**
@@ -228,13 +270,15 @@ function HierarchyLine({
     ...styles.line,
     paddingLeft: `${8 + indentPx}px`,
     ...(isCurrent ? styles.lineCurrent : {}),
-    ...(isHovered && !isCurrent ? styles.lineHover : {}),
+    ...(isHovered && !isCurrent && !blacklisted ? styles.lineHover : {}),
     ...(blacklisted ? styles.lineDisabled : {}),
   };
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelect();
+    if (!blacklisted) {
+      onSelect();
+    }
   };
 
   // Generate inspect command for console
@@ -252,8 +296,8 @@ function HierarchyLine({
         gap: "8px",
       }}
       onClick={handleClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
+      onMouseEnter={blacklisted ? undefined : onMouseEnter}
+      onMouseLeave={blacklisted ? undefined : onMouseLeave}
     >
       <div
         style={{
@@ -401,6 +445,7 @@ function ElementHierarchyNav({
 
   const handleMouseEnter = useCallback(
     (element: Element) => {
+      if (isBlacklisted(element)) return;
       setHoveredElement(element);
       highlightTarget(element, highlightColors);
     },
@@ -415,6 +460,7 @@ function ElementHierarchyNav({
 
   const handleSelect = useCallback(
     (element: Element) => {
+      if (isBlacklisted(element)) return;
       clearHighlights();
       onSelectElement?.(element);
     },
