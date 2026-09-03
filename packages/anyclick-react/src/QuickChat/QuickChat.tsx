@@ -312,7 +312,7 @@ export function QuickChat({
       };
 
   return (
-    <div className={className} style={containerStyles}>
+    <div className={className} data-anyclick-ui="" style={containerStyles}>
       {/* Header with context badge */}
       <div
         style={{

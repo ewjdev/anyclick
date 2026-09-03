@@ -727,6 +727,7 @@ export function ContextMenu({
       {showMenu && (
         <div
           ref={menuRef}
+          data-anyclick-ui=""
           aria-label="Feedback options"
           className={className}
           role="menu"
