@@ -1,4 +1,4 @@
 interface:
   display_name: "AnyClick Release"
   short_description: "Cut documented, correctly versioned releases"
-  default_prompt: "Use $anyclick-release to prepare and cut the next AnyClick release with complete documentation and SemVer verification."
+  default_prompt: "Use $anyclick-release to audit or prepare the next AnyClick release with complete documentation and SemVer verification. Cut, merge, or publish only when I explicitly request it."

@@ -83,8 +83,10 @@ generate package versions, internal dependency updates, and changelog sections.
 
 ## Prepare the release PR
 
-1. Land every authorized candidate change, its docs, and its changeset on
-   `main`; leave unrelated or unfinished work out.
+1. Confirm every candidate change, its docs, and its changeset is already merged
+   to `main`. If any candidate work remains in an open feature PR, stop and
+   report what must be merged first—do not merge feature PRs during release
+   preparation.
 2. Wait for the Release workflow to create or update `chore: release packages`.
    Reuse that PR instead of creating a competing version PR.
 3. Review the generated package versions, changelogs, dependency ranges, and
@@ -113,7 +115,8 @@ For an explicitly requested Cut:
    the intended dist-tag. Verify the corresponding Git tags.
 4. Verify `apps/web/src/data/releases.json` on `main` and the deployed roadmap
    or release surface. Confirm its features and documentation match what npm
-   contains.
+   contains. Confirm only the newest published release has `today` status and
+   that `currentVersion` and `lastUpdated` match that release.
 5. Confirm the release PR is merged, no expected package is missing, and the
    release workspace is clean.
 
@@ -133,5 +136,6 @@ exact unpublished package set.
 ## Report the release
 
 Return the release version, published packages, included features/fixes,
-documentation delivered, release PR and workflow evidence, npm and tag
-readback, live docs verification, and any intentionally deferred work.
+documentation delivered, release PR URL with final head SHA and green checks,
+merge commit, npm and tag readback, live docs verification, and any
+intentionally deferred work.
