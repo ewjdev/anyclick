@@ -309,6 +309,10 @@ async function renderNode(node: HTMLElement): Promise<HTMLCanvasElement> {
       htmlToImage.toCanvas(node, {
         ...baseRenderOptions(),
         backgroundColor: resolveBackdropColor(node),
+        // html-to-image copies the root node's computed margins into the
+        // standalone canvas. Reset them so centered elements are not shifted
+        // and clipped inside a canvas sized to their border box.
+        style: { margin: "0" },
       }),
       CAPTURE_TIMEOUT_MS,
       SCREENSHOT_TIMEOUT_ERROR.message,
