@@ -2,21 +2,20 @@
  * Screenshot capture utilities using html-to-image
  * Supports element, container, and viewport captures with sensitive element masking
  */
-
 import * as htmlToImage from "html-to-image";
-import type {
-  ScreenshotCapture,
-  ScreenshotData,
-  ScreenshotConfig,
-  ScreenshotCaptureMode,
-  ScreenshotResult,
-  ScreenshotError,
-} from "./types";
-import { DEFAULT_SENSITIVE_SELECTORS } from "./types";
 import {
   ELEMENT_CANNOT_BE_CAPTURED_ERROR,
   SCREENSHOT_TIMEOUT_ERROR,
 } from "./errors";
+import type {
+  ScreenshotCapture,
+  ScreenshotCaptureMode,
+  ScreenshotConfig,
+  ScreenshotData,
+  ScreenshotError,
+  ScreenshotResult,
+} from "./types";
+import { DEFAULT_SENSITIVE_SELECTORS } from "./types";
 
 /**
  * Default screenshot configuration
@@ -253,13 +252,27 @@ async function captureNode(
       ? resolveEffectiveBackground(document.body)
       : resolveEffectiveBackground(node);
 
+    // html-to-image copies the node's computed styles onto the root clone. A
+    // centered element therefore carries its resolved auto margins (for
+    // example, margin-left: 132px) into a canvas that is only as wide as the
+    // element itself, shifting the clone and clipping its right edge. Margins
+    // live outside the captured border box, so remove them from standalone
+    // element/container renders while preserving the viewport overrides.
+    const rootStyle: Partial<CSSStyleDeclaration> | undefined =
+      options.isViewport
+        ? options.style
+        : {
+            ...options.style,
+            margin: "0",
+          };
+
     // Prepare options for html-to-image
     const imageOptions: any = {
       quality: config.quality,
       backgroundColor,
       width: options.width,
       height: options.height,
-      style: options.style,
+      style: rootStyle,
       filter: createFilter(config.sensitiveSelectors),
       skipAutoScale: true,
       // Inject masking styles
