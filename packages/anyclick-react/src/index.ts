@@ -58,7 +58,6 @@ export { ContextMenu } from "./ContextMenu";
  */
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
-
 // ============================================================================
 // Context and Hooks
 // ============================================================================
@@ -81,7 +80,6 @@ export { AnyclickContext } from "./context";
  * ```
  */
 export { useAnyclick } from "./context";
-
 
 // ============================================================================
 // Store (Advanced Use Cases)
@@ -281,6 +279,10 @@ export {
   formatBytes,
   /** Estimates total size of screenshot data */
   estimateTotalSize,
+  /** Resolves the composited background color behind an element */
+  resolveBackdropColor,
+  /** Attribute marking Anyclick UI that is excluded from captures */
+  ANYCLICK_UI_ATTRIBUTE,
   /** Default screenshot configuration */
   DEFAULT_SCREENSHOT_CONFIG,
   /** Default sensitive element selectors */
