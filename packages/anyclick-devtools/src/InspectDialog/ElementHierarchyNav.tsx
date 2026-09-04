@@ -1,11 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CopyButton from "../CopyButton";
 import { clearHighlights, highlightTarget } from "../highlight";
 import { HighlightColors } from "../types";
 
-/**
- * Styles for ElementHierarchyNav
- */
 const styles: Record<string, React.CSSProperties> = {
   container: {
     padding: "8px 8px",
@@ -36,7 +33,6 @@ const styles: Record<string, React.CSSProperties> = {
   lineCurrent: {
     backgroundColor: "rgba(86, 156, 214, 0.15)",
     borderLeft: "2px solid #569cd6",
-    // paddingLeft: "2px",
   },
   lineDisabled: {
     opacity: 0.6,
@@ -71,9 +67,112 @@ const styles: Record<string, React.CSSProperties> = {
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
+  relationLabel: {
+    fontSize: "9px",
+    color: "#666",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+    marginRight: "6px",
+    minWidth: "50px",
+    flexShrink: 0,
+  },
+  ellipsisButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "2px 8px",
+    margin: "1px 0 1px 8px",
+    backgroundColor: "transparent",
+    border: "1px dashed #444",
+    borderRadius: "3px",
+    cursor: "pointer",
+    color: "#888",
+    fontSize: "14px",
+    fontWeight: "bold",
+    letterSpacing: "2px",
+    transition: "all 0.15s ease",
+    minHeight: "24px",
+    maxHeight: "24px",
+  },
+  ellipsisButtonHover: {
+    backgroundColor: "rgba(86, 156, 214, 0.15)",
+    borderColor: "#569cd6",
+    color: "#569cd6",
+  },
+  ancestorChooser: {
+    position: "absolute" as const,
+    top: "100%",
+    left: "8px",
+    right: "8px",
+    zIndex: 1000,
+    backgroundColor: "#252525",
+    border: "1px solid #444",
+    borderRadius: "6px",
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+    maxHeight: "200px",
+    overflowY: "auto" as const,
+    marginTop: "4px",
+  },
+  ancestorChooserHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "6px 10px",
+    borderBottom: "1px solid #333",
+    backgroundColor: "#1e1e1e",
+    fontSize: "10px",
+    color: "#888",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  ancestorChooserClose: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "16px",
+    height: "16px",
+    border: "none",
+    backgroundColor: "transparent",
+    color: "#888",
+    cursor: "pointer",
+    fontSize: "14px",
+    padding: 0,
+    borderRadius: "3px",
+  },
+  ancestorList: {
+    padding: "4px 0",
+  },
+  ancestorItem: {
+    display: "flex",
+    alignItems: "center",
+    padding: "4px 10px",
+    cursor: "pointer",
+    transition: "background-color 0.15s ease",
+    fontSize: "12px",
+    borderLeft: "2px solid transparent",
+  },
+  ancestorItemHover: {
+    backgroundColor: "rgba(86, 156, 214, 0.15)",
+    borderLeftColor: "#569cd6",
+  },
+  ancestorItemDisabled: {
+    opacity: 0.5,
+    cursor: "not-allowed",
+    fontStyle: "italic",
+  },
+  ancestorItemFocused: {
+    backgroundColor: "rgba(86, 156, 214, 0.25)",
+    outline: "1px solid #569cd6",
+    outlineOffset: "-1px",
+  },
+  depthIndicator: {
+    fontSize: "8px",
+    color: "#666",
+    marginLeft: "auto",
+    paddingLeft: "8px",
+  },
 };
 
-// Elements that should not be selectable but can be shown in hierarchy
 const BLACKLISTED_TAGS = new Set([
   "br",
   "svg",
@@ -98,9 +197,6 @@ const BLACKLISTED_TAGS = new Set([
   "next-route-announcer",
 ]);
 
-/**
- * Check if element is at the AnyclickProvider boundary
- */
 function isProviderBoundary(element: Element | null): boolean {
   if (!element) return true;
   if (element.hasAttribute("data-anyclick-provider")) return true;
@@ -110,17 +206,6 @@ function isProviderBoundary(element: Element | null): boolean {
   return false;
 }
 
-/**
- * Dedicated data attributes for Anyclick-owned UI elements.
- * These markers identify actual inspector/tool UI that should never be inspectable.
- *
- * - `data-anyclick-ui`: General marker used by ContextMenu, QuickChat, and other UI.
- *   Defined in anyclick-core as ANYCLICK_UI_ATTRIBUTE for screenshot exclusion.
- * - Component-specific markers for finer-grained identification.
- *
- * NOTE: Do NOT use highlight classes here - they are applied to legitimate page elements.
- * NOTE: Do NOT add `data-anyclick-root` - it wraps application content that should be inspectable.
- */
 const ANYCLICK_UI_MARKERS = [
   "data-anyclick-ui",
   "data-anyclick-inspector",
@@ -130,14 +215,6 @@ const ANYCLICK_UI_MARKERS = [
   "data-anyclick-overlay",
 ] as const;
 
-/**
- * Check if an element is part of the Anyclick-owned UI (inspector, menu, etc.).
- * These elements should never be selectable as inspection targets.
- *
- * NOTE: We intentionally do NOT check for highlight classes here.
- * `anyclick-highlight-target` and `anyclick-highlight-container` are temporary
- * styling classes applied to legitimate page elements during inspection.
- */
 export function isAnyclickOwnedUI(element: Element): boolean {
   let current: Element | null = element;
   while (current) {
@@ -149,104 +226,345 @@ export function isAnyclickOwnedUI(element: Element): boolean {
   return false;
 }
 
-/**
- * Check if element is a structural/unsupported element (can show in hierarchy but details are hidden).
- * These elements are not inspectable due to their nature (e.g., `<br>`, SVG elements).
- * Exported so InspectDialog can use it to conditionally hide details.
- */
 export function isStructuralElement(element: Element): boolean {
   const tagName = element.tagName.toLowerCase();
   return BLACKLISTED_TAGS.has(tagName);
 }
 
-/**
- * Check if element is blacklisted (can show in hierarchy but details are hidden).
- * An element is blacklisted if it's either a structural element or Anyclick-owned UI.
- * Exported so InspectDialog can use it to conditionally hide details.
- */
 export function isBlacklisted(element: Element): boolean {
   return isStructuralElement(element) || isAnyclickOwnedUI(element);
 }
 
-/**
- * Check if element should be completely hidden from hierarchy
- */
 function shouldHideElement(element: Element): boolean {
-  // Hide zero-size elements
+  // Check computed style first - if display:none or visibility:hidden, definitely hide
+  if (typeof window !== 'undefined' && window.getComputedStyle) {
+    try {
+      const style = window.getComputedStyle(element);
+      if (style.display === 'none') return true;
+      if (style.visibility === 'hidden') return true;
+    } catch {
+      // Ignore errors from getComputedStyle
+    }
+  }
+  
+  // Check bounding rect - but be lenient
+  // Only hide if truly zero-size AND has no text content
   const rect = element.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) return true;
-
+  if (rect.width === 0 && rect.height === 0) {
+    // Check if element has any text content - if so, it might still be valid
+    // (e.g., display:contents elements or inline elements not yet laid out)
+    const hasTextContent = element.textContent && element.textContent.trim().length > 0;
+    if (!hasTextContent) {
+      return true;
+    }
+  }
+  
   return false;
 }
 
 /**
- * Get element info for display
+ * Check if an element is eligible for navigation in the hierarchy.
+ * An element is eligible if it's not hidden and not blacklisted.
+ * @param element - The element to check
+ * @returns True if the element can be navigated to
  */
+export function isEligibleForNavigation(element: Element): boolean {
+  if (shouldHideElement(element)) return false;
+  if (isBlacklisted(element)) return false;
+  return true;
+}
+
 function getElementInfo(element: Element) {
   const tagName = element.tagName.toLowerCase();
   const id = element.id || null;
   const classNames = Array.from(element.classList);
-
   return { tagName, id, classNames };
 }
 
 /**
- * Calculate indentation level by counting parents up to boundary
- * Returns both the actual level and a capped display level
+ * Find the nearest eligible parent element in the DOM hierarchy.
+ * Traverses upward through the DOM tree, stopping at provider boundaries.
+ * @param element - The element whose parent to find
+ * @returns The first eligible parent element, or null if none found
  */
-function getIndentLevel(
-  element: Element,
-  targetElement: Element,
-): {
-  actualLevel: number;
-  displayLevel: number;
-} {
-  let level = 0;
-  let current: Element | null = targetElement;
-
-  while (current && current !== element) {
-    current = current.parentElement;
-    if (current && !isProviderBoundary(current)) {
-      level++;
+export function findEligibleParent(
+  element: Element
+): Element | null {
+  let current = element.parentElement;
+  while (current && !isProviderBoundary(current)) {
+    if (isEligibleForNavigation(current)) {
+      return current;
     }
+    current = current.parentElement;
   }
-
-  // Cap display level at 3 to prevent excessive indentation
-  const MAX_DISPLAY_LEVEL = 3;
-  return {
-    actualLevel: level,
-    displayLevel: Math.min(level, MAX_DISPLAY_LEVEL),
-  };
+  return null;
 }
 
 /**
- * Render an ellipsis line to indicate skipped levels
+ * Find the nearest eligible previous sibling element.
+ * Traverses backward through siblings until an eligible element is found.
+ * @param element - The element whose previous sibling to find
+ * @returns The first eligible previous sibling, or null if none found
  */
-function EllipsisLine({ displayLevel }: { displayLevel: number }) {
-  const indentPx = displayLevel * 16;
+export function findEligiblePrevSibling(
+  element: Element
+): Element | null {
+  let sibling = element.previousElementSibling;
+  while (sibling) {
+    if (isEligibleForNavigation(sibling)) {
+      return sibling;
+    }
+    sibling = sibling.previousElementSibling;
+  }
+  return null;
+}
+
+/**
+ * Find the nearest eligible next sibling element.
+ * Traverses forward through siblings until an eligible element is found.
+ * @param element - The element whose next sibling to find
+ * @returns The first eligible next sibling, or null if none found
+ */
+export function findEligibleNextSibling(
+  element: Element
+): Element | null {
+  let sibling = element.nextElementSibling;
+  while (sibling) {
+    if (isEligibleForNavigation(sibling)) {
+      return sibling;
+    }
+    sibling = sibling.nextElementSibling;
+  }
+  return null;
+}
+
+/**
+ * Find the first eligible child element.
+ * Traverses through children until an eligible element is found.
+ * @param element - The element whose first child to find
+ * @returns The first eligible child element, or null if none found
+ */
+export function findEligibleFirstChild(
+  element: Element
+): Element | null {
+  let child = element.firstElementChild;
+  while (child) {
+    if (isEligibleForNavigation(child)) {
+      return child;
+    }
+    child = child.nextElementSibling;
+  }
+  return null;
+}
+
+/**
+ * Find all ancestor elements between the parent and provider boundary.
+ * These are ancestors not directly shown in the compact navigation view.
+ * @param element - The current element
+ * @param parentElement - The immediate eligible parent element
+ * @returns Array of all ancestor elements above the parent, up to the provider boundary
+ */
+export function findOmittedAncestors(
+  element: Element,
+  parentElement: Element | null
+): Element[] {
+  if (!parentElement) {
+    return [];
+  }
+
+  const ancestors: Element[] = [];
+  let current = parentElement.parentElement;
+
+  while (current && !isProviderBoundary(current)) {
+    if (isEligibleForNavigation(current)) {
+      ancestors.push(current);
+    }
+    current = current.parentElement;
+  }
+
+  return ancestors;
+}
+
+/**
+ * Dropdown component that displays omitted ancestor elements for selection.
+ * Provides keyboard navigation (Arrow keys, Enter, Escape) and hover highlighting.
+ * @param ancestors - Array of ancestor elements to display
+ * @param onSelect - Callback when an ancestor is selected
+ * @param onClose - Callback when the chooser should be closed
+ * @param onMouseEnter - Callback when hovering over an ancestor
+ * @param onMouseLeave - Callback when leaving hover over an ancestor
+ * @param highlightColors - Optional colors for highlighting elements
+ */
+function AncestorChooser({
+  ancestors,
+  onSelect,
+  onClose,
+  onMouseEnter,
+  onMouseLeave,
+  highlightColors,
+}: {
+  ancestors: Element[];
+  onSelect: (element: Element) => void;
+  onClose: () => void;
+  onMouseEnter: (element: Element) => void;
+  onMouseLeave: () => void;
+  highlightColors?: HighlightColors;
+}) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number>(0);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "Escape": {
+          e.preventDefault();
+          e.stopPropagation();
+          onClose();
+          break;
+        }
+        case "ArrowDown": {
+          e.preventDefault();
+          setFocusedIndex((prev) => {
+            const next = prev + 1;
+            return next >= ancestors.length ? 0 : next;
+          });
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          setFocusedIndex((prev) => {
+            const next = prev - 1;
+            return next < 0 ? ancestors.length - 1 : next;
+          });
+          break;
+        }
+        case "Enter":
+        case " ": {
+          e.preventDefault();
+          const focusedAncestor = ancestors[focusedIndex];
+          if (focusedAncestor && isEligibleForNavigation(focusedAncestor)) {
+            onSelect(focusedAncestor);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    };
+
+    const list = listRef.current;
+    if (!list) return;
+
+    list.focus();
+    list.addEventListener("keydown", handleKeyDown);
+    return () => list.removeEventListener("keydown", handleKeyDown);
+  }, [ancestors, focusedIndex, onClose, onSelect]);
+
+  useEffect(() => {
+    if (ancestors[focusedIndex] && isEligibleForNavigation(ancestors[focusedIndex])) {
+      onMouseEnter(ancestors[focusedIndex]);
+    }
+  }, [focusedIndex, ancestors, onMouseEnter]);
+
+  const handleItemMouseEnter = (element: Element, index: number) => {
+    setHoveredIndex(index);
+    setFocusedIndex(index);
+    if (isEligibleForNavigation(element)) {
+      onMouseEnter(element);
+    }
+  };
+
+  const handleItemMouseLeave = () => {
+    setHoveredIndex(null);
+    onMouseLeave();
+  };
+
+  const handleItemClick = (element: Element) => {
+    if (isEligibleForNavigation(element)) {
+      onSelect(element);
+    }
+  };
+
   return (
     <div
-      style={{
-        ...styles.line,
-        paddingLeft: `${8 + indentPx}px`,
-        color: "#666",
-        fontSize: "12px",
-        cursor: "default",
-        pointerEvents: "none",
-      }}
+      style={styles.ancestorChooser}
+      role="listbox"
+      aria-label="Ancestor elements"
+      tabIndex={-1}
+      ref={listRef}
     >
-      ...
+      <div style={styles.ancestorChooserHeader}>
+        <span>Ancestors ({ancestors.length})</span>
+        <button
+          type="button"
+          style={styles.ancestorChooserClose}
+          onClick={onClose}
+          aria-label="Close ancestor chooser"
+        >
+          ×
+        </button>
+      </div>
+      <div style={styles.ancestorList} role="presentation">
+        {ancestors.map((ancestor, index) => {
+          const { tagName, id, classNames } = getElementInfo(ancestor);
+          const isEligible = isEligibleForNavigation(ancestor);
+          const isHovered = hoveredIndex === index;
+          const isFocused = focusedIndex === index;
+          const depth = index + 1;
+
+          return (
+            <div
+              key={index}
+              role="option"
+              aria-selected={isFocused}
+              aria-disabled={!isEligible}
+              tabIndex={-1}
+              style={{
+                ...styles.ancestorItem,
+                ...(isHovered && isEligible ? styles.ancestorItemHover : {}),
+                ...(isFocused && !isHovered ? styles.ancestorItemFocused : {}),
+                ...(!isEligible ? styles.ancestorItemDisabled : {}),
+              }}
+              onClick={() => handleItemClick(ancestor)}
+              onMouseEnter={() => handleItemMouseEnter(ancestor, index)}
+              onMouseLeave={handleItemMouseLeave}
+            >
+              <span style={styles.tag}>&lt;{tagName}</span>
+              {id && <span style={styles.id}>#{id}</span>}
+              {classNames.length > 0 && (
+                <span style={styles.className}>
+                  .{classNames.slice(0, 2).join(".")}
+                  {classNames.length > 2 ? "..." : ""}
+                </span>
+              )}
+              <span style={styles.tag}>&gt;</span>
+              <span style={styles.depthIndicator}>↑{depth}</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 /**
- * Render a single hierarchy line
+ * Renders a single line in the element hierarchy navigation.
+ * Displays element tag, id, classes, and relation label (parent/prev/next/child).
+ * Supports hover highlighting, selection, and keyboard navigation.
+ * @param element - The element to display
+ * @param isCurrent - Whether this is the currently selected element
+ * @param relation - The relationship of this element to the current element
+ * @param selector - Optional CSS selector for the current element
+ * @param onSelect - Callback when this element is selected
+ * @param onMouseEnter - Callback when mouse enters this element
+ * @param onMouseLeave - Callback when mouse leaves this element
+ * @param isHovered - Whether this element is currently being hovered
  */
 function HierarchyLine({
   element,
   isCurrent,
-  displayLevel,
+  relation,
   selector,
   onSelect,
   onMouseEnter,
@@ -255,7 +573,7 @@ function HierarchyLine({
 }: {
   element: Element;
   isCurrent: boolean;
-  displayLevel: number;
+  relation: "parent" | "prev" | "current" | "next" | "child";
   selector?: string;
   onSelect: () => void;
   onMouseEnter: () => void;
@@ -264,11 +582,17 @@ function HierarchyLine({
 }) {
   const { tagName, id, classNames } = getElementInfo(element);
   const blacklisted = isBlacklisted(element);
-  const indentPx = displayLevel * 16; // Standard code editor indent
+  
+  const relationLabels: Record<string, string> = {
+    parent: "parent",
+    prev: "prev",
+    current: "",
+    next: "next",
+    child: "child",
+  };
 
   const lineStyle = {
     ...styles.line,
-    paddingLeft: `${8 + indentPx}px`,
     ...(isCurrent ? styles.lineCurrent : {}),
     ...(isHovered && !isCurrent && !blacklisted ? styles.lineHover : {}),
     ...(blacklisted ? styles.lineDisabled : {}),
@@ -281,7 +605,6 @@ function HierarchyLine({
     }
   };
 
-  // Generate inspect command for console
   const inspectCommand = selector
     ? `inspect(document.querySelector('${selector}'))`
     : "";
@@ -298,7 +621,27 @@ function HierarchyLine({
       onClick={handleClick}
       onMouseEnter={blacklisted ? undefined : onMouseEnter}
       onMouseLeave={blacklisted ? undefined : onMouseLeave}
+      role={blacklisted ? undefined : "button"}
+      tabIndex={blacklisted ? undefined : 0}
+      onKeyDown={
+        blacklisted
+          ? undefined
+          : (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect();
+              }
+            }
+      }
+      aria-label={
+        blacklisted
+          ? `${tagName} (not selectable)`
+          : `Select ${tagName} element`
+      }
     >
+      {relation !== "current" && (
+        <span style={styles.relationLabel}>{relationLabels[relation]}</span>
+      )}
       <div
         style={{
           display: "flex",
@@ -356,8 +699,14 @@ function HierarchyLine({
 }
 
 /**
- * ElementHierarchyNav - shows parent, current, and next element
- * in a simple HTML structure view with proper indentation
+ * Compact element hierarchy navigator with selectable ancestor ellipses.
+ * Displays parent, previous/next siblings, and first child of the target element.
+ * Shows an ellipsis button for omitted ancestors that opens a dropdown chooser.
+ * @param targetElement - The currently selected DOM element
+ * @param elementInfo - Information about the target element (tag, id, classes, selector)
+ * @param onSelectElement - Callback when a different element is selected
+ * @param highlightColors - Optional colors for highlighting elements on hover
+ * @param isCompact - Whether to use compact display mode (currently unused)
  */
 function ElementHierarchyNav({
   targetElement,
@@ -377,79 +726,51 @@ function ElementHierarchyNav({
   highlightColors?: HighlightColors;
   isCompact?: boolean;
 }) {
-  // Find previous sibling (line above)
-  let prevElement: Element | null = targetElement.previousElementSibling;
-  while (prevElement && shouldHideElement(prevElement)) {
-    prevElement = prevElement.previousElementSibling;
-  }
-
-  // Find next element (line below) - prefer next sibling, then first child
-  let nextElement: Element | null = targetElement.nextElementSibling;
-  while (nextElement && shouldHideElement(nextElement)) {
-    nextElement = nextElement.nextElementSibling;
-  }
-
-  // If no next sibling, try first child
-  let nextIsChild = false;
-  if (!nextElement) {
-    nextElement = targetElement.firstElementChild;
-    while (nextElement && shouldHideElement(nextElement)) {
-      nextElement = nextElement.nextElementSibling;
-    }
-    if (nextElement) {
-      nextIsChild = true;
-    }
-  }
-
-  // Calculate actual depth of current element from document root
-  let currentActualDepth = 0;
-  let temp: Element | null = targetElement;
-  while (temp && !isProviderBoundary(temp.parentElement)) {
-    temp = temp.parentElement;
-    if (temp) currentActualDepth++;
-  }
-
-  // Determine display levels - show as code editor lines
-  const MAX_DISPLAY_LEVEL = 3;
-  let needsEllipsis = currentActualDepth > MAX_DISPLAY_LEVEL;
-
-  let prevDisplayLevel: number;
-  let currentDisplayLevel: number;
-  let nextDisplayLevel: number;
-
-  if (needsEllipsis) {
-    // Deeply nested: cap indentation, show ellipsis
-    // But if next is a child, we need to keep it visually indented more
-    if (nextIsChild) {
-      // Show as: prev(2), current(2), child(3)
-      prevDisplayLevel = MAX_DISPLAY_LEVEL - 1;
-      currentDisplayLevel = MAX_DISPLAY_LEVEL - 1;
-      nextDisplayLevel = MAX_DISPLAY_LEVEL;
-    } else {
-      // Show as: prev(3), current(3), sibling(3)
-      prevDisplayLevel = MAX_DISPLAY_LEVEL;
-      currentDisplayLevel = MAX_DISPLAY_LEVEL;
-      nextDisplayLevel = MAX_DISPLAY_LEVEL;
-    }
-  } else {
-    // Not deeply nested: show actual indentation
-    prevDisplayLevel = currentActualDepth; // Sibling at same level
-    currentDisplayLevel = currentActualDepth;
-    nextDisplayLevel = nextIsChild
-      ? currentActualDepth + 1
-      : currentActualDepth;
-  }
-
-  // Hover state
   const [hoveredElement, setHoveredElement] = useState<Element | null>(null);
+  const [showAncestorChooser, setShowAncestorChooser] = useState(false);
+  const [ellipsisHovered, setEllipsisHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const parentElement = findEligibleParent(targetElement);
+  const prevSibling = findEligiblePrevSibling(targetElement);
+  const nextSibling = findEligibleNextSibling(targetElement);
+  const firstChild = findEligibleFirstChild(targetElement);
+  const omittedAncestors = findOmittedAncestors(targetElement, parentElement);
+  const hasOmittedAncestors = omittedAncestors.length > 0;
+
+  useEffect(() => {
+    setShowAncestorChooser(false);
+    setHoveredElement(null);
+    setEllipsisHovered(false);
+  }, [targetElement]);
+
+  const closeAncestorChooser = useCallback(() => {
+    setShowAncestorChooser(false);
+    clearHighlights();
+    highlightTarget(targetElement, highlightColors);
+  }, [targetElement, highlightColors]);
+
+  useEffect(() => {
+    if (!showAncestorChooser) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        closeAncestorChooser();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAncestorChooser, closeAncestorChooser]);
 
   const handleMouseEnter = useCallback(
     (element: Element) => {
       if (isBlacklisted(element)) return;
       setHoveredElement(element);
+      clearHighlights();
       highlightTarget(element, highlightColors);
     },
-    [highlightColors],
+    [highlightColors]
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -462,34 +783,103 @@ function ElementHierarchyNav({
     (element: Element) => {
       if (isBlacklisted(element)) return;
       clearHighlights();
+      setShowAncestorChooser(false);
       onSelectElement?.(element);
     },
-    [onSelectElement],
+    [onSelectElement]
+  );
+
+  const handleEllipsisClick = useCallback(() => {
+    setShowAncestorChooser((prev) => {
+      if (prev) {
+        clearHighlights();
+        highlightTarget(targetElement, highlightColors);
+      }
+      return !prev;
+    });
+  }, [targetElement, highlightColors]);
+
+  const handleEllipsisKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Escape" && showAncestorChooser) {
+        e.preventDefault();
+        closeAncestorChooser();
+      }
+    },
+    [showAncestorChooser, closeAncestorChooser]
+  );
+
+  const handleAncestorSelect = useCallback(
+    (element: Element) => {
+      handleSelect(element);
+    },
+    [handleSelect]
   );
 
   return (
-    <div style={styles.container}>
-      {/* Ellipsis indicator when deeply nested */}
-      {needsEllipsis && <EllipsisLine displayLevel={0} />}
+    <div style={{ ...styles.container, position: "relative" }} ref={containerRef}>
+      {hasOmittedAncestors && (
+        <button
+          type="button"
+          style={{
+            ...styles.ellipsisButton,
+            ...(ellipsisHovered || showAncestorChooser
+              ? styles.ellipsisButtonHover
+              : {}),
+          }}
+          onClick={handleEllipsisClick}
+          onKeyDown={handleEllipsisKeyDown}
+          onMouseEnter={() => setEllipsisHovered(true)}
+          onMouseLeave={() => setEllipsisHovered(false)}
+          aria-label={`Show ${omittedAncestors.length} omitted ancestor${
+            omittedAncestors.length === 1 ? "" : "s"
+          }`}
+          aria-expanded={showAncestorChooser}
+          aria-haspopup="listbox"
+        >
+          …
+        </button>
+      )}
 
-      {/* Previous sibling line */}
-      {prevElement && (
-        <HierarchyLine
-          element={prevElement}
-          isCurrent={false}
-          displayLevel={prevDisplayLevel}
-          onSelect={() => handleSelect(prevElement)}
-          onMouseEnter={() => handleMouseEnter(prevElement)}
+      {showAncestorChooser && hasOmittedAncestors && (
+        <AncestorChooser
+          ancestors={omittedAncestors}
+          onSelect={handleAncestorSelect}
+          onClose={closeAncestorChooser}
+          onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
-          isHovered={hoveredElement === prevElement}
+          highlightColors={highlightColors}
         />
       )}
 
-      {/* Current line (selected) */}
+      {parentElement && (
+        <HierarchyLine
+          element={parentElement}
+          isCurrent={false}
+          relation="parent"
+          onSelect={() => handleSelect(parentElement)}
+          onMouseEnter={() => handleMouseEnter(parentElement)}
+          onMouseLeave={handleMouseLeave}
+          isHovered={hoveredElement === parentElement}
+        />
+      )}
+
+      {prevSibling && (
+        <HierarchyLine
+          element={prevSibling}
+          isCurrent={false}
+          relation="prev"
+          onSelect={() => handleSelect(prevSibling)}
+          onMouseEnter={() => handleMouseEnter(prevSibling)}
+          onMouseLeave={handleMouseLeave}
+          isHovered={hoveredElement === prevSibling}
+        />
+      )}
+
       <HierarchyLine
         element={targetElement}
         isCurrent={true}
-        displayLevel={currentDisplayLevel}
+        relation="current"
         selector={elementInfo.selector}
         onSelect={() => {}}
         onMouseEnter={() => {}}
@@ -497,20 +887,30 @@ function ElementHierarchyNav({
         isHovered={false}
       />
 
-      {/* Next line (sibling or child) */}
-      {nextElement && (
+      {nextSibling && (
         <HierarchyLine
-          element={nextElement}
+          element={nextSibling}
           isCurrent={false}
-          displayLevel={nextDisplayLevel}
-          onSelect={() => handleSelect(nextElement)}
-          onMouseEnter={() => handleMouseEnter(nextElement)}
+          relation="next"
+          onSelect={() => handleSelect(nextSibling)}
+          onMouseEnter={() => handleMouseEnter(nextSibling)}
           onMouseLeave={handleMouseLeave}
-          isHovered={hoveredElement === nextElement}
+          isHovered={hoveredElement === nextSibling}
         />
       )}
 
-      {/* Selector display */}
+      {firstChild && (
+        <HierarchyLine
+          element={firstChild}
+          isCurrent={false}
+          relation="child"
+          onSelect={() => handleSelect(firstChild)}
+          onMouseEnter={() => handleMouseEnter(firstChild)}
+          onMouseLeave={handleMouseLeave}
+          isHovered={hoveredElement === firstChild}
+        />
+      )}
+
       <div style={styles.selectorRow}>
         <code style={styles.selectorCode}>{elementInfo.selector}</code>
         <CopyButton text={elementInfo.selector} size="small" />
