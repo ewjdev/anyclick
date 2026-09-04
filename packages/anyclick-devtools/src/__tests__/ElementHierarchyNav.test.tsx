@@ -1245,7 +1245,7 @@ describe("ElementHierarchyNav component", () => {
       container.appendChild(link);
 
       // When targeting the logo div, NEXT should show the span
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <ElementHierarchyNav
           targetElement={logoDiv}
           elementInfo={{
@@ -1262,7 +1262,76 @@ describe("ElementHierarchyNav component", () => {
       expect(getByText("next")).toBeInTheDocument();
       
       // Should NOT show CHILD (SVG is blacklisted)
-      expect(() => getByText("child")).toThrow();
+      expect(queryByText("child")).not.toBeInTheDocument();
+    });
+
+    it("exact homepage header scenario: link with img+div inside div.relative and span sibling", () => {
+      // Exact structure from homepage:
+      // <a class="flex items-center gap-3 group">
+      //   <div class="relative">
+      //     <img src="/logo.png" />
+      //     <div class="absolute opacity-0 ...">hover effect</div>
+      //   </div>
+      //   <span>anyclick</span>
+      // </a>
+      const link = createElementWithSizeAndContent("a", { 
+        id: "link",
+        classes: ["flex", "items-center", "gap-3", "group"]
+      });
+      const logoContainer = createElementWithSizeAndContent("div", {
+        classes: ["relative"],
+      });
+      const img = createElementWithSizeAndContent("img", {});
+      const hoverEffect = createElementWithSizeAndContent("div", {
+        classes: ["absolute", "opacity-0"],
+      });
+      const brandSpan = createElementWithSizeAndContent("span", {
+        textContent: "anyclick",
+        classes: ["text-xl", "font-semibold"],
+      });
+
+      logoContainer.appendChild(img);
+      logoContainer.appendChild(hoverEffect);
+      link.appendChild(logoContainer);
+      link.appendChild(brandSpan);
+      container.appendChild(link);
+
+      // Test 1: When on span, PREV should be logoContainer
+      const prevSibling = findEligiblePrevSibling(brandSpan);
+      expect(prevSibling).toBe(logoContainer);
+
+      // Test 2: When on logoContainer, NEXT should be brandSpan  
+      const nextSibling = findEligibleNextSibling(logoContainer);
+      expect(nextSibling).toBe(brandSpan);
+
+      // Test 3: When on logoContainer, CHILD should be img (first eligible child)
+      const firstChild = findEligibleFirstChild(logoContainer);
+      expect(firstChild).toBe(img);
+
+      // Test 4: Render the component targeting logoContainer and verify NEXT shows
+      const { getByText, rerender } = render(
+        <ElementHierarchyNav
+          targetElement={logoContainer}
+          elementInfo={{
+            tagName: "div",
+            id: "",
+            classNames: ["relative"],
+            selector: "div.relative",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(getByText("next")).toBeInTheDocument();
+      expect(getByText("child")).toBeInTheDocument();
+      expect(getByText("parent")).toBeInTheDocument();
+
+      // Test 5: Clicking NEXT should select the span
+      const nextRow = getByText("next").closest('[role="button"]');
+      if (nextRow) {
+        fireEvent.click(nextRow);
+      }
+      expect(onSelectElement).toHaveBeenCalledWith(brandSpan);
     });
 
     it("allows bidirectional navigation: span -> div -> span", () => {
