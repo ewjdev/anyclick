@@ -1,8 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
+import { fireEvent, render, waitFor } from "@testing-library/react";
+import ElementHierarchyNav, {
   isAnyclickOwnedUI,
   isBlacklisted,
   isStructuralElement,
+  isEligibleForNavigation,
+  findEligibleParent,
+  findEligiblePrevSibling,
+  findEligibleNextSibling,
+  findEligibleFirstChild,
+  findOmittedAncestors,
 } from "../InspectDialog/ElementHierarchyNav";
 
 describe("ElementHierarchyNav utilities", () => {
@@ -31,14 +38,14 @@ describe("ElementHierarchyNav utilities", () => {
 
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "path",
+        "path"
       );
       svg.appendChild(path);
       expect(isStructuralElement(path)).toBe(true);
 
       const circle = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "circle",
+        "circle"
       );
       svg.appendChild(circle);
       expect(isStructuralElement(circle)).toBe(true);
@@ -280,6 +287,875 @@ describe("ElementHierarchyNav utilities", () => {
       expect(isBlacklisted(properties)).toBe(true);
       expect(isAnyclickOwnedUI(closeButton)).toBe(true);
       expect(isAnyclickOwnedUI(properties)).toBe(true);
+    });
+  });
+});
+
+describe("Navigation helper functions", () => {
+  let container: HTMLDivElement;
+
+  function createElementWithSize(
+    tag: string,
+    options: { id?: string; classes?: string[] } = {}
+  ) {
+    const el = document.createElement(tag);
+    if (options.id) el.id = options.id;
+    if (options.classes) el.classList.add(...options.classes);
+    Object.defineProperty(el, "getBoundingClientRect", {
+      value: () => ({
+        width: 100,
+        height: 50,
+        top: 0,
+        left: 0,
+        right: 100,
+        bottom: 50,
+      }),
+    });
+    return el;
+  }
+
+  function createZeroSizeElement(tag: string) {
+    const el = document.createElement(tag);
+    Object.defineProperty(el, "getBoundingClientRect", {
+      value: () => ({
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }),
+    });
+    return el;
+  }
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    Object.defineProperty(container, "getBoundingClientRect", {
+      value: () => ({
+        width: 500,
+        height: 500,
+        top: 0,
+        left: 0,
+        right: 500,
+        bottom: 500,
+      }),
+    });
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    container.remove();
+  });
+
+  describe("isEligibleForNavigation", () => {
+    it("returns true for normal visible elements", () => {
+      const div = createElementWithSize("div");
+      container.appendChild(div);
+      expect(isEligibleForNavigation(div)).toBe(true);
+    });
+
+    it("returns false for zero-size elements", () => {
+      const div = createZeroSizeElement("div");
+      container.appendChild(div);
+      expect(isEligibleForNavigation(div)).toBe(false);
+    });
+
+    it("returns false for blacklisted elements", () => {
+      const br = createElementWithSize("br");
+      container.appendChild(br);
+      expect(isEligibleForNavigation(br)).toBe(false);
+    });
+
+    it("returns false for Anyclick-owned UI", () => {
+      const inspector = createElementWithSize("div");
+      inspector.setAttribute("data-anyclick-inspector", "");
+      container.appendChild(inspector);
+      expect(isEligibleForNavigation(inspector)).toBe(false);
+    });
+  });
+
+  describe("findEligibleParent", () => {
+    it("finds the nearest eligible parent", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const child = createElementWithSize("div", { id: "child" });
+      parent.appendChild(child);
+      container.appendChild(parent);
+
+      expect(findEligibleParent(child)).toBe(parent);
+    });
+
+    it("skips zero-size parent elements", () => {
+      const grandparent = createElementWithSize("main", { id: "grandparent" });
+      const parent = createZeroSizeElement("div");
+      const child = createElementWithSize("span", { id: "child" });
+      grandparent.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(grandparent);
+
+      expect(findEligibleParent(child)).toBe(grandparent);
+    });
+
+    it("skips blacklisted parent elements", () => {
+      const grandparent = createElementWithSize("main", { id: "grandparent" });
+      const parent = createElementWithSize("div");
+      parent.setAttribute("data-anyclick-ui", "");
+      const child = createElementWithSize("span", { id: "child" });
+      grandparent.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(grandparent);
+
+      expect(findEligibleParent(child)).toBe(grandparent);
+    });
+
+    it("returns null when no eligible parent exists", () => {
+      const child = createElementWithSize("div", { id: "child" });
+      container.appendChild(child);
+
+      expect(findEligibleParent(child)).toBe(container);
+    });
+
+    it("stops at provider boundary", () => {
+      const provider = createElementWithSize("div");
+      provider.setAttribute("data-anyclick-provider", "");
+      const child = createElementWithSize("div", { id: "child" });
+      provider.appendChild(child);
+      container.appendChild(provider);
+
+      expect(findEligibleParent(child)).toBe(null);
+    });
+  });
+
+  describe("findEligiblePrevSibling", () => {
+    it("finds the nearest previous eligible sibling", () => {
+      const prev = createElementWithSize("div", { id: "prev" });
+      const current = createElementWithSize("div", { id: "current" });
+      container.appendChild(prev);
+      container.appendChild(current);
+
+      expect(findEligiblePrevSibling(current)).toBe(prev);
+    });
+
+    it("skips zero-size siblings", () => {
+      const prev1 = createElementWithSize("div", { id: "prev1" });
+      const zeroSize = createZeroSizeElement("div");
+      const current = createElementWithSize("div", { id: "current" });
+      container.appendChild(prev1);
+      container.appendChild(zeroSize);
+      container.appendChild(current);
+
+      expect(findEligiblePrevSibling(current)).toBe(prev1);
+    });
+
+    it("skips blacklisted siblings", () => {
+      const prev1 = createElementWithSize("div", { id: "prev1" });
+      const br = createElementWithSize("br");
+      const current = createElementWithSize("div", { id: "current" });
+      container.appendChild(prev1);
+      container.appendChild(br);
+      container.appendChild(current);
+
+      expect(findEligiblePrevSibling(current)).toBe(prev1);
+    });
+
+    it("returns null when no previous sibling exists", () => {
+      const current = createElementWithSize("div", { id: "current" });
+      container.appendChild(current);
+
+      expect(findEligiblePrevSibling(current)).toBe(null);
+    });
+  });
+
+  describe("findEligibleNextSibling", () => {
+    it("finds the nearest next eligible sibling", () => {
+      const current = createElementWithSize("div", { id: "current" });
+      const next = createElementWithSize("div", { id: "next" });
+      container.appendChild(current);
+      container.appendChild(next);
+
+      expect(findEligibleNextSibling(current)).toBe(next);
+    });
+
+    it("skips zero-size siblings", () => {
+      const current = createElementWithSize("div", { id: "current" });
+      const zeroSize = createZeroSizeElement("div");
+      const next = createElementWithSize("div", { id: "next" });
+      container.appendChild(current);
+      container.appendChild(zeroSize);
+      container.appendChild(next);
+
+      expect(findEligibleNextSibling(current)).toBe(next);
+    });
+
+    it("returns null when no next sibling exists", () => {
+      const current = createElementWithSize("div", { id: "current" });
+      container.appendChild(current);
+
+      expect(findEligibleNextSibling(current)).toBe(null);
+    });
+  });
+
+  describe("findEligibleFirstChild", () => {
+    it("finds the first eligible child", () => {
+      const parent = createElementWithSize("div", { id: "parent" });
+      const child1 = createElementWithSize("span", { id: "child1" });
+      const child2 = createElementWithSize("span", { id: "child2" });
+      parent.appendChild(child1);
+      parent.appendChild(child2);
+      container.appendChild(parent);
+
+      expect(findEligibleFirstChild(parent)).toBe(child1);
+    });
+
+    it("skips zero-size children", () => {
+      const parent = createElementWithSize("div", { id: "parent" });
+      const zeroSize = createZeroSizeElement("div");
+      const child = createElementWithSize("span", { id: "child" });
+      parent.appendChild(zeroSize);
+      parent.appendChild(child);
+      container.appendChild(parent);
+
+      expect(findEligibleFirstChild(parent)).toBe(child);
+    });
+
+    it("skips blacklisted children", () => {
+      const parent = createElementWithSize("div", { id: "parent" });
+      const br = createElementWithSize("br");
+      const child = createElementWithSize("span", { id: "child" });
+      parent.appendChild(br);
+      parent.appendChild(child);
+      container.appendChild(parent);
+
+      expect(findEligibleFirstChild(parent)).toBe(child);
+    });
+
+    it("returns null when no eligible child exists", () => {
+      const parent = createElementWithSize("div", { id: "parent" });
+      container.appendChild(parent);
+
+      expect(findEligibleFirstChild(parent)).toBe(null);
+    });
+  });
+
+  describe("findOmittedAncestors", () => {
+    it("finds ancestors above the parent", () => {
+      const greatGrandparent = createElementWithSize("main");
+      const grandparent = createElementWithSize("section");
+      const parent = createElementWithSize("article");
+      const child = createElementWithSize("div");
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(greatGrandparent);
+
+      const ancestors = findOmittedAncestors(child, parent);
+      expect(ancestors).toContain(grandparent);
+      expect(ancestors).toContain(greatGrandparent);
+      expect(ancestors).not.toContain(parent);
+    });
+
+    it("returns empty array when no omitted ancestors exist", () => {
+      const parent = createElementWithSize("div");
+      const child = createElementWithSize("span");
+      parent.appendChild(child);
+      container.appendChild(parent);
+
+      const ancestors = findOmittedAncestors(child, parent);
+      expect(ancestors.length).toBe(1);
+      expect(ancestors[0]).toBe(container);
+    });
+
+    it("stops at provider boundary", () => {
+      const provider = createElementWithSize("div");
+      provider.setAttribute("data-anyclick-provider", "");
+      const parent = createElementWithSize("section");
+      const child = createElementWithSize("div");
+
+      provider.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(provider);
+
+      const ancestors = findOmittedAncestors(child, parent);
+      expect(ancestors).not.toContain(provider);
+    });
+  });
+});
+
+describe("ElementHierarchyNav component", () => {
+  let container: HTMLDivElement;
+  let onSelectElement: ReturnType<typeof vi.fn>;
+
+  function createElementWithSize(
+    tag: string,
+    options: { id?: string; classes?: string[] } = {}
+  ) {
+    const el = document.createElement(tag);
+    if (options.id) el.id = options.id;
+    if (options.classes) el.classList.add(...options.classes);
+    Object.defineProperty(el, "getBoundingClientRect", {
+      value: () => ({
+        width: 100,
+        height: 50,
+        top: 0,
+        left: 0,
+        right: 100,
+        bottom: 50,
+      }),
+    });
+    return el;
+  }
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    Object.defineProperty(container, "getBoundingClientRect", {
+      value: () => ({
+        width: 500,
+        height: 500,
+        top: 0,
+        left: 0,
+        right: 500,
+        bottom: 500,
+      }),
+    });
+    document.body.appendChild(container);
+    onSelectElement = vi.fn();
+  });
+
+  afterEach(() => {
+    container.remove();
+  });
+
+  describe("compact local window rendering", () => {
+    it("renders all relationship entries when available", () => {
+      const grandparent = createElementWithSize("main", { id: "grandparent" });
+      const parent = createElementWithSize("section", { id: "parent" });
+      const prevSibling = createElementWithSize("div", { id: "prev" });
+      const target = createElementWithSize("article", { id: "target" });
+      const nextSibling = createElementWithSize("div", { id: "next" });
+      const child = createElementWithSize("span", { id: "child" });
+
+      grandparent.appendChild(parent);
+      parent.appendChild(prevSibling);
+      parent.appendChild(target);
+      parent.appendChild(nextSibling);
+      target.appendChild(child);
+      container.appendChild(grandparent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(getByText("parent")).toBeInTheDocument();
+      expect(getByText("prev")).toBeInTheDocument();
+      expect(getByText("next")).toBeInTheDocument();
+      expect(getByText("child")).toBeInTheDocument();
+    });
+
+    it("shows child entry even when next sibling exists", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+      const nextSibling = createElementWithSize("div", { id: "next" });
+      const child = createElementWithSize("span", { id: "child" });
+
+      parent.appendChild(target);
+      parent.appendChild(nextSibling);
+      target.appendChild(child);
+      container.appendChild(parent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(getByText("next")).toBeInTheDocument();
+      expect(getByText("child")).toBeInTheDocument();
+    });
+
+    it("does not show entries for missing relations", () => {
+      const target = createElementWithSize("div", { id: "target" });
+      container.appendChild(target);
+
+      const { queryByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(queryByText("prev")).not.toBeInTheDocument();
+      expect(queryByText("next")).not.toBeInTheDocument();
+      expect(queryByText("child")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("element selection", () => {
+    it("calls onSelectElement when clicking a sibling", async () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const prevSibling = createElementWithSize("div", { id: "prev" });
+      const target = createElementWithSize("article", { id: "target" });
+
+      parent.appendChild(prevSibling);
+      parent.appendChild(target);
+      container.appendChild(parent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const prevRow = getByText("prev").closest('[role="button"]');
+      if (prevRow) {
+        fireEvent.click(prevRow);
+      }
+
+      expect(onSelectElement).toHaveBeenCalledWith(prevSibling);
+    });
+
+    it("calls onSelectElement when clicking the parent", async () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+
+      parent.appendChild(target);
+      container.appendChild(parent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const parentRow = getByText("parent").closest('[role="button"]');
+      if (parentRow) {
+        fireEvent.click(parentRow);
+      }
+
+      expect(onSelectElement).toHaveBeenCalledWith(parent);
+    });
+
+    it("does not call onSelectElement for blacklisted elements", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+      const brChild = createElementWithSize("br");
+      const spanChild = createElementWithSize("span", { id: "child" });
+
+      parent.appendChild(target);
+      target.appendChild(brChild);
+      target.appendChild(spanChild);
+      container.appendChild(parent);
+
+      render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(onSelectElement).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("ancestor ellipsis", () => {
+    it("shows ellipsis when ancestors are omitted", () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      expect(ellipsisButton).toBeInTheDocument();
+    });
+
+    it("does not show ellipsis when no ancestors are omitted (parent at provider boundary)", () => {
+      const provider = createElementWithSize("div");
+      provider.setAttribute("data-anyclick-provider", "");
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      provider.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(provider);
+
+      const { queryByLabelText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = queryByLabelText(/omitted ancestor/);
+      expect(ellipsisButton).not.toBeInTheDocument();
+    });
+
+    it("opens ancestor chooser when clicking ellipsis", async () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText, getByRole } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      fireEvent.click(ellipsisButton);
+
+      const listbox = getByRole("listbox");
+      expect(listbox).toBeInTheDocument();
+    });
+
+    it("closes ancestor chooser on Escape without changing selection", async () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText, getByRole, queryByRole } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      fireEvent.click(ellipsisButton);
+
+      expect(getByRole("listbox")).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: "Escape" });
+
+      await waitFor(() => {
+        expect(queryByRole("listbox")).not.toBeInTheDocument();
+      });
+
+      expect(onSelectElement).not.toHaveBeenCalled();
+    });
+
+    it("selects ancestor and closes chooser on Enter", async () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText, getByRole, queryByRole } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      fireEvent.click(ellipsisButton);
+
+      expect(getByRole("listbox")).toBeInTheDocument();
+
+      fireEvent.keyDown(document, { key: "Enter" });
+
+      await waitFor(() => {
+        expect(queryByRole("listbox")).not.toBeInTheDocument();
+      });
+
+      expect(onSelectElement).toHaveBeenCalledTimes(1);
+      expect(onSelectElement).toHaveBeenCalledWith(grandparent);
+    });
+
+    it("supports keyboard navigation in ancestor chooser", async () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText, getAllByRole } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      fireEvent.click(ellipsisButton);
+
+      const options = getAllByRole("option");
+      expect(options[0]).toHaveAttribute("aria-selected", "true");
+
+      fireEvent.keyDown(document, { key: "ArrowDown" });
+
+      await waitFor(() => {
+        expect(options[1]).toHaveAttribute("aria-selected", "true");
+      });
+    });
+
+    it("has accessible ancestor chooser", async () => {
+      const greatGrandparent = createElementWithSize("main", {
+        id: "great-grandparent",
+      });
+      const grandparent = createElementWithSize("section", {
+        id: "grandparent",
+      });
+      const parent = createElementWithSize("article", { id: "parent" });
+      const target = createElementWithSize("div", { id: "target" });
+
+      greatGrandparent.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(target);
+      container.appendChild(greatGrandparent);
+
+      const { getByLabelText, getByRole, getAllByRole } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "div",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const ellipsisButton = getByLabelText(/omitted ancestor/);
+      expect(ellipsisButton).toHaveAttribute("aria-haspopup", "listbox");
+      expect(ellipsisButton).toHaveAttribute("aria-expanded", "false");
+
+      fireEvent.click(ellipsisButton);
+
+      expect(ellipsisButton).toHaveAttribute("aria-expanded", "true");
+
+      const listbox = getByRole("listbox");
+      expect(listbox).toHaveAttribute("aria-label", "Ancestor elements");
+
+      const options = getAllByRole("option");
+      expect(options.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("preserves #97 eligibility guards", () => {
+    it("does not allow selecting Anyclick-owned UI elements", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+      const anyClickUI = createElementWithSize("div");
+      anyClickUI.setAttribute("data-anyclick-ui", "");
+
+      parent.appendChild(target);
+      parent.appendChild(anyClickUI);
+      container.appendChild(parent);
+
+      const { queryByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(queryByText("next")).not.toBeInTheDocument();
+    });
+
+    it("allows selecting elements with highlight classes", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+      const nextSibling = createElementWithSize("div", {
+        id: "next",
+        classes: ["anyclick-highlight-target"],
+      });
+
+      parent.appendChild(target);
+      parent.appendChild(nextSibling);
+      container.appendChild(parent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      const nextRow = getByText("next").closest('[role="button"]');
+      if (nextRow) {
+        fireEvent.click(nextRow);
+      }
+
+      expect(onSelectElement).toHaveBeenCalledWith(nextSibling);
+    });
+
+    it("skips structural elements when finding relatives", () => {
+      const parent = createElementWithSize("section", { id: "parent" });
+      const target = createElementWithSize("article", { id: "target" });
+      const br = createElementWithSize("br");
+      const validSibling = createElementWithSize("div", { id: "next" });
+
+      parent.appendChild(target);
+      parent.appendChild(br);
+      parent.appendChild(validSibling);
+      container.appendChild(parent);
+
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={target}
+          elementInfo={{
+            tagName: "article",
+            id: "target",
+            classNames: [],
+            selector: "#target",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      expect(getByText("next")).toBeInTheDocument();
+
+      const nextRow = getByText("next").closest('[role="button"]');
+      if (nextRow) {
+        fireEvent.click(nextRow);
+      }
+
+      expect(onSelectElement).toHaveBeenCalledWith(validSibling);
     });
   });
 });

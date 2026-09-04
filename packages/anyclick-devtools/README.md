@@ -38,6 +38,26 @@ function handleInspect(target: Element) {
 }
 ```
 
+## Features
+
+### Element Hierarchy Navigator
+
+The inspector includes a compact hierarchy navigator that shows:
+
+- **Parent**: The nearest inspectable ancestor element
+- **Previous sibling**: The previous inspectable sibling in DOM order
+- **Current element**: The selected element (highlighted)
+- **Next sibling**: The next inspectable sibling in DOM order
+- **First child**: The first inspectable direct child
+
+When ancestors beyond the immediate parent are available, an interactive ellipsis (`…`) button appears. Clicking it opens an ancestor chooser that displays all navigable ancestors within the inspection boundary, ordered nearest-first.
+
+The navigator:
+- Skips zero-size elements, structural elements (`<br>`, SVG), and AnyClick-owned UI
+- Preserves DOM order for siblings and children
+- Supports keyboard navigation (Enter/Space to select, Escape to dismiss)
+- Updates selection, selector, and properties synchronously on navigation
+
 ## Notes
 
 - Uses the same `anyclick:inspect` event contract as the lightweight inspector.
