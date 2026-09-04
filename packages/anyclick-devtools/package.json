@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-devtools",
-  "version": "5.1.0",
+  "version": "5.1.2",
   "private": false,
   "description": "Advanced anyclick inspector and devtools UI (full InspectDialog)",
   "keywords": [
@@ -47,7 +47,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^5.1.0",
+    "@ewjdev/anyclick-core": "^5.1.2",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2"
   },
