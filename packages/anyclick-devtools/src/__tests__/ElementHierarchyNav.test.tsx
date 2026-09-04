@@ -408,11 +408,27 @@ describe("Navigation helper functions", () => {
       expect(findEligibleParent(child)).toBe(grandparent);
     });
 
-    it("returns null when no eligible parent exists", () => {
+    it("returns the container when it is the nearest eligible parent", () => {
       const child = createElementWithSize("div", { id: "child" });
       container.appendChild(child);
 
       expect(findEligibleParent(child)).toBe(container);
+    });
+
+    it("returns null when every ancestor is ineligible", () => {
+      const provider = createElementWithSize("div");
+      provider.setAttribute("data-anyclick-provider", "");
+      const grandparent = createElementWithSize("div");
+      grandparent.setAttribute("data-anyclick-ui", "");
+      const parent = createZeroSizeElement("div");
+      const child = createElementWithSize("span", { id: "child" });
+
+      provider.appendChild(grandparent);
+      grandparent.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(provider);
+
+      expect(findEligibleParent(child)).toBe(null);
     });
 
     it("stops at provider boundary", () => {
@@ -540,11 +556,13 @@ describe("Navigation helper functions", () => {
   describe("findOmittedAncestors", () => {
     it("finds ancestors above the parent", () => {
       const greatGrandparent = createElementWithSize("main");
+      const hiddenAncestor = createZeroSizeElement("div");
       const grandparent = createElementWithSize("section");
       const parent = createElementWithSize("article");
       const child = createElementWithSize("div");
 
-      greatGrandparent.appendChild(grandparent);
+      greatGrandparent.appendChild(hiddenAncestor);
+      hiddenAncestor.appendChild(grandparent);
       grandparent.appendChild(parent);
       parent.appendChild(child);
       container.appendChild(greatGrandparent);
@@ -552,10 +570,11 @@ describe("Navigation helper functions", () => {
       const ancestors = findOmittedAncestors(child, parent);
       expect(ancestors).toContain(grandparent);
       expect(ancestors).toContain(greatGrandparent);
+      expect(ancestors).not.toContain(hiddenAncestor);
       expect(ancestors).not.toContain(parent);
     });
 
-    it("returns empty array when no omitted ancestors exist", () => {
+    it("returns ancestors above the given parent", () => {
       const parent = createElementWithSize("div");
       const child = createElementWithSize("span");
       parent.appendChild(child);
@@ -564,6 +583,21 @@ describe("Navigation helper functions", () => {
       const ancestors = findOmittedAncestors(child, parent);
       expect(ancestors.length).toBe(1);
       expect(ancestors[0]).toBe(container);
+    });
+
+    it("returns an empty array when no omitted ancestors exist", () => {
+      const provider = createElementWithSize("div");
+      provider.setAttribute("data-anyclick-provider", "");
+      const hiddenAncestor = createZeroSizeElement("main");
+      const parent = createElementWithSize("section");
+      const child = createElementWithSize("div");
+
+      provider.appendChild(hiddenAncestor);
+      hiddenAncestor.appendChild(parent);
+      parent.appendChild(child);
+      container.appendChild(provider);
+
+      expect(findOmittedAncestors(child, parent)).toEqual([]);
     });
 
     it("stops at provider boundary", () => {
@@ -736,9 +770,8 @@ describe("ElementHierarchyNav component", () => {
       );
 
       const prevRow = getByText("prev").closest('[role="button"]');
-      if (prevRow) {
-        fireEvent.click(prevRow);
-      }
+      expect(prevRow).not.toBeNull();
+      fireEvent.click(prevRow!);
 
       expect(onSelectElement).toHaveBeenCalledWith(prevSibling);
     });
@@ -764,29 +797,24 @@ describe("ElementHierarchyNav component", () => {
       );
 
       const parentRow = getByText("parent").closest('[role="button"]');
-      if (parentRow) {
-        fireEvent.click(parentRow);
-      }
+      expect(parentRow).not.toBeNull();
+      fireEvent.click(parentRow!);
 
       expect(onSelectElement).toHaveBeenCalledWith(parent);
     });
 
     it("does not call onSelectElement for blacklisted elements", () => {
       const parent = createElementWithSize("section", { id: "parent" });
-      const target = createElementWithSize("article", { id: "target" });
-      const brChild = createElementWithSize("br");
-      const spanChild = createElementWithSize("span", { id: "child" });
+      const target = createElementWithSize("br", { id: "target" });
 
       parent.appendChild(target);
-      target.appendChild(brChild);
-      target.appendChild(spanChild);
       container.appendChild(parent);
 
-      render(
+      const { getByLabelText } = render(
         <ElementHierarchyNav
           targetElement={target}
           elementInfo={{
-            tagName: "article",
+            tagName: "br",
             id: "target",
             classNames: [],
             selector: "#target",
@@ -794,6 +822,9 @@ describe("ElementHierarchyNav component", () => {
           onSelectElement={onSelectElement}
         />
       );
+
+      const blacklistedRow = getByLabelText(/\(not selectable\)$/);
+      fireEvent.click(blacklistedRow);
 
       expect(onSelectElement).not.toHaveBeenCalled();
     });
@@ -892,6 +923,7 @@ describe("ElementHierarchyNav component", () => {
 
       const listbox = getByRole("listbox");
       expect(listbox).toBeInTheDocument();
+      expect(listbox).toHaveFocus();
     });
 
     it("closes ancestor chooser on Escape without changing selection", async () => {
@@ -927,7 +959,7 @@ describe("ElementHierarchyNav component", () => {
 
       expect(getByRole("listbox")).toBeInTheDocument();
 
-      fireEvent.keyDown(document, { key: "Escape" });
+      fireEvent.keyDown(getByRole("listbox"), { key: "Escape" });
 
       await waitFor(() => {
         expect(queryByRole("listbox")).not.toBeInTheDocument();
@@ -969,7 +1001,7 @@ describe("ElementHierarchyNav component", () => {
 
       expect(getByRole("listbox")).toBeInTheDocument();
 
-      fireEvent.keyDown(document, { key: "Enter" });
+      fireEvent.keyDown(getByRole("listbox"), { key: "Enter" });
 
       await waitFor(() => {
         expect(queryByRole("listbox")).not.toBeInTheDocument();
@@ -994,7 +1026,7 @@ describe("ElementHierarchyNav component", () => {
       parent.appendChild(target);
       container.appendChild(greatGrandparent);
 
-      const { getByLabelText, getAllByRole } = render(
+      const { getByLabelText, getAllByRole, getByRole } = render(
         <ElementHierarchyNav
           targetElement={target}
           elementInfo={{
@@ -1013,7 +1045,7 @@ describe("ElementHierarchyNav component", () => {
       const options = getAllByRole("option");
       expect(options[0]).toHaveAttribute("aria-selected", "true");
 
-      fireEvent.keyDown(document, { key: "ArrowDown" });
+      fireEvent.keyDown(getByRole("listbox"), { key: "ArrowDown" });
 
       await waitFor(() => {
         expect(options[1]).toHaveAttribute("aria-selected", "true");
@@ -1117,9 +1149,8 @@ describe("ElementHierarchyNav component", () => {
       );
 
       const nextRow = getByText("next").closest('[role="button"]');
-      if (nextRow) {
-        fireEvent.click(nextRow);
-      }
+      expect(nextRow).not.toBeNull();
+      fireEvent.click(nextRow!);
 
       expect(onSelectElement).toHaveBeenCalledWith(nextSibling);
     });
@@ -1151,9 +1182,8 @@ describe("ElementHierarchyNav component", () => {
       expect(getByText("next")).toBeInTheDocument();
 
       const nextRow = getByText("next").closest('[role="button"]');
-      if (nextRow) {
-        fireEvent.click(nextRow);
-      }
+      expect(nextRow).not.toBeNull();
+      fireEvent.click(nextRow!);
 
       expect(onSelectElement).toHaveBeenCalledWith(validSibling);
     });

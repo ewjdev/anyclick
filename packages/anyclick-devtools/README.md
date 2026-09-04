@@ -53,13 +53,13 @@ The inspector includes a compact hierarchy navigator that shows:
 When ancestors beyond the immediate parent are available, an interactive ellipsis (`…`) button appears. Clicking it opens an ancestor chooser that displays all navigable ancestors within the inspection boundary, ordered nearest-first.
 
 The navigator:
+
 - Skips zero-size elements, structural elements (`<br>`, SVG), and AnyClick-owned UI
 - Preserves DOM order for siblings and children
-- Supports keyboard navigation (Enter/Space to select, Escape to dismiss)
+- Supports keyboard navigation (Arrow Up and Arrow Down to move, Enter/Space to select, Escape to dismiss)
 - Updates selection, selector, and properties synchronously on navigation
 
 ## Notes
 
 - Uses the same `anyclick:inspect` event contract as the lightweight inspector.
 - Depends on React 19+ and `@ewjdev/anyclick-core`.
-

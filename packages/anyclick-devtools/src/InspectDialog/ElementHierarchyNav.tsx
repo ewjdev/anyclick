@@ -355,7 +355,9 @@ export function findOmittedAncestors(
   let current = parentElement.parentElement;
 
   while (current && !isProviderBoundary(current)) {
-    ancestors.push(current);
+    if (isEligibleForNavigation(current)) {
+      ancestors.push(current);
+    }
     current = current.parentElement;
   }
 
@@ -414,18 +416,23 @@ function AncestorChooser({
           });
           break;
         case "Enter":
-        case " ":
+        case " ": {
           e.preventDefault();
           const focusedAncestor = ancestors[focusedIndex];
           if (focusedAncestor && isEligibleForNavigation(focusedAncestor)) {
             onSelect(focusedAncestor);
           }
           break;
+        }
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    const list = listRef.current;
+    if (!list) return;
+
+    list.focus();
+    list.addEventListener("keydown", handleKeyDown);
+    return () => list.removeEventListener("keydown", handleKeyDown);
   }, [ancestors, focusedIndex, onClose, onSelect]);
 
   useEffect(() => {
@@ -458,6 +465,7 @@ function AncestorChooser({
       style={styles.ancestorChooser}
       role="listbox"
       aria-label="Ancestor elements"
+      tabIndex={-1}
       ref={listRef}
     >
       <div style={styles.ancestorChooserHeader}>
@@ -727,6 +735,7 @@ function ElementHierarchyNav({
     (element: Element) => {
       if (isBlacklisted(element)) return;
       setHoveredElement(element);
+      clearHighlights();
       highlightTarget(element, highlightColors);
     },
     [highlightColors]
