@@ -147,7 +147,7 @@
       "details": "Release of version 2.0.0 with major changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-devtools",
-      "era": "today"
+      "era": "past"
     },
     {
       "id": "anyclick-3.0.0",
@@ -165,7 +165,7 @@
       "details": "Release of version 3.0.0 with minor changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
-      "era": "today"
+      "era": "past"
     },
     {
       "id": "anyclick-4.0.0",
@@ -182,7 +182,7 @@
       "details": "Release of version 4.0.0 with major changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
-      "era": "today"
+      "era": "past"
     },
     {
       "id": "anyclick-5.1.0",
@@ -203,6 +203,36 @@
       "details": "Release of version 5.1.0 with minor changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-adapters",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-5.1.1",
+      "packages": [
+        "@ewjdev/anyclick-core"
+      ],
+      "version": "5.1.1",
+      "type": "patch",
+      "date": "2026-09-04",
+      "summary": "Fix element/container screenshot captures on dark backgrounds",
+      "details": "Release of version 5.1.1 with patch changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
+      "era": "today"
+    },
+    {
+      "id": "anyclick-5.1.2",
+      "packages": [
+        "@ewjdev/anyclick-core",
+        "@ewjdev/anyclick-devtools",
+        "@ewjdev/anyclick-react"
+      ],
+      "version": "5.1.2",
+      "type": "patch",
+      "date": "2026-09-04",
+      "summary": "Fix screenshots losing the page background (#88). Element and container captures are now cropped from a single viewport render with the configured `padding`, so dark pages, gradients, background images and translucent cards look the way they do on screen instead of being flattened onto white. The viewport capture now honors the scroll position instead of always showing the top of the document, and Anyclick's own menu is excluded from captures. Nodes that cannot be cropped (outside the viewport or inside a scrolled container) fall back to a standalone render on the composited background color of their ancestors, exposed as `resolveBackdropColor`.",
+      "details": "Release of version 5.1.2 with patch changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
       "era": "today"
     }
   ],
@@ -260,6 +290,6 @@
       ]
     }
   ],
-  "currentVersion": "5.1.0",
-  "lastUpdated": "2026-09-02"
+  "currentVersion": "5.1.2",
+  "lastUpdated": "2026-09-04"
 }
