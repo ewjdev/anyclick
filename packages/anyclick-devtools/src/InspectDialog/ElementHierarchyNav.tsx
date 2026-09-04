@@ -417,25 +417,28 @@ function AncestorChooser({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
-        case "Escape":
+        case "Escape": {
           e.preventDefault();
           e.stopPropagation();
           onClose();
           break;
-        case "ArrowDown":
+        }
+        case "ArrowDown": {
           e.preventDefault();
           setFocusedIndex((prev) => {
             const next = prev + 1;
             return next >= ancestors.length ? 0 : next;
           });
           break;
-        case "ArrowUp":
+        }
+        case "ArrowUp": {
           e.preventDefault();
           setFocusedIndex((prev) => {
             const next = prev - 1;
             return next < 0 ? ancestors.length - 1 : next;
           });
           break;
+        }
         case "Enter":
         case " ": {
           e.preventDefault();
@@ -445,6 +448,8 @@ function AncestorChooser({
           }
           break;
         }
+        default:
+          break;
       }
     };
 
@@ -739,18 +744,24 @@ function ElementHierarchyNav({
     setEllipsisHovered(false);
   }, [targetElement]);
 
+  const closeAncestorChooser = useCallback(() => {
+    setShowAncestorChooser(false);
+    clearHighlights();
+    highlightTarget(targetElement, highlightColors);
+  }, [targetElement, highlightColors]);
+
   useEffect(() => {
     if (!showAncestorChooser) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowAncestorChooser(false);
+        closeAncestorChooser();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showAncestorChooser]);
+  }, [showAncestorChooser, closeAncestorChooser]);
 
   const handleMouseEnter = useCallback(
     (element: Element) => {
@@ -779,20 +790,23 @@ function ElementHierarchyNav({
   );
 
   const handleEllipsisClick = useCallback(() => {
-    setShowAncestorChooser((prev) => !prev);
-  }, []);
+    setShowAncestorChooser((prev) => {
+      if (prev) {
+        clearHighlights();
+        highlightTarget(targetElement, highlightColors);
+      }
+      return !prev;
+    });
+  }, [targetElement, highlightColors]);
 
   const handleEllipsisKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
+      if (e.key === "Escape" && showAncestorChooser) {
         e.preventDefault();
-        setShowAncestorChooser((prev) => !prev);
-      } else if (e.key === "Escape" && showAncestorChooser) {
-        e.preventDefault();
-        setShowAncestorChooser(false);
+        closeAncestorChooser();
       }
     },
-    [showAncestorChooser]
+    [showAncestorChooser, closeAncestorChooser]
   );
 
   const handleAncestorSelect = useCallback(
@@ -801,12 +815,6 @@ function ElementHierarchyNav({
     },
     [handleSelect]
   );
-
-  const handleAncestorChooserClose = useCallback(() => {
-    setShowAncestorChooser(false);
-    clearHighlights();
-    highlightTarget(targetElement, highlightColors);
-  }, [targetElement, highlightColors]);
 
   return (
     <div style={{ ...styles.container, position: "relative" }} ref={containerRef}>
@@ -837,7 +845,7 @@ function ElementHierarchyNav({
         <AncestorChooser
           ancestors={omittedAncestors}
           onSelect={handleAncestorSelect}
-          onClose={handleAncestorChooserClose}
+          onClose={closeAncestorChooser}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           highlightColors={highlightColors}

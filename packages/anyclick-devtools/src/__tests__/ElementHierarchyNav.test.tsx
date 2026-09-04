@@ -545,8 +545,20 @@ describe("Navigation helper functions", () => {
       expect(findEligibleFirstChild(parent)).toBe(child);
     });
 
-    it("returns null when no eligible child exists", () => {
+    it("returns null when element has no children", () => {
       const parent = createElementWithSize("div", { id: "parent" });
+      container.appendChild(parent);
+
+      expect(findEligibleFirstChild(parent)).toBe(null);
+    });
+
+    it("returns null when all children are ineligible", () => {
+      const parent = createElementWithSize("div", { id: "parent" });
+      const blacklistedChild = createElementWithSize("br");
+      const zeroSizeChild = createZeroSizeElement("span");
+
+      parent.appendChild(blacklistedChild);
+      parent.appendChild(zeroSizeChild);
       container.appendChild(parent);
 
       expect(findEligibleFirstChild(parent)).toBe(null);
@@ -803,7 +815,7 @@ describe("ElementHierarchyNav component", () => {
       expect(onSelectElement).toHaveBeenCalledWith(parent);
     });
 
-    it("does not call onSelectElement for blacklisted elements", () => {
+    it("marks current element as not selectable when it is blacklisted", () => {
       const parent = createElementWithSize("section", { id: "parent" });
       const target = createElementWithSize("br", { id: "target" });
 
@@ -824,6 +836,7 @@ describe("ElementHierarchyNav component", () => {
       );
 
       const blacklistedRow = getByLabelText(/\(not selectable\)$/);
+      expect(blacklistedRow).toBeInTheDocument();
       fireEvent.click(blacklistedRow);
 
       expect(onSelectElement).not.toHaveBeenCalled();
@@ -1328,9 +1341,8 @@ describe("ElementHierarchyNav component", () => {
 
       // Test 5: Clicking NEXT should select the span
       const nextRow = getByText("next").closest('[role="button"]');
-      if (nextRow) {
-        fireEvent.click(nextRow);
-      }
+      expect(nextRow).not.toBeNull();
+      fireEvent.click(nextRow!);
       expect(onSelectElement).toHaveBeenCalledWith(brandSpan);
     });
 
