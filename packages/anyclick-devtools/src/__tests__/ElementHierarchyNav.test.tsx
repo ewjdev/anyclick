@@ -1188,4 +1188,153 @@ describe("ElementHierarchyNav component", () => {
       expect(onSelectElement).toHaveBeenCalledWith(validSibling);
     });
   });
+
+  describe("header navigation scenario (issue #98 regression)", () => {
+    function createElementWithSizeAndContent(
+      tag: string,
+      options: { id?: string; classes?: string[]; textContent?: string } = {}
+    ) {
+      const el = document.createElement(tag);
+      if (options.id) el.id = options.id;
+      if (options.classes) el.classList.add(...options.classes);
+      if (options.textContent) el.textContent = options.textContent;
+      Object.defineProperty(el, "getBoundingClientRect", {
+        value: () => ({
+          width: 100,
+          height: 50,
+          top: 0,
+          left: 0,
+          right: 100,
+          bottom: 50,
+        }),
+      });
+      return el;
+    }
+
+    function createSVGElement() {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      Object.defineProperty(svg, "getBoundingClientRect", {
+        value: () => ({
+          width: 32,
+          height: 32,
+          top: 0,
+          left: 0,
+          right: 32,
+          bottom: 32,
+        }),
+      });
+      return svg;
+    }
+
+    it("shows NEXT sibling when navigating to element with only blacklisted children", () => {
+      // Simulates: <a><div.relative><svg/></div><span>anyclick</span></a>
+      const link = createElementWithSizeAndContent("a", { id: "link" });
+      const logoDiv = createElementWithSizeAndContent("div", {
+        id: "logo-div",
+        classes: ["relative"],
+      });
+      const svg = createSVGElement();
+      const brandSpan = createElementWithSizeAndContent("span", {
+        id: "brand",
+        textContent: "anyclick",
+      });
+
+      logoDiv.appendChild(svg);
+      link.appendChild(logoDiv);
+      link.appendChild(brandSpan);
+      container.appendChild(link);
+
+      // When targeting the logo div, NEXT should show the span
+      const { getByText } = render(
+        <ElementHierarchyNav
+          targetElement={logoDiv}
+          elementInfo={{
+            tagName: "div",
+            id: "logo-div",
+            classNames: ["relative"],
+            selector: "#logo-div",
+          }}
+          onSelectElement={onSelectElement}
+        />
+      );
+
+      // Should show NEXT pointing to the span
+      expect(getByText("next")).toBeInTheDocument();
+      
+      // Should NOT show CHILD (SVG is blacklisted)
+      expect(() => getByText("child")).toThrow();
+    });
+
+    it("allows bidirectional navigation: span -> div -> span", () => {
+      const link = createElementWithSizeAndContent("a", { id: "link" });
+      const logoDiv = createElementWithSizeAndContent("div", {
+        id: "logo-div",
+        classes: ["relative"],
+      });
+      const brandSpan = createElementWithSizeAndContent("span", {
+        id: "brand",
+        textContent: "anyclick",
+      });
+
+      link.appendChild(logoDiv);
+      link.appendChild(brandSpan);
+      container.appendChild(link);
+
+      // From span, PREV should be the div
+      const prevSibling = findEligiblePrevSibling(brandSpan);
+      expect(prevSibling).toBe(logoDiv);
+
+      // From div, NEXT should be the span
+      const nextSibling = findEligibleNextSibling(logoDiv);
+      expect(nextSibling).toBe(brandSpan);
+    });
+
+    it("handles elements with zero bounding rect but with text content", () => {
+      // Some CSS like display:contents causes zero bounding rect
+      const parent = createElementWithSizeAndContent("div", { id: "parent" });
+      const textSpan = document.createElement("span");
+      textSpan.id = "text-span";
+      textSpan.textContent = "visible text";
+      // Simulate display:contents or similar - zero bounding rect
+      Object.defineProperty(textSpan, "getBoundingClientRect", {
+        value: () => ({
+          width: 0,
+          height: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }),
+      });
+
+      parent.appendChild(textSpan);
+      container.appendChild(parent);
+
+      // Element with text content should be eligible even with zero rect
+      expect(isEligibleForNavigation(textSpan)).toBe(true);
+    });
+
+    it("hides elements with zero rect AND no text content", () => {
+      const parent = createElementWithSizeAndContent("div", { id: "parent" });
+      const emptyDiv = document.createElement("div");
+      emptyDiv.id = "empty-div";
+      // Zero bounding rect and no text content
+      Object.defineProperty(emptyDiv, "getBoundingClientRect", {
+        value: () => ({
+          width: 0,
+          height: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }),
+      });
+
+      parent.appendChild(emptyDiv);
+      container.appendChild(parent);
+
+      // Empty element with zero rect should not be eligible
+      expect(isEligibleForNavigation(emptyDiv)).toBe(false);
+    });
+  });
 });

@@ -236,8 +236,29 @@ export function isBlacklisted(element: Element): boolean {
 }
 
 function shouldHideElement(element: Element): boolean {
+  // Check computed style first - if display:none or visibility:hidden, definitely hide
+  if (typeof window !== 'undefined' && window.getComputedStyle) {
+    try {
+      const style = window.getComputedStyle(element);
+      if (style.display === 'none') return true;
+      if (style.visibility === 'hidden') return true;
+    } catch {
+      // Ignore errors from getComputedStyle
+    }
+  }
+  
+  // Check bounding rect - but be lenient
+  // Only hide if truly zero-size AND has no text content
   const rect = element.getBoundingClientRect();
-  if (rect.width === 0 && rect.height === 0) return true;
+  if (rect.width === 0 && rect.height === 0) {
+    // Check if element has any text content - if so, it might still be valid
+    // (e.g., display:contents elements or inline elements not yet laid out)
+    const hasTextContent = element.textContent && element.textContent.trim().length > 0;
+    if (!hasTextContent) {
+      return true;
+    }
+  }
+  
   return false;
 }
 
