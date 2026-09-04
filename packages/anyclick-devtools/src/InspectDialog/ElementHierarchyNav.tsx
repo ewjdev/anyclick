@@ -241,6 +241,12 @@ function shouldHideElement(element: Element): boolean {
   return false;
 }
 
+/**
+ * Check if an element is eligible for navigation in the hierarchy.
+ * An element is eligible if it's not hidden and not blacklisted.
+ * @param element - The element to check
+ * @returns True if the element can be navigated to
+ */
 export function isEligibleForNavigation(element: Element): boolean {
   if (shouldHideElement(element)) return false;
   if (isBlacklisted(element)) return false;
@@ -254,6 +260,12 @@ function getElementInfo(element: Element) {
   return { tagName, id, classNames };
 }
 
+/**
+ * Find the nearest eligible parent element in the DOM hierarchy.
+ * Traverses upward through the DOM tree, stopping at provider boundaries.
+ * @param element - The element whose parent to find
+ * @returns The first eligible parent element, or null if none found
+ */
 export function findEligibleParent(
   element: Element
 ): Element | null {
@@ -267,6 +279,12 @@ export function findEligibleParent(
   return null;
 }
 
+/**
+ * Find the nearest eligible previous sibling element.
+ * Traverses backward through siblings until an eligible element is found.
+ * @param element - The element whose previous sibling to find
+ * @returns The first eligible previous sibling, or null if none found
+ */
 export function findEligiblePrevSibling(
   element: Element
 ): Element | null {
@@ -280,6 +298,12 @@ export function findEligiblePrevSibling(
   return null;
 }
 
+/**
+ * Find the nearest eligible next sibling element.
+ * Traverses forward through siblings until an eligible element is found.
+ * @param element - The element whose next sibling to find
+ * @returns The first eligible next sibling, or null if none found
+ */
 export function findEligibleNextSibling(
   element: Element
 ): Element | null {
@@ -293,6 +317,12 @@ export function findEligibleNextSibling(
   return null;
 }
 
+/**
+ * Find the first eligible child element.
+ * Traverses through children until an eligible element is found.
+ * @param element - The element whose first child to find
+ * @returns The first eligible child element, or null if none found
+ */
 export function findEligibleFirstChild(
   element: Element
 ): Element | null {
@@ -306,6 +336,13 @@ export function findEligibleFirstChild(
   return null;
 }
 
+/**
+ * Find all ancestor elements between the parent and provider boundary.
+ * These are ancestors not directly shown in the compact navigation view.
+ * @param element - The current element
+ * @param parentElement - The immediate eligible parent element
+ * @returns Array of all ancestor elements above the parent, up to the provider boundary
+ */
 export function findOmittedAncestors(
   element: Element,
   parentElement: Element | null
@@ -313,18 +350,28 @@ export function findOmittedAncestors(
   if (!parentElement) {
     return [];
   }
-  
+
   const ancestors: Element[] = [];
   let current = parentElement.parentElement;
-  
+
   while (current && !isProviderBoundary(current)) {
     ancestors.push(current);
     current = current.parentElement;
   }
-  
+
   return ancestors;
 }
 
+/**
+ * Dropdown component that displays omitted ancestor elements for selection.
+ * Provides keyboard navigation (Arrow keys, Enter, Escape) and hover highlighting.
+ * @param ancestors - Array of ancestor elements to display
+ * @param onSelect - Callback when an ancestor is selected
+ * @param onClose - Callback when the chooser should be closed
+ * @param onMouseEnter - Callback when hovering over an ancestor
+ * @param onMouseLeave - Callback when leaving hover over an ancestor
+ * @param highlightColors - Optional colors for highlighting elements
+ */
 function AncestorChooser({
   ancestors,
   onSelect,
@@ -467,6 +514,19 @@ function AncestorChooser({
   );
 }
 
+/**
+ * Renders a single line in the element hierarchy navigation.
+ * Displays element tag, id, classes, and relation label (parent/prev/next/child).
+ * Supports hover highlighting, selection, and keyboard navigation.
+ * @param element - The element to display
+ * @param isCurrent - Whether this is the currently selected element
+ * @param relation - The relationship of this element to the current element
+ * @param selector - Optional CSS selector for the current element
+ * @param onSelect - Callback when this element is selected
+ * @param onMouseEnter - Callback when mouse enters this element
+ * @param onMouseLeave - Callback when mouse leaves this element
+ * @param isHovered - Whether this element is currently being hovered
+ */
 function HierarchyLine({
   element,
   isCurrent,
@@ -604,6 +664,16 @@ function HierarchyLine({
   );
 }
 
+/**
+ * Compact element hierarchy navigator with selectable ancestor ellipses.
+ * Displays parent, previous/next siblings, and first child of the target element.
+ * Shows an ellipsis button for omitted ancestors that opens a dropdown chooser.
+ * @param targetElement - The currently selected DOM element
+ * @param elementInfo - Information about the target element (tag, id, classes, selector)
+ * @param onSelectElement - Callback when a different element is selected
+ * @param highlightColors - Optional colors for highlighting elements on hover
+ * @param isCompact - Whether to use compact display mode (currently unused)
+ */
 function ElementHierarchyNav({
   targetElement,
   elementInfo,
