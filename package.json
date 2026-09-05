@@ -23,13 +23,24 @@
     "version-packages": "changeset version",
     "test:roadmap": "node scripts/test-roadmap-sync.mjs",
     "roadmap:sync": "node scripts/sync-roadmap.mjs",
-    "roadmap:sync:dry": "node scripts/sync-roadmap.mjs --dry-run --verbose"
+    "roadmap:sync:dry": "node scripts/sync-roadmap.mjs --dry-run --verbose",
+    "test:showcase": "vitest run",
+    "test:showcase:browser": "playwright test",
+    "check:showcase": "node scripts/check-showcase.mjs",
+    "typecheck:web": "tsc --noEmit -p apps/web/tsconfig.json",
+    "dev:showcase": "yarn workspace web-app exec next dev"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
+    "@playwright/test": "^1.55.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "jsdom": "^26.1.0",
     "prettier": "3.5.3",
-    "turbo": "^2.5.6"
+    "turbo": "^2.5.6",
+    "vitest": "^3.2.0"
   },
   "engines": {
     "node": ">=20.9.0"

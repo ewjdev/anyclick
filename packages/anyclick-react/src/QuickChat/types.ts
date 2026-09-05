@@ -110,6 +110,8 @@ export interface QuickChatConfig {
  * Props for the QuickChat component.
  */
 export interface QuickChatProps {
+  /** Opt into scoped, structured conversations using the shared controller. */
+  conversation?: import("../Conversation/types").ConversationProps;
   /** Whether the chat is visible */
   visible: boolean;
   /** Target element that was right-clicked */

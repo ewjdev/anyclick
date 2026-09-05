@@ -5,6 +5,7 @@ import { ImmersiveWorkstreamShowcase } from "@/components/ImmersiveWorkstreamSho
 import PackagesSection from "@/components/PackagesSection";
 import QuickStartSection from "@/components/QuickStartSection";
 import RoadmapSummary from "@/components/RoadmapSummary";
+import { Showcase } from "@/components/showcase/Showcase";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
@@ -65,7 +66,7 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-24 pb-32 px-0 md:px-6">
+      <section className="relative pt-16 pb-10 px-0 md:px-6">
         <div className="max-w-5xl mx-auto text-center">
           {/* Badge */}
           {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-gray-400 mb-8 backdrop-blur-sm">
@@ -75,20 +76,18 @@ export default function Home() {
 
           {/* Headline */}
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.1] mb-6 mx-2">
-            <span className="bg-linear-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-              UX done right
-            </span>
+            <span className="text-white">Make every element useful.</span>
             <br />
-            <span className="bg-linear-to-r from-violet-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-              Why not click on everything?
+            <span className="text-indigo-300">
+              Give every click a next step.
             </span>
           </h1>
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed px-2">
-            Click any element in your app to capture context, anyclick will
-            format it for consumers and adapters will automagically route it to
-            the appropriate system and workflow.
+            Turn a selected element into a useful conversation, an editable
+            result, and a completed action. Try four working application
+            scenarios, then bring the same experience to your app.
           </p>
 
           {/* CTA Buttons */}
@@ -102,10 +101,17 @@ export default function Home() {
             </Link>
           </div>
         </div>
+      </section>
 
+      {process.env.SHOWCASE_ENABLED === "true" ? (
+        <Showcase />
+      ) : (
+        <ImmersiveWorkstreamShowcase />
+      )}
+      <section className="px-6 py-16">
         {/* Code Preview */}
         <HeroCodeBlock
-          className="max-w-3xl mx-auto mt-20"
+          className="max-w-3xl mx-auto"
           filename="app/layout.tsx"
           language="tsx"
           code={`import { AnyclickProvider } from '@ewjdev/anyclick-react';
@@ -123,21 +129,6 @@ export default function RootLayout({ children }) {
   );
 }`}
         />
-      </section>
-
-      {/* Immersive Workstream Section */}
-      <section className="relative">
-        <div className="text-center py-16 px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Built to extend browser workflows
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Scroll through immersive experiences. Each workflow has its own
-            visual identity and context menu. Right-click to try it.
-          </p>
-        </div>
-
-        <ImmersiveWorkstreamShowcase />
       </section>
 
       {/* Roadmap Summary */}

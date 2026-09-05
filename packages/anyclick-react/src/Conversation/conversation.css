@@ -1,0 +1,128 @@
+.ac-conversation {
+  color: var(--ac-text, #e8edf5);
+  background: var(--ac-background, #111827);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: inherit;
+}
+.ac-conversation *,
+.ac-result * {
+  box-sizing: border-box;
+}
+.ac-conversation > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+.ac-conversation p {
+  line-height: 1.65;
+}
+.ac-conversation button,
+.ac-result button {
+  cursor: pointer;
+  font: inherit;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  background: #243248;
+  color: #edf2f9;
+  padding: 8px 12px;
+}
+.ac-conversation button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ac-conversation :focus-visible,
+.ac-result :focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 3px;
+}
+.ac-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ac-transcript {
+  overflow: auto;
+  max-height: 480px;
+}
+.ac-message {
+  padding: 16px 0;
+  border-top: 1px solid #334155;
+}
+.ac-result label,
+.ac-composer label {
+  display: block;
+  margin: 12px 0;
+}
+.ac-result textarea,
+.ac-result select,
+.ac-composer textarea {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  border: 1px solid #52637d;
+  border-radius: 6px;
+  background: #182337;
+  color: #e8edf5;
+  padding: 10px;
+  font: inherit;
+  line-height: 1.6;
+}
+.ac-result table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ac-result th,
+.ac-result td {
+  border-bottom: 1px solid #475569;
+  text-align: left;
+  padding: 8px;
+}
+.ac-composer {
+  position: relative;
+}
+.ac-composer ul {
+  position: absolute;
+  bottom: 100%;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: #243248;
+  border: 1px solid #52637d;
+  width: 100%;
+  border-radius: 8px;
+  z-index: 2;
+}
+.ac-composer li {
+  padding: 10px;
+  cursor: pointer;
+}
+.ac-composer li small {
+  display: block;
+}
+.ac-composer li[aria-selected="true"] {
+  background: #3b4c68;
+}
+.ac-composer-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.ac-conversation-floating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  z-index: 10000;
+  border-radius: 12px;
+}
+.ac-conversation-sheet {
+  min-height: 100%;
+}
