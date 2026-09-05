@@ -3,6 +3,7 @@ import {
   errorResponse,
   readBody,
   requireSession,
+  reserveBudget,
   storage,
 } from "@/lib/showcase/storage";
 import { z } from "zod";
@@ -21,7 +22,8 @@ const eventSchema = z
   .strict();
 export async function POST(request: Request) {
   try {
-    await requireSession(request);
+    const session = await requireSession(request);
+    await reserveBudget(request, session, "suggest");
     const parsed = eventSchema.safeParse(await readBody(request));
     if (!parsed.success) throw new DomainError("Invalid event.");
     const { scenario, event } = parsed.data;

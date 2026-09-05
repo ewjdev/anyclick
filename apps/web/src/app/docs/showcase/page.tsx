@@ -115,7 +115,7 @@ import '@ewjdev/anyclick-react/styles.css';
         scoped controller by rendering <code>Conversation</code> directly or
         supplying the optional <code>conversation</code> prop to{" "}
         <code>QuickChat</code>. This release does not silently migrate an
-        existing application's transcript or endpoint.
+        existing application&apos;s transcript or endpoint.
       </p>
     </main>
   );

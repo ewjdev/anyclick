@@ -194,9 +194,9 @@ test("mention completion is editable and Enter accepts without sending", async (
   await input.fill("Explain @checkout");
   await input.press("ArrowDown");
   await input.press("Enter");
-  expect(chatRequests).toBe(0);
   await expect(input).toHaveValue(/@checkout/);
   await expect(
     page.getByRole("button", { name: "Remove Complete order from context" }),
   ).toBeVisible();
+  expect(chatRequests).toBe(0);
 });

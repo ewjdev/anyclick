@@ -12,7 +12,7 @@ it("inserts a mention at the caret without deleting the remaining sentence", () 
     kind: "mention" as const,
   };
   expect(insertCompletion("Compare @bo with this", 11, item)).toBe(
-    "Compare @bottle  with this",
+    "Compare @bottle with this",
   );
 });
 it("filters only the active token and limits local matches", () => {

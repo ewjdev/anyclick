@@ -44,20 +44,26 @@ if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) {
   process.exit(1);
 }
 for (const suffix of ["", "/branches/issues%2Fsrc"]) {
-  const response = await fetch(
-    `https://api.github.com/repos/${repo}${suffix}`,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.SHOWCASE_GITHUB_TOKEN}`,
-        Accept: "application/vnd.github+json",
+  let valid = false;
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${repo}${suffix}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SHOWCASE_GITHUB_TOKEN}`,
+          Accept: "application/vnd.github+json",
+        },
+        signal: AbortSignal.timeout(10000),
       },
-      signal: AbortSignal.timeout(10000),
-    },
-  );
-  const data = await response.json();
-  const valid =
-    response.ok &&
-    (suffix || (data.private === false && data.has_issues === true));
+    );
+    const data = await response.json().catch(() => ({}));
+    valid = Boolean(
+      response.ok &&
+        (suffix || (data.private === false && data.has_issues === true)),
+    );
+  } catch {
+    valid = false;
+  }
   console.log(
     `${valid ? "OK" : "FAILED"} GitHub ${suffix ? "media branch" : "public demo repository"}`,
   );

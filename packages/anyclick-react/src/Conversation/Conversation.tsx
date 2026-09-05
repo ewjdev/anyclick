@@ -113,6 +113,8 @@ function ConversationThread({
         const data = await response.json();
         if (!response.ok)
           throw new Error(data.error || "Could not load conversation.");
+        if (!Array.isArray(data.messages))
+          throw new Error("Invalid conversation history.");
         setMessages(data.messages);
         setHydrated(true);
       })

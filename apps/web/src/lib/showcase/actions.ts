@@ -44,6 +44,7 @@ export interface Receipt {
   createdAt: number;
   assetUrl?: string;
   stage?: "prepared" | "asset" | "issue";
+  reconciledAt?: number;
 }
 export function inputHash(input: ActionInput) {
   return createHash("sha256")
@@ -92,12 +93,22 @@ export async function previewAction(
         409,
       );
   }
+  const nonTaskLabels: Record<string, string> = {
+    undo: "Undo change",
+    cancel: "Cancel pending action",
+    note: "Add staff note",
+    "edit-reply": "Edit reply",
+    "remove-reply": "Remove reply",
+  };
   const preview: Preview = {
     id: randomUUID(),
     input,
     hash: inputHash(input),
     revision: state.revision,
-    title: taskFor(input.scenario, input.actionId)?.label ?? input.actionId,
+    title:
+      taskFor(input.scenario, input.actionId)?.label ??
+      nonTaskLabels[input.actionId] ??
+      input.actionId,
     destination:
       input.actionId === "issue"
         ? `GitHub · ${process.env.SHOWCASE_GITHUB_REPO}`

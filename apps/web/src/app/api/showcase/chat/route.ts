@@ -244,12 +244,22 @@ export async function POST(request: Request) {
                 },
               ],
             });
-          await commit(
-            session,
-            `thread:${body.conversationId}`,
-            accepted.revision,
-            { revision: accepted.revision + 1, messages: final.slice(-50) },
-          );
+          try {
+            await commit(
+              session,
+              `thread:${body.conversationId}`,
+              accepted.revision,
+              { revision: accepted.revision + 1, messages: final.slice(-50) },
+            );
+          } catch (commitError) {
+            console.error("[showcase.chat] commit failed", {
+              conversationId: body.conversationId,
+              error:
+                commitError instanceof Error
+                  ? commitError.message
+                  : "unknown error",
+            });
+          }
         } finally {
           await unlock();
         }

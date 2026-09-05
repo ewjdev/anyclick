@@ -104,7 +104,7 @@ export function ConversationResultView({
           )}
         </label>
       ))}
-      {result.actionId && onAction && (
+      {result.actionId && result.objectId && onAction && (
         <button
           type="button"
           disabled={busy}

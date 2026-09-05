@@ -34,5 +34,7 @@ export function insertCompletion(
 ): string {
   if (item.kind === "completion") return item.value;
   const prefix = input.slice(0, caret);
-  return prefix.replace(/[/@][^\s]*$/, item.value + " ") + input.slice(caret);
+  const suffix = input.slice(caret);
+  const separator = /^\s/.test(suffix) ? "" : " ";
+  return prefix.replace(/[/@][^\s]*$/, item.value + separator) + suffix;
 }

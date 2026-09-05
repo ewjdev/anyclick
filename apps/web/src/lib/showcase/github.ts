@@ -31,18 +31,29 @@ export async function saveReceipt(session: Session, receipt: Receipt) {
         : Math.max(1, Math.ceil((session.expiresAt - Date.now()) / 1000)),
   });
 }
+const RECONCILE_COOLDOWN_MS = 30_000;
+
 export async function reconcileIssue(
   session: Session,
   receipt: Receipt,
+  request?: Request,
 ): Promise<Receipt> {
   if (receipt.status !== "outcome_unknown") return receipt;
+  if (
+    receipt.reconciledAt &&
+    Date.now() - receipt.reconciledAt < RECONCILE_COOLDOWN_MS
+  )
+    return receipt;
+  const now = Date.now();
+  const withTimestamp: Receipt = { ...receipt, reconciledAt: now };
+  await saveReceipt(session, withTimestamp);
   // Read the repository directly; search indexing is eventually consistent.
   const since = new Date(receipt.createdAt - 60_000).toISOString();
   for (let page = 1; page <= 3; page++) {
     const response = await github(
       `issues?state=all&sort=created&direction=desc&per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
     );
-    if (!response.ok) return receipt;
+    if (!response.ok) return withTimestamp;
     const issues = (await response.json()) as {
       body?: string;
       html_url: string;
@@ -52,7 +63,7 @@ export async function reconcileIssue(
     );
     if (match) {
       const complete: Receipt = {
-        ...receipt,
+        ...withTimestamp,
         status: "succeeded",
         url: match.html_url,
         message: "Issue created in the demo repository.",
@@ -62,7 +73,7 @@ export async function reconcileIssue(
     }
     if (issues.length < 100) break;
   }
-  return receipt; // Absence is not proof the POST failed; never silently create again.
+  return withTimestamp;
 }
 
 export async function executeGitHub(

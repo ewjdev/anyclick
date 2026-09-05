@@ -5,6 +5,7 @@ import {
   errorResponse,
   key,
   requireSession,
+  reserveBudget,
   storage,
 } from "@/lib/showcase/storage";
 
@@ -31,8 +32,10 @@ export async function GET(request: Request) {
       };
       await saveReceipt(session, receipt);
     }
-    if (receipt.actionId === "issue")
-      receipt = await reconcileIssue(session, receipt);
+    if (receipt.actionId === "issue" && receipt.status === "outcome_unknown") {
+      await reserveBudget(request, session, "github");
+      receipt = await reconcileIssue(session, receipt, request);
+    }
     return Response.json(receipt, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return errorResponse(error);

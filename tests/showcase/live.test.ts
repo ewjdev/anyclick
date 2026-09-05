@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { scenarioIds, scenarios } from "../../apps/web/src/lib/showcase/domain";
 
 const base = process.env.SHOWCASE_LIVE_BASE_URL;
+const demoRepo = process.env.SHOWCASE_GITHUB_REPO ?? "";
 describe.skipIf(!base)("live hosted integrations (explicit opt-in)", () => {
   async function session() {
     const response = await fetch(`${base}/api/showcase/workspace`);
@@ -110,7 +111,7 @@ describe.skipIf(!base)("live hosted integrations (explicit opt-in)", () => {
     ).toBe(true);
     expect(history.messages[0].metadata.schemaVersion).toBe(1);
   }, 60000);
-  it.skipIf(process.env.SHOWCASE_LIVE_GITHUB !== "1")(
+  it.skipIf(process.env.SHOWCASE_LIVE_GITHUB !== "1" || !demoRepo)(
     "creates and verifies a real issue with a screenshot in the dedicated demo repository",
     async () => {
       const cookie = await session();
@@ -133,11 +134,13 @@ describe.skipIf(!base)("live hosted integrations (explicit opt-in)", () => {
       const receipt = await call("execute", cookie, input);
       expect(receipt.status, receipt.message).toBe("succeeded");
       expect(receipt.url).toMatch(
-        /^https:\/\/github.com\/ewjdev\/anyclick-showcase-demo\/issues\/\d+$/,
+        new RegExp(
+          `^https://github\\.com/${demoRepo.replace(/[.]/g, "\\.")}/issues/\\d+$`,
+        ),
       );
       const issueNumber = receipt.url.split("/").at(-1);
       const issue = await fetch(
-        `https://api.github.com/repos/ewjdev/anyclick-showcase-demo/issues/${issueNumber}`,
+        `https://api.github.com/repos/${demoRepo}/issues/${issueNumber}`,
       ).then((response) => response.json());
       expect(issue.title).toBe(title);
       expect(issue.body).toContain(`anyclick-execution:${receipt.id}`);

@@ -68,12 +68,18 @@ async function api<T>(
         }),
     signal,
   });
-  const result = await response.json();
+  let result: { error?: string } | T | undefined;
+  try {
+    result = await response.json();
+  } catch {
+    result = undefined;
+  }
   if (!response.ok)
     throw new Error(
-      result.error || "The service could not complete this request. Try again.",
+      (result as { error?: string })?.error ||
+        "The service could not complete this request. Try again.",
     );
-  return result;
+  return result as T;
 }
 const icons = {
   software: Code2,
@@ -225,9 +231,10 @@ export function Showcase() {
     setPreview(null);
     setCaptureError("");
     setScreenshot(undefined);
-    setContext([
-      reference(scene.objects.find((object) => object.id === next.objectId)!),
-    ]);
+    const taskObject = scene.objects.find(
+      (object) => object.id === next.objectId,
+    );
+    setContext(taskObject ? [reference(taskObject)] : []);
     setSheetOpen(true);
   }
   function switchIndustry(next: ScenarioId) {
@@ -252,9 +259,10 @@ export function Showcase() {
     };
     const objectIds = [task.objectId, ...(related[task.id] ?? [])];
     setContext(
-      objectIds.map((id) =>
-        reference(scene.objects.find((object) => object.id === id)!),
-      ),
+      objectIds
+        .map((id) => scene.objects.find((object) => object.id === id))
+        .filter((object): object is SampleObject => !!object)
+        .map(reference),
     );
     setInitialInput(task.prompt);
     setPanel("chat");

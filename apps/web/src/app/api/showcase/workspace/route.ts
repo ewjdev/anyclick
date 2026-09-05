@@ -11,7 +11,11 @@ import {
 } from "@/lib/showcase/storage";
 
 export const runtime = "nodejs";
-async function workspaceResponse(request: Request, reset = false) {
+async function workspaceResponse(
+  request: Request,
+  reset = false,
+  allowCreate = true,
+) {
   try {
     checkOrigin(request);
     const hasCookie = request.headers
@@ -19,12 +23,18 @@ async function workspaceResponse(request: Request, reset = false) {
       ?.split(";")
       .some((value) => value.trim().startsWith(`${cookieName}=`));
     const fresh = reset || !hasCookie;
+    if (fresh && !allowCreate)
+      throw new DomainError(
+        "Start a workspace from the application first.",
+        401,
+      );
     const session = fresh
       ? await createSession(request)
       : await requireSession(request);
     const states = await Promise.all(
       scenarioIds.map((id) => stateFor(session, id)),
     );
+    const budget = Number(process.env.SHOWCASE_DAILY_TOKEN_BUDGET);
     return Response.json(
       {
         workspaceId: session.id,
@@ -33,7 +43,8 @@ async function workspaceResponse(request: Request, reset = false) {
         capabilities: {
           ai:
             !!process.env.OPENAI_API_KEY &&
-            Number(process.env.SHOWCASE_DAILY_TOKEN_BUDGET) > 0,
+            Number.isSafeInteger(budget) &&
+            budget > 0,
           github:
             !!process.env.SHOWCASE_GITHUB_TOKEN &&
             !!process.env.SHOWCASE_GITHUB_REPO,
@@ -55,13 +66,16 @@ async function workspaceResponse(request: Request, reset = false) {
     return errorResponse(error);
   }
 }
-export const GET = (request: Request) => workspaceResponse(request);
+export function GET(request: Request) {
+  const origin = request.headers.get("origin");
+  return workspaceResponse(request, false, !!origin);
+}
 export async function POST(request: Request) {
   try {
     const body = await readBody(request);
     if (body?.reset !== true)
       throw new DomainError("Choose to start a fresh workspace.");
-    return workspaceResponse(request, true);
+    return workspaceResponse(request, true, true);
   } catch (error) {
     return errorResponse(error);
   }
