@@ -165,13 +165,22 @@ export async function commit(
     );
 }
 const releaseScript = `if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end`;
-export async function acquire(lockKey: string, ttl: number) {
+export async function acquire(lockKey: string, ttl: number, waitMs = 0) {
   const token = randomBytes(16).toString("hex");
-  if (!(await storage().set(lockKey, token, { nx: true, ex: ttl })))
-    throw new DomainError(
-      "Another request is running. Try again in a moment.",
-      409,
+  const deadline = Date.now() + waitMs;
+  let delay = 250;
+  while (!(await storage().set(lockKey, token, { nx: true, ex: ttl }))) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0)
+      throw new DomainError(
+        "Another request is running. Try again in a moment.",
+        409,
+      );
+    await new Promise((resolve) =>
+      setTimeout(resolve, Math.min(delay, remaining)),
     );
+    delay = Math.min(delay * 2, 1000);
+  }
   return async () => {
     await storage().eval(releaseScript, [lockKey], [token]);
   };
@@ -187,7 +196,7 @@ return 1`;
 export async function reserveBudget(
   request: Request,
   session: Session,
-  kind: "chat" | "suggest" | "github",
+  kind: "chat" | "suggest" | "github" | "event",
   tokens = 1,
 ) {
   const day = new Date().toISOString().slice(0, 10);
@@ -199,7 +208,9 @@ export async function reserveBudget(
       ? [40, 400, 2000]
       : kind === "suggest"
         ? [100, 1000, 5000]
-        : [5, 20, 100];
+        : kind === "event"
+          ? [200, 2000, 10000]
+          : [5, 20, 100];
   const keys = [
     `showcase:quota:${day}:${kind}:${session.id}`,
     `showcase:quota:${day}:${kind}:ip:${ip}`,
@@ -210,7 +221,7 @@ export async function reserveBudget(
       "The daily limit for this service has been reached. Your work is saved; try again tomorrow.",
       429,
     );
-  if (kind !== "github") {
+  if (kind === "chat" || kind === "suggest") {
     const maxTokens = Number(process.env.SHOWCASE_DAILY_TOKEN_BUDGET);
     if (!Number.isSafeInteger(maxTokens) || maxTokens <= 0)
       throw new DomainError(

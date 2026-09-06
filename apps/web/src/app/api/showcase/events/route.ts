@@ -23,9 +23,9 @@ const eventSchema = z
 export async function POST(request: Request) {
   try {
     const session = await requireSession(request);
-    await reserveBudget(request, session, "suggest");
     const parsed = eventSchema.safeParse(await readBody(request));
     if (!parsed.success) throw new DomainError("Invalid event.");
+    await reserveBudget(request, session, "event");
     const { scenario, event } = parsed.data;
     const key = `showcase:events:${new Date().toISOString().slice(0, 10)}:${scenario}:${event}`;
     await storage().eval(

@@ -1,6 +1,6 @@
 import type { Preview, Receipt } from "./actions";
 import { DomainError } from "./domain";
-import { type Session, acquire, key, storage } from "./storage";
+import { type Session, acquire, key, reserveBudget, storage } from "./storage";
 
 function configuration() {
   const repo = process.env.SHOWCASE_GITHUB_REPO;
@@ -36,44 +36,60 @@ const RECONCILE_COOLDOWN_MS = 30_000;
 export async function reconcileIssue(
   session: Session,
   receipt: Receipt,
-  request?: Request,
+  request: Request,
 ): Promise<Receipt> {
   if (receipt.status !== "outcome_unknown") return receipt;
-  if (
-    receipt.reconciledAt &&
-    Date.now() - receipt.reconciledAt < RECONCILE_COOLDOWN_MS
-  )
-    return receipt;
-  const now = Date.now();
-  const withTimestamp: Receipt = { ...receipt, reconciledAt: now };
-  await saveReceipt(session, withTimestamp);
-  // Read the repository directly; search indexing is eventually consistent.
-  const since = new Date(receipt.createdAt - 60_000).toISOString();
-  for (let page = 1; page <= 3; page++) {
-    const response = await github(
-      `issues?state=all&sort=created&direction=desc&per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
-    );
-    if (!response.ok) return withTimestamp;
-    const issues = (await response.json()) as {
-      body?: string;
-      html_url: string;
-    }[];
-    const match = issues.find((issue) =>
-      issue.body?.includes(`<!-- anyclick-execution:${receipt.id} -->`),
-    );
-    if (match) {
-      const complete: Receipt = {
-        ...withTimestamp,
-        status: "succeeded",
-        url: match.html_url,
-        message: "Issue created in the demo repository.",
-      };
-      await saveReceipt(session, complete);
-      return complete;
-    }
-    if (issues.length < 100) break;
+  let release: (() => Promise<void>) | undefined;
+  try {
+    release = await acquire(key(session, `reconcile-lock:${receipt.id}`), 60);
+  } catch (error) {
+    if (error instanceof DomainError && error.status === 409) return receipt;
+    throw error;
   }
-  return withTimestamp;
+  try {
+    receipt =
+      (await storage().get<Receipt>(key(session, `execution:${receipt.id}`))) ??
+      receipt;
+    if (receipt.status !== "outcome_unknown") return receipt;
+    if (
+      receipt.reconciledAt &&
+      Date.now() - receipt.reconciledAt < RECONCILE_COOLDOWN_MS
+    )
+      return receipt;
+    await reserveBudget(request, session, "github");
+    const now = Date.now();
+    const withTimestamp: Receipt = { ...receipt, reconciledAt: now };
+    await saveReceipt(session, withTimestamp);
+    // Read the repository directly; search indexing is eventually consistent.
+    const since = new Date(receipt.createdAt - 60_000).toISOString();
+    for (let page = 1; page <= 3; page++) {
+      const response = await github(
+        `issues?state=all&sort=created&direction=desc&per_page=100&page=${page}&since=${encodeURIComponent(since)}`,
+      );
+      if (!response.ok) return withTimestamp;
+      const issues = (await response.json()) as {
+        body?: string;
+        html_url: string;
+      }[];
+      const match = issues.find((issue) =>
+        issue.body?.includes(`<!-- anyclick-execution:${receipt.id} -->`),
+      );
+      if (match) {
+        const complete: Receipt = {
+          ...withTimestamp,
+          status: "succeeded",
+          url: match.html_url,
+          message: "Issue created in the demo repository.",
+        };
+        await saveReceipt(session, complete);
+        return complete;
+      }
+      if (issues.length < 100) break;
+    }
+    return withTimestamp;
+  } finally {
+    await release();
+  }
 }
 
 export async function executeGitHub(
@@ -82,9 +98,11 @@ export async function executeGitHub(
   receipt: Receipt,
 ): Promise<Receipt> {
   const { repo } = configuration();
-  const release = await acquire(`showcase:github:${repo}:writer`, 80);
+  let release: (() => Promise<void>) | undefined;
   let current = { ...receipt };
   try {
+    // Bound contention waiting to leave room for three 15-second GitHub calls.
+    release = await acquire(`showcase:github:${repo}:writer`, 80, 8000);
     if (preview.input.screenshot) {
       const path = `feedback-assets/${receipt.id}/element.png`;
       const branch = "issues/src";
@@ -163,7 +181,7 @@ export async function executeGitHub(
             : "Screenshot upload could not be confirmed. No issue submission was attempted.",
     };
   } finally {
-    await release();
+    await release?.();
   }
   await saveReceipt(session, current);
   return current;

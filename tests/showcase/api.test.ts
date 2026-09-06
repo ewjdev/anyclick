@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as execute } from "../../apps/web/src/app/api/showcase/execute/route";
 import { previewAction } from "../../apps/web/src/lib/showcase/actions";
 import {
+  acquire,
   commit,
   createSession,
   key,
   readBody,
   requireSession,
+  reserveBudget,
   stateFor,
 } from "../../apps/web/src/lib/showcase/storage";
 
@@ -25,6 +27,20 @@ vi.mock("@upstash/redis", () => ({
       return records.delete(key);
     }
     async eval(script: string, keys: string[], args: unknown[]) {
+      if (script.includes("INCRBY")) {
+        const amount = Number(args[0]);
+        if (
+          keys.some(
+            (key, index) =>
+              Number(records.get(key) ?? 0) + amount > Number(args[index + 2]),
+          )
+        )
+          return 0;
+        keys.forEach((key) =>
+          records.set(key, Number(records.get(key) ?? 0) + amount),
+        );
+        return 1;
+      }
       if (script.includes("current.revision")) {
         const current = records.get(keys[0]) as
           | { revision: number }
@@ -62,6 +78,42 @@ beforeEach(() => {
   vi.stubEnv("QUICKCHAT_KV_REST_API_TOKEN", "test-only");
 });
 describe("server boundaries", () => {
+  it("limits event writes without using the AI token budget", async () => {
+    vi.stubEnv("SHOWCASE_DAILY_TOKEN_BUDGET", "0");
+    const session = await createSession();
+    for (let index = 0; index < 200; index++)
+      await reserveBudget(request(session, {}), session, "event");
+    await expect(
+      reserveBudget(request(session, {}), session, "event"),
+    ).rejects.toThrow("daily limit");
+    expect(
+      [...records.keys()].some((key) => key.startsWith("showcase:tokens:")),
+    ).toBe(false);
+    expect([...records.keys()].some((key) => key.includes(":event:ip:"))).toBe(
+      true,
+    );
+  });
+  it("waits for the repository lock and runs after the previous writer releases it", async () => {
+    vi.useFakeTimers();
+    try {
+      const releaseFirst = await acquire("writer", 80);
+      let entered = false;
+      const second = acquire("writer", 80, 8000).then((release) => {
+        entered = true;
+        return release;
+      });
+      await vi.advanceTimersByTimeAsync(250);
+      expect(entered).toBe(false);
+      await releaseFirst();
+      await vi.advanceTimersByTimeAsync(500);
+      const releaseSecond = await second;
+      expect(entered).toBe(true);
+      await releaseSecond();
+      expect(records.has("writer")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("isolates visitors who share an IP address", async () => {
     const first = await createSession();
     const second = await createSession();

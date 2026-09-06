@@ -23,3 +23,17 @@ it("filters only the active token and limits local matches", () => {
   expect(localCompletions("Compare @bo", 11, [], objects)).toHaveLength(5);
   expect(localCompletions("Compare a bottle", 16, [], objects)).toEqual([]);
 });
+
+it.each([",", ".", ";", ":", "!", "?", ")", "}", "]", " ", "\n"])(
+  "preserves suffix %j without adding whitespace",
+  (suffix) => {
+    expect(
+      insertCompletion(`Compare @bo${suffix}`, 11, {
+        id: "bottle",
+        label: "Bottle",
+        value: "@bottle",
+        kind: "mention",
+      }),
+    ).toBe(`Compare @bottle${suffix}`);
+  },
+);
