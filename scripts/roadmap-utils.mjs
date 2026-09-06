@@ -801,3 +801,22 @@ export function generateSyncReport(items, stats = {}) {
 
   return report;
 }
+
+/**
+ * Format files using Prettier
+ * @param {string[]} filePaths - Array of file paths to format
+ * @returns {Promise<void>}
+ */
+export async function formatFiles(filePaths) {
+  const { execSync } = await import("child_process");
+  const files = filePaths.join(" ");
+  try {
+    execSync(`yarn prettier --write ${files}`, {
+      stdio: "inherit",
+      cwd: process.cwd(),
+    });
+    console.log(`Formatted: ${files}`);
+  } catch (error) {
+    console.warn(`Warning: Could not format files: ${error.message}`);
+  }
+}
