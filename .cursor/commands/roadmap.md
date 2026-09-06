@@ -85,11 +85,14 @@ Configuration is stored in `.cursor/config/roadmap.json`:
 
 1. Create or update a plan file in `.cursor/plans/`
 2. Add metadata section at the end:
+
    ```markdown
    Metadata
+
    - roadmap
-   - short-term  (or mid-term, later)
+   - short-term (or mid-term, later)
    ```
+
 3. Run the sync script
 
 ## When to Use Manual Audit
@@ -130,10 +133,12 @@ Review the sync report for any issues.
 ### 4. Update Roadmap Items
 
 For completed items on GitHub:
+
 - Close the issue/PR
 - The sync script will mark them as completed
 
 For manual items:
+
 - Update `apps/web/src/data/roadmap-items.json` directly
 - Set `status` to `"completed"` or `"closed"`
 
@@ -146,6 +151,7 @@ For manual items:
 ### 6. Consistency Check
 
 Verify all roadmap references are consistent across:
+
 - `docs/roadmap.md` (auto-generated)
 - `apps/web/src/data/roadmap-items.json` (auto-generated)
 - `apps/web/src/app/roadmap/page.tsx` (reads from JSON)

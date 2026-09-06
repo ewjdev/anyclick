@@ -107,5 +107,3 @@ Use browser DevTools Network tab or httpbin.org response to verify payload:
 - No visual element highlight before capture
 - No capture preview/confirmation dialog
 - Icons are placeholder 1x1 pixels
-
-

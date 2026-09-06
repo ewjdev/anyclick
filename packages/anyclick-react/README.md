@@ -1,5 +1,15 @@
 # @ewjdev/anyclick-react
 
+## Scoped conversations and reviewed actions
+
+`Conversation` is the opt-in controller and UI used by the homepage's four sample applications. It supports full AI SDK 5 UI messages, editable result cards, `/` action completion, `@` object references, and cancellable suggestion providers. Import `@ewjdev/anyclick-react/styles.css` for the default styles, or style the exported `ac-*` classes in your application.
+
+The host supplies a stable `conversationId`, selected `context`, `onContextChange`, a chat `endpoint`, and optionally a `historyEndpoint`, `commands`, `objects`, `suggestionProvider`, and `actionDispatcher`. History returns `{ messages: ConversationMessage[] }`. Chat streams text and typed `data-result` parts. An action dispatcher prepares a preview; it must not silently execute a mutation. Preserve full message parts, IDs, and metadata when persisting history.
+
+Existing `QuickChat` consumers remain supported. Pass the optional `conversation` prop to opt into the new controller without changing the visibility/close API. Legacy endpoints and histories are not silently migrated.
+
+See the website's `/docs/showcase` route and `apps/web/src/lib/showcase` for executable domain and server examples. The core library does not own application records, credentials, or a workflow engine.
+
 > React provider and context menu UI for UI feedback capture
 
 [![npm version](https://img.shields.io/npm/v/@ewjdev/anyclick-react.svg)](https://www.npmjs.com/package/@ewjdev/anyclick-react)
@@ -386,17 +396,6 @@ The package is optimized for performance:
 - Screenshot capture is lazy-loaded and async
 - Touch event handling uses passive listeners where possible
 
-## Migration from FeedbackProvider
-
-The `FeedbackProvider` component has been renamed to `AnyclickProvider`. The old name is still exported for backward compatibility but is deprecated:
-
-```tsx
-// Old (deprecated)
-import { FeedbackProvider, useFeedback } from "@ewjdev/anyclick-react";
-// New (recommended)
-import { AnyclickProvider, useAnyclick } from "@ewjdev/anyclick-react";
-```
-
 ## Exported Utilities
 
 ```tsx
@@ -428,7 +427,7 @@ export { openInIDE, buildIDEUrl, detectPreferredIDE };
 
 ## Documentation
 
-For full documentation, visit [anyclick.ewj.dev/docs/react](https://anyclick.ewj.dev/docs/react)
+For full documentation, visit [anyclick.dev/docs/react](https://anyclick.dev/docs/react)
 
 ## Related Packages
 
@@ -439,4 +438,4 @@ For full documentation, visit [anyclick.ewj.dev/docs/react](https://anyclick.ewj
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

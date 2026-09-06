@@ -8,27 +8,13 @@ Create an automated system that syncs roadmap items from multiple sources (GitHu
 
 ### 1. GitHub Issues & PRs
 
-- **Identification**: Items must have BOTH:
-        - GitHub label: `roadmap` (or configurable label)
-        - Title prefix: `[Roadmap]` (or configurable prefix)
-- **Metadata extraction**:
-        - Title (without prefix)
-        - Description/body
-        - Labels for era assignment (`short-term`, `mid-term`, `later`)
-        - Status (open/closed)
-        - PR/Issue number and URL
-        - Assignees
-        - Milestones (optional)
+- **Identification**: Items must have BOTH: - GitHub label: `roadmap` (or configurable label) - Title prefix: `[Roadmap]` (or configurable prefix)
+- **Metadata extraction**: - Title (without prefix) - Description/body - Labels for era assignment (`short-term`, `mid-term`, `later`) - Status (open/closed) - PR/Issue number and URL - Assignees - Milestones (optional)
 
 ### 2. Plan Files (`.cursor/plans/*.plan.md`)
 
 - **Identification**: Plan files with metadata field `roadmap: true`
-- **Metadata extraction**:
-        - Plan name/title
-        - Overview/description
-        - Todos (as sub-items)
-        - Era assignment from metadata or auto-detect
-        - File path for reference
+- **Metadata extraction**: - Plan name/title - Overview/description - Todos (as sub-items) - Era assignment from metadata or auto-detect - File path for reference
 
 ## Era Assignment Logic
 
@@ -134,12 +120,12 @@ Auto-assign eras based on:
 
 **Steps**:
 
-1. Checkout repo
-2. Setup Node.js
-3. Install dependencies
-4. Run `scripts/sync-roadmap.mjs`
-5. Check for changes to `docs/roadmap.md` or `roadmap-items.json`
-6. If changes exist:
+1.  Checkout repo
+2.  Setup Node.js
+3.  Install dependencies
+4.  Run `scripts/sync-roadmap.mjs`
+5.  Check for changes to `docs/roadmap.md` or `roadmap-items.json`
+6.  If changes exist:
 
             - Commit changes (if on main)
             - Comment on PR (if PR)
@@ -212,47 +198,48 @@ docs/
 
 1. **GitHub API Integration**:
 
-            - Fetch issues with roadmap label
-            - Filter by title prefix
-            - Extract metadata and labels
-            - Handle pagination
+   - Fetch issues with roadmap label
+   - Filter by title prefix
+   - Extract metadata and labels
+   - Handle pagination
 
 2. **Plan File Parsing**:
 
-            - Scan `.cursor/plans/*.plan.md`
-            - Parse frontmatter/metadata
-            - Extract title, description, todos
-            - Link to plan file
+   - Scan `.cursor/plans/*.plan.md`
+   - Parse frontmatter/metadata
+   - Extract title, description, todos
+   - Link to plan file
 
 3. **Deduplication**:
 
-            - Match items by title similarity
-            - Prefer GitHub items over plans (if duplicate)
-            - Merge metadata when appropriate
+   - Match items by title similarity
+   - Prefer GitHub items over plans (if duplicate)
+   - Merge metadata when appropriate
 
 4. **Era Assignment**:
 
-            - Apply rules from config
-            - Use labels as primary source
-            - Fall back to heuristics
-            - Log assignments for review
+   - Apply rules from config
+   - Use labels as primary source
+   - Fall back to heuristics
+   - Log assignments for review
 
 5. **Markdown Generation**:
 
-            - Format items by era
-            - Include links to sources
-            - Preserve manual edits (comments, formatting)
-            - Generate clean, consistent structure
+   - Format items by era
+   - Include links to sources
+   - Preserve manual edits (comments, formatting)
+   - Generate clean, consistent structure
 
 6. **JSON Generation**:
 
-            - Structured data for React page
-            - Include all metadata
-            - Sortable/filterable format
+   - Structured data for React page
+   - Include all metadata
+   - Sortable/filterable format
 
 ## Manual Override Support
 
 - Allow manual edits to `docs/roadmap.md` with special markers:
+
 ```markdown
 <!-- ROADMAP:AUTO-START -->
 <!-- Auto-generated content -->

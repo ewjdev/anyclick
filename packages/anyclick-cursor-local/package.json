@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-cursor-local",
-  "version": "1.2.0",
+  "version": "5.1.0",
   "private": false,
   "description": "Local Cursor CLI adapter for UI feedback - run cursor-agent locally during development",
   "keywords": [
@@ -23,7 +23,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-cursor-local"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/adapters",
+  "homepage": "https://anyclick.dev/docs/adapters",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -56,7 +56,7 @@
     "start": "node dist/server.js"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.4.0"
+    "@ewjdev/anyclick-core": "^5.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.32",

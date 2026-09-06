@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git+https://github.com/ewjdev/anyclick.git"
   },
-  "homepage": "https://anyclick.ewj.dev",
+  "homepage": "https://anyclick.dev",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -23,13 +23,27 @@
     "version-packages": "changeset version",
     "test:roadmap": "node scripts/test-roadmap-sync.mjs",
     "roadmap:sync": "node scripts/sync-roadmap.mjs",
-    "roadmap:sync:dry": "node scripts/sync-roadmap.mjs --dry-run --verbose"
+    "roadmap:sync:dry": "node scripts/sync-roadmap.mjs --dry-run --verbose",
+    "test:showcase": "vitest run",
+    "test:showcase:browser": "playwright test",
+    "check:showcase": "node scripts/check-showcase.mjs",
+    "typecheck:web": "tsc --noEmit -p apps/web/tsconfig.json",
+    "dev:showcase": "yarn workspace web-app exec next dev"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.10",
+    "@playwright/test": "^1.55.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
     "@trivago/prettier-plugin-sort-imports": "^6.0.0",
+    "@types/node": "20.17.32",
+    "@upstash/redis": "^1.35.7",
+    "dotenv": "^16.4.5",
+    "jsdom": "^26.1.0",
     "prettier": "3.5.3",
-    "turbo": "^2.5.6"
+    "turbo": "^2.5.6",
+    "vitest": "^3.2.0"
   },
   "engines": {
     "node": ">=20.9.0"
@@ -39,7 +53,9 @@
     "packages/*"
   ],
   "resolutions": {
-    "csstype": "^3.1.3"
+    "csstype": "^3.1.3",
+    "nanoid": "^3.3.18",
+    "**/read-yaml-file/js-yaml": "^3.15.1"
   },
   "packageManager": "yarn@1.22.19"
 }

@@ -49,7 +49,11 @@ import {
   openInIDE,
 } from "../ide";
 import { type HighlightColors, generateCompactStyles } from "../types";
-import ElementHierarchyNav, { isBlacklisted } from "./ElementHierarchyNav";
+import ElementHierarchyNav, {
+  isAnyclickOwnedUI,
+  isBlacklisted,
+  isStructuralElement,
+} from "./ElementHierarchyNav";
 import {
   type ElementModification,
   generateElementId,
@@ -2017,6 +2021,112 @@ function ModifiedElementsPanel({
   );
 }
 
+/**
+ * Message shown when an unsupported element is opened directly
+ */
+function UnsupportedElementMessage({
+  element,
+  isCompact,
+}: {
+  element: Element;
+  isCompact: boolean;
+}) {
+  const tagName = element.tagName.toLowerCase();
+  const isStructural = isStructuralElement(element);
+  const isOwnedUI = isAnyclickOwnedUI(element);
+
+  let title: string;
+  let description: string;
+
+  if (isOwnedUI) {
+    title = "Anyclick UI Element";
+    description =
+      "This element is part of the Anyclick inspector interface and cannot be inspected.";
+  } else if (isStructural) {
+    const svgTags = [
+      "svg",
+      "path",
+      "circle",
+      "rect",
+      "line",
+      "polygon",
+      "polyline",
+      "ellipse",
+      "g",
+      "defs",
+      "use",
+      "symbol",
+      "text",
+      "tspan",
+    ];
+    if (svgTags.includes(tagName)) {
+      title = "SVG Element";
+      description =
+        "SVG elements are not currently supported for detailed inspection. Select the parent container element instead.";
+    } else if (tagName === "br") {
+      title = "Line Break Element";
+      description =
+        "The <br> element has no inspectable properties. Select a nearby content element instead.";
+    } else {
+      title = "Structural Element";
+      description = `The <${tagName}> element is a structural element with no inspectable properties.`;
+    }
+  } else {
+    title = "Unsupported Element";
+    description = "This element cannot be inspected.";
+  }
+
+  return (
+    <div
+      style={{
+        padding: isCompact ? "16px 12px" : "24px 16px",
+        textAlign: "center",
+        color: "#888",
+      }}
+    >
+      <div
+        style={{
+          fontSize: isCompact ? "11px" : "13px",
+          fontWeight: 600,
+          color: "#aaa",
+          marginBottom: "8px",
+        }}
+      >
+        {title}
+      </div>
+      <div
+        style={{
+          fontSize: isCompact ? "10px" : "12px",
+          lineHeight: 1.5,
+          maxWidth: "280px",
+          margin: "0 auto",
+        }}
+      >
+        {description}
+      </div>
+      <div
+        style={{
+          marginTop: "12px",
+          padding: "6px 10px",
+          backgroundColor: "#2d2d2d",
+          borderRadius: "4px",
+          display: "inline-block",
+        }}
+      >
+        <code
+          style={{
+            fontSize: isCompact ? "10px" : "11px",
+            color: "#569cd6",
+            fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+          }}
+        >
+          &lt;{tagName}&gt;
+        </code>
+      </div>
+    </div>
+  );
+}
+
 export function InspectDialog({
   visible,
   targetElement,
@@ -2361,6 +2471,7 @@ export function InspectDialog({
           <div
             ref={dialogRef}
             className={className}
+            data-anyclick-inspector
             style={{
               ...inspectStyles.dialog,
               ...(isCompact ? computedCompactStyles.dialog : {}),
@@ -2506,8 +2617,13 @@ export function InspectDialog({
               isCompact={isCompact}
             />
 
-            {/* Scrollable Content - only show for non-blacklisted elements */}
-            {!isBlacklisted(targetElement) && (
+            {/* Scrollable Content - show properties or unsupported message */}
+            {isBlacklisted(targetElement) ? (
+              <UnsupportedElementMessage
+                element={targetElement}
+                isCompact={isCompact}
+              />
+            ) : (
               <div style={inspectStyles.content}>
                 {/* Quick Info */}
                 <Section title="Layout" icon={<Box size={14} />} defaultOpen>

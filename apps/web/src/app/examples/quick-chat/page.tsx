@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Check,
@@ -14,6 +15,32 @@ export const metadata: Metadata = {
   title: "Quick Chat Example",
   description: "AI-powered quick chat in the context menu for instant answers.",
 };
+
+const source = `"use client";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import {
+  AnyclickProvider,
+  DEFAULT_QUICK_CHAT_CONFIG,
+} from "@ewjdev/anyclick-react";
+
+const adapter = createHttpAdapter({
+  endpoint: "/api/feedback",
+});
+
+const QuickChatProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <AnyclickProvider
+      adapter={adapter}
+      scoped
+      quickChatConfig={DEFAULT_QUICK_CHAT_CONFIG}
+    >
+      {children}
+    </AnyclickProvider>
+  );
+};
+
+export default QuickChatProvider;
+`;
 
 export default function QuickChatExamplePage() {
   return (
@@ -43,57 +70,65 @@ export default function QuickChatExamplePage() {
       </div>
 
       {/* Demo Area */}
-      <QuickChatProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MousePointerClick className="w-5 h-5 text-violet-400" />
-            Try It
-          </h2>
-          <p className="text-gray-400 text-sm mb-6">
-            Right-click any element below and click the{" "}
-            <Sparkles className="w-3 h-3 inline text-violet-400" /> icon to open
-            Quick Chat:
-          </p>
+      <ExampleStage
+        id="quick-chat"
+        prompt="Right-click. Ask about it."
+        source={source}
+        note="What's different: quickChatConfig. The menu gains an AI quick-ask that answers about the element under the cursor, with redaction and suggestions."
+        reveal="none"
+      >
+        <QuickChatProvider>
+          <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-cyan-500/10 border border-violet-500/20">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <MousePointerClick className="w-5 h-5 text-violet-400" />
+              Try It
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Right-click any element below and click the{" "}
+              <Sparkles className="w-3 h-3 inline text-violet-400" /> icon to
+              open Quick Chat:
+            </p>
 
-          <div className="space-y-4">
-            <button className="px-4 py-2 rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-medium transition-colors">
-              Primary Button
-            </button>
+            <div className="space-y-4">
+              <button className="px-4 py-2 rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-medium transition-colors">
+                Primary Button
+              </button>
 
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="font-medium mb-1">Card Component</h3>
-              <p className="text-sm text-gray-400">
-                Ask the AI about this card&apos;s styles, accessibility, or how
-                to modify it.
-              </p>
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <h3 className="font-medium mb-1">Card Component</h3>
+                <p className="text-sm text-gray-400">
+                  Ask the AI about this card&apos;s styles, accessibility, or
+                  how to modify it.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm">
+                  Accessible
+                </span>
+                <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm">
+                  Responsive
+                </span>
+                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-sm">
+                  Animated
+                </span>
+              </div>
+
+              <nav className="flex gap-4 p-3 rounded-lg bg-white/5">
+                <a href="#" className="text-sm text-gray-300 hover:text-white">
+                  Home
+                </a>
+                <a href="#" className="text-sm text-gray-300 hover:text-white">
+                  About
+                </a>
+                <a href="#" className="text-sm text-gray-300 hover:text-white">
+                  Contact
+                </a>
+              </nav>
             </div>
-
-            <div className="flex gap-2">
-              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-sm">
-                Accessible
-              </span>
-              <span className="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm">
-                Responsive
-              </span>
-              <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-sm">
-                Animated
-              </span>
-            </div>
-
-            <nav className="flex gap-4 p-3 rounded-lg bg-white/5">
-              <a href="#" className="text-sm text-gray-300 hover:text-white">
-                Home
-              </a>
-              <a href="#" className="text-sm text-gray-300 hover:text-white">
-                About
-              </a>
-              <a href="#" className="text-sm text-gray-300 hover:text-white">
-                Contact
-              </a>
-            </nav>
           </div>
-        </div>
-      </QuickChatProvider>
+        </QuickChatProvider>
+      </ExampleStage>
 
       {/* Features */}
       <div className="mb-12">

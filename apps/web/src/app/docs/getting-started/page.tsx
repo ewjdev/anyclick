@@ -1,4 +1,6 @@
 import { CodeBlock, TerminalBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
+import { ExampleStage } from "@/components/ExampleStage";
 import { ArrowRight, Box, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -8,6 +10,17 @@ export const metadata: Metadata = {
   description:
     "Learn how to install and configure anyclick in your application.",
 };
+
+const liveSource = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export function Providers({ children }) {
+  return <AnyclickProvider adapter={adapter}>{children}</AnyclickProvider>;
+}`;
 
 export default function GettingStartedPage() {
   return (
@@ -107,7 +120,7 @@ GITHUB_REPO=your-username/your-repo-name`}
           filename="app/api/feedback/route.ts"
           language="typescript"
           code={`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -120,8 +133,8 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const payload: AnyclickPayload = await request.json();
+    const result = await github.createIssue(payload);
     
     return Response.json(result);
   } catch (error) {
@@ -140,14 +153,14 @@ export async function POST(request: Request) {
         <h2 className="text-2xl font-bold mb-4">Step 4: Add the Provider</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
           Wrap your application with the{" "}
-          <code className="text-cyan-400">FeedbackProvider</code>:
+          <code className="text-cyan-400">AnyclickProvider</code>:
         </p>
         <CodeBlock
           filename="app/providers.tsx"
           language="tsx"
           code={`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import type { ReactNode } from 'react';
 
@@ -157,9 +170,9 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}
         />
@@ -209,11 +222,33 @@ export default function RootLayout({
         </div>
       </section>
 
+      {/* Live */}
+      <section className="not-prose mb-12">
+        <h2 className="text-2xl font-bold mb-4">Try it here</h2>
+        <ExampleStage
+          id="docs-getting-started"
+          prompt="Right-click this box."
+          source={liveSource}
+          sourceFilename="app/providers.tsx"
+          className="mb-0"
+        >
+          <ExampleProvider>
+            <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+              <h3 className="font-medium mb-1">Your app</h3>
+              <p className="text-sm text-gray-400">
+                This box is wrapped in the provider above. That is the whole
+                integration.
+              </p>
+            </div>
+          </ExampleProvider>
+        </ExampleStage>
+      </section>
+
       {/* Configuration Options */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Configuration Options</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
-          The <code className="text-cyan-400">FeedbackProvider</code> accepts
+          The <code className="text-cyan-400">AnyclickProvider</code> accepts
           several configuration options:
         </p>
         <div className="overflow-x-auto">
@@ -236,7 +271,7 @@ export default function RootLayout({
                 <td className="py-3 px-4">
                   <code className="text-cyan-400">adapter</code>
                 </td>
-                <td className="py-3 px-4 text-gray-400">FeedbackAdapter</td>
+                <td className="py-3 px-4 text-gray-400">AnyclickAdapter</td>
                 <td className="py-3 px-4 text-gray-400">
                   Required. The adapter for submitting feedback.
                 </td>
@@ -245,7 +280,7 @@ export default function RootLayout({
                 <td className="py-3 px-4">
                   <code className="text-cyan-400">menuItems</code>
                 </td>
-                <td className="py-3 px-4 text-gray-400">FeedbackMenuItem[]</td>
+                <td className="py-3 px-4 text-gray-400">ContextMenuItem[]</td>
                 <td className="py-3 px-4 text-gray-400">
                   Custom menu items (default: issue, feature, like)
                 </td>

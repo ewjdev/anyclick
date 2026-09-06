@@ -10,13 +10,13 @@
 import type { HighlightColors, HighlightConfig } from "./types";
 
 /** CSS class applied to highlighted target elements */
-const HIGHLIGHT_TARGET_CLASS = "uifeedback-highlight-target";
+const HIGHLIGHT_TARGET_CLASS = "anyclick-highlight-target";
 
 /** CSS class applied to highlighted container elements */
-const HIGHLIGHT_CONTAINER_CLASS = "uifeedback-highlight-container";
+const HIGHLIGHT_CONTAINER_CLASS = "anyclick-highlight-container";
 
 /** ID of the dynamically injected style element */
-const STYLE_ID = "uifeedback-highlight-styles";
+const STYLE_ID = "anyclick-highlight-styles";
 
 /**
  * Default highlight colors used when no custom colors are specified.

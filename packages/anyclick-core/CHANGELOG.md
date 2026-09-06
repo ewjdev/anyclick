@@ -1,5 +1,39 @@
 # @ewjdev/anyclick-core
 
+## 5.1.2
+
+### Patch Changes
+
+- c33f30a: Fix screenshots losing the page background (#88). Element and container captures are now cropped from a single viewport render with the configured `padding`, so dark pages, gradients, background images and translucent cards look the way they do on screen instead of being flattened onto white. The viewport capture now honors the scroll position instead of always showing the top of the document, and Anyclick's own menu is excluded from captures. Nodes that cannot be cropped (outside the viewport or inside a scrolled container) fall back to a standalone render on the composited background color of their ancestors, exposed as `resolveBackdropColor`.
+
+## 5.1.1
+
+### Patch Changes
+
+- 3cfcefa: Fix element/container screenshot captures on dark backgrounds
+
+  Element and container screenshot captures now correctly resolve the background color from ancestor elements instead of using a hardcoded white background. This fixes the issue where elements on dark surfaces appeared to be composited onto white in the review overlay.
+
+  The fix walks up the DOM tree from the captured element to find the first ancestor with an opaque background color, checking:
+
+  1. The element itself and each ancestor's computed `background-color`
+  2. Document body and html element as fallbacks
+  3. Falls back to white only if no background color is found anywhere
+
+  Semi-transparent backgrounds (rgba with alpha >= 0.5) are treated as opaque enough to use.
+
+## 5.1.0
+
+### Minor Changes
+
+- 353c4ca: Rebrand from Feedback to Anyclick
+
+  - Rename FeedbackProvider to AnyclickProvider
+  - Rename FeedbackMenu to AnyclickMenu
+  - Rename useFeedback hook to useAnyclick
+  - Update all component names, comments, and documentation to use Anyclick branding
+  - Update package homepages to use anyclick.dev domain
+
 ## 1.4.0
 
 ### Minor Changes

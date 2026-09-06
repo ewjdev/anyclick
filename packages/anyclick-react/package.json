@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-react",
-  "version": "4.0.0",
+  "version": "5.1.2",
   "private": false,
   "description": "React provider and context menu UI for UI feedback capture",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-react"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/react",
+  "homepage": "https://anyclick.dev/docs/react",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -39,7 +39,8 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
-    }
+    },
+    "./styles.css": "./dist/index.css"
   },
   "files": [
     "dist"
@@ -53,9 +54,9 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.114",
-    "@ewjdev/anyclick-core": "^1.4.0",
-    "@ewjdev/anyclick-pointer": "^4.0.0",
-    "@ewjdev/anyclick-devtools": "^4.0.0",
+    "@ewjdev/anyclick-core": "^5.1.2",
+    "@ewjdev/anyclick-pointer": "^5.1.0",
+    "@ewjdev/anyclick-devtools": "^5.1.2",
     "ai": "^5.0.112",
     "lucide-react": "^0.544.0",
     "zustand": "^5.0.2",

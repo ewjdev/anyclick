@@ -1,4 +1,6 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleProvider } from "@/components/ExampleProvider";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Check,
@@ -15,6 +17,22 @@ export const metadata: Metadata = {
   description:
     "Full GitHub Issues integration with automatic issue creation and screenshot uploads.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+
+// Browser: post to your API route. Server: createGitHubAdapter({ token, owner, repo }).
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function GitHubIntegrationPage() {
   return (
@@ -37,29 +55,37 @@ export default function GitHubIntegrationPage() {
         </p>
       </div>
 
-      {/* What's included */}
-      <div className="mb-12 p-6 rounded-2xl bg-linear-to-br from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <GitBranch className="w-5 h-5 text-emerald-400" />
-          What&apos;s Included
-        </h2>
-        <ul className="space-y-3">
-          {[
-            { icon: Check, text: "Automatic issue creation from feedback" },
-            { icon: Image, text: "Screenshot uploads as issue attachments" },
-            { icon: Tag, text: "Dynamic labels based on feedback type" },
-            { icon: ExternalLink, text: "Full DOM context in issue body" },
-          ].map((item, i) => (
-            <li
-              key={i}
-              className="flex items-center gap-3 text-gray-300 text-sm"
-            >
-              <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              {item.text}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <ExampleStage
+        id="github-integration"
+        prompt="Right-click the list. Send it."
+        source={source}
+        note="What's different: the adapter. createHttpAdapter posts the payload to /api/feedback, where createGitHubAdapter turns it into an issue with labels and screenshot attachments. The reveal shows exactly what the route received."
+      >
+        <ExampleProvider>
+          <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+            <h3 className="font-medium mb-3">What&apos;s included</h3>
+            <ul className="space-y-3">
+              {[
+                { icon: Check, text: "Automatic issue creation from feedback" },
+                {
+                  icon: Image,
+                  text: "Screenshot uploads as issue attachments",
+                },
+                { icon: Tag, text: "Dynamic labels based on feedback type" },
+                { icon: ExternalLink, text: "Full DOM context in issue body" },
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-3 text-gray-300 text-sm"
+                >
+                  <item.icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </ExampleProvider>
+      </ExampleStage>
 
       {/* Prerequisites */}
       <div className="mb-12">
@@ -98,8 +124,8 @@ GITHUB_REPO=your-username/your-repository-name`}</CodeBlock>
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 const adapter = createHttpAdapter({
   endpoint: '/api/feedback',
@@ -107,7 +133,7 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={adapter}
       // Enable screenshot capture for GitHub
       screenshotConfig={{
@@ -117,7 +143,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
@@ -129,7 +155,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           Create an API route that receives feedback and creates GitHub Issues:
         </p>
         <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -191,8 +217,8 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const payload: AnyclickPayload = await request.json();
+    const result = await github.createIssue(payload);
     
     return Response.json(result);
   } catch (error) {
@@ -332,7 +358,7 @@ const github = createGitHubAdapter({
           adapter handles base64 decoding and GitHub&apos;s asset upload API.
         </p>
         <CodeBlock>{`// Screenshots are included in the payload
-const payload: FeedbackPayload = {
+const payload: AnyclickPayload = {
   // ... other fields
   screenshots: {
     target: {
@@ -364,7 +390,7 @@ const payload: FeedbackPayload = {
         <h2 className="text-2xl font-bold mb-4">Error Handling</h2>
         <CodeBlock filename="app/api/feedback/route.ts">{`export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
+    const payload: AnyclickPayload = await request.json();
     
     // Validate required fields
     if (!payload.type || !payload.element) {
@@ -374,7 +400,7 @@ const payload: FeedbackPayload = {
       );
     }
     
-    const result = await github.submit(payload);
+    const result = await github.createIssue(payload);
     
     if (!result.success) {
       console.error('GitHub API error:', result.error);

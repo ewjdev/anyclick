@@ -1,5 +1,22 @@
 # @ewjdev/anyclick-jira
 
+## 5.1.0
+
+### Minor Changes
+
+- 353c4ca: Rebrand from Feedback to Anyclick
+
+  - Rename FeedbackProvider to AnyclickProvider
+  - Rename FeedbackMenu to AnyclickMenu
+  - Rename useFeedback hook to useAnyclick
+  - Update all component names, comments, and documentation to use Anyclick branding
+  - Update package homepages to use anyclick.dev domain
+
+### Patch Changes
+
+- Updated dependencies [353c4ca]
+  - @ewjdev/anyclick-core@5.1.0
+
 ## 1.0.0
 
 ### Initial Release
@@ -37,4 +54,3 @@
 - Node.js >= 18.18.0
 - Jira Cloud instance
 - Valid Jira API token with issue creation permissions
-

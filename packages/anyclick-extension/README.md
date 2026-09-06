@@ -40,6 +40,7 @@ yarn build:extension
 ### From Store (Coming Soon)
 
 The extension will be available on:
+
 - Chrome Web Store
 - Firefox Add-ons (Depends on demand)
 - Edge Add-ons (Depends on demand)
@@ -122,9 +123,9 @@ The extension exports reusable adapters that work in content script context:
 
 ```typescript
 import {
-  sendToT3Chat,
-  sendSelectionToT3Chat,
   hasSelection,
+  sendSelectionToT3Chat,
+  sendToT3Chat,
 } from "@ewjdev/anyclick-extension";
 
 // Send text to t3.chat
@@ -138,10 +139,10 @@ if (hasSelection()) {
 
 ```typescript
 import {
+  getImageSource,
+  isImageElement,
   uploadFile,
   uploadImageFromUrl,
-  isImageElement,
-  getImageSource,
 } from "@ewjdev/anyclick-extension";
 
 // Check if element is an image
@@ -182,21 +183,20 @@ import type {
   ExtensionResponse,
   MessageType,
 } from "@ewjdev/anyclick-extension";
-
 import {
-  DEFAULT_EXTENSION_CONFIG,
   CONTEXT_MENU_IDS,
+  DEFAULT_EXTENSION_CONFIG,
 } from "@ewjdev/anyclick-extension";
 ```
 
 ## Browser Compatibility
 
-| Browser | Minimum Version | Status |
-|---------|----------------|--------|
-| Chrome  | 142+           | ✅ Supported   |
-| Edge    | 12+            | 🚧 Coming Soon |
-| Firefox | 144+           | 🚧 Coming Soon |
-| Safari  | -              | 🚧 Coming Soon |
+| Browser | Minimum Version | Status         |
+| ------- | --------------- | -------------- |
+| Chrome  | 142+            | ✅ Supported   |
+| Edge    | 12+             | 🚧 Coming Soon |
+| Firefox | 144+            | 🚧 Coming Soon |
+| Safari  | -               | 🚧 Coming Soon |
 
 ## Contributing
 

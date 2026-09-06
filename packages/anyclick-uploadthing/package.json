@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-uploadthing",
-  "version": "3.0.0",
+  "version": "5.1.0",
   "private": false,
   "description": "UploadThing adapter for Anyclick - upload screenshots and images to UploadThing",
   "keywords": [
@@ -23,7 +23,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-uploadthing"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/adapters",
+  "homepage": "https://anyclick.dev/docs/adapters",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -52,7 +52,7 @@
     "dev": "tsup src/index.ts src/server.ts --format esm,cjs --dts --sourcemap --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-core": "^1.4.0"
+    "@ewjdev/anyclick-core": "^5.1.0"
   },
   "peerDependencies": {
     "uploadthing": "^7.7.4"

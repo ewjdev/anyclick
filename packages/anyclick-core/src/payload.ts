@@ -1,5 +1,5 @@
-import type { AnyclickPayload, AnyclickType, PageContext } from "./types";
 import { buildElementContext } from "./dom";
+import type { AnyclickPayload, AnyclickType, PageContext } from "./types";
 
 /**
  * Build page context from the current window/document

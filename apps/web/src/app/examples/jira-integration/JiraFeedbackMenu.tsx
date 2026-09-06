@@ -1,20 +1,20 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useMemo } from "react";
 import { Settings, X } from "lucide-react";
-import { useJiraFeedbackController } from "./hooks/useJiraFeedbackController";
-import type { JiraFeedbackMenuProps } from "./types";
-import { LoadingStep } from "./components/steps/LoadingStep";
-import { ErrorStep } from "./components/steps/ErrorStep";
 import { ConfigureStep } from "./components/steps/ConfigureStep";
-import { TypeSelectionStep } from "./components/steps/TypeSelectionStep";
-import { SummaryStep } from "./components/steps/SummaryStep";
 import { DescriptionStep } from "./components/steps/DescriptionStep";
+import { ErrorStep } from "./components/steps/ErrorStep";
+import { LoadingStep } from "./components/steps/LoadingStep";
 import { RequiredFieldsStep } from "./components/steps/RequiredFieldsStep";
 import { ReviewStep } from "./components/steps/ReviewStep";
 import { SubmittingStep } from "./components/steps/SubmittingStep";
 import { SuccessStep } from "./components/steps/SuccessStep";
-import { cn } from "@/lib/utils";
+import { SummaryStep } from "./components/steps/SummaryStep";
+import { TypeSelectionStep } from "./components/steps/TypeSelectionStep";
+import { useJiraFeedbackController } from "./hooks/useJiraFeedbackController";
+import type { JiraFeedbackMenuProps } from "./types";
 
 export function JiraFeedbackMenu(props: JiraFeedbackMenuProps) {
   const { state, handlers, helpers } = useJiraFeedbackController(props);
@@ -64,9 +64,10 @@ export function JiraFeedbackMenu(props: JiraFeedbackMenuProps) {
   } = handlers;
 
   const { getRequestHeaders } = helpers;
-  const requestHeaders = useMemo(() => getRequestHeaders(), [
-    getRequestHeaders,
-  ]);
+  const requestHeaders = useMemo(
+    () => getRequestHeaders(),
+    [getRequestHeaders],
+  );
 
   const progressWidth = useMemo(() => {
     const total = getTotalSteps();
@@ -124,15 +125,16 @@ export function JiraFeedbackMenu(props: JiraFeedbackMenuProps) {
           </div>
           <div className="flex items-center gap-1">
             {(hasCredentials || backendConfigured === false) &&
-              step !== "configure" && step !== "loading" && (
-              <button
-                onClick={handleReconfigure}
-                className="p-2 hover:bg-[#eef3f3] rounded-lg transition-colors"
-                title="Configure Jira credentials"
-              >
-                <Settings className="w-5 h-5 text-[#0d3b3e]" />
-              </button>
-            )}
+              step !== "configure" &&
+              step !== "loading" && (
+                <button
+                  onClick={handleReconfigure}
+                  className="p-2 hover:bg-[#eef3f3] rounded-lg transition-colors"
+                  title="Configure Jira credentials"
+                >
+                  <Settings className="w-5 h-5 text-[#0d3b3e]" />
+                </button>
+              )}
             <button
               onClick={handleClose}
               className="p-2 hover:bg-[#eef3f3] rounded-lg transition-colors"
@@ -163,7 +165,8 @@ export function JiraFeedbackMenu(props: JiraFeedbackMenuProps) {
               showApiToken={showApiToken}
               onToggleApiToken={() => setShowApiToken((prev) => !prev)}
               onChange={(updates) =>
-                setCredentialForm((prev) => ({ ...prev, ...updates }))}
+                setCredentialForm((prev) => ({ ...prev, ...updates }))
+              }
               onSave={handleSaveCredentials}
               onCancel={handleClose}
             />
@@ -215,7 +218,8 @@ export function JiraFeedbackMenu(props: JiraFeedbackMenuProps) {
               animationClass={animationClass}
               hasRequiredFields={requiredFields.length > 0}
               onChange={(value) =>
-                setFormData((prev) => ({ ...prev, description: value }))}
+                setFormData((prev) => ({ ...prev, description: value }))
+              }
               onNext={() => {
                 if (requiredFields.length > 0) {
                   setCurrentFieldIndex(0);

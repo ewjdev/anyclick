@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import type { ScreenshotData, ScreenshotError } from "@ewjdev/anyclick-core";
 import { estimateTotalSize, formatBytes } from "@ewjdev/anyclick-core";
 import {
@@ -15,6 +15,21 @@ import {
 } from "lucide-react";
 import { menuStyles, screenshotPreviewStyles as styles } from "./styles";
 import type { ScreenshotPreviewProps } from "./types";
+
+/** Common styles for header buttons */
+const headerButtonStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "24px",
+  height: "24px",
+  border: "none",
+  borderRadius: "4px",
+  backgroundColor: "transparent",
+  color: "#6b7280",
+  cursor: "pointer",
+  transition: "all 0.15s ease",
+};
 
 /** Screenshot preview tab types */
 type TabType = "container" | "element" | "viewport";
@@ -32,12 +47,27 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
   isLoading,
   isSubmitting,
   onCancel,
+  onClose,
   onConfirm,
   onRetake,
   screenshots,
 }: ScreenshotPreviewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("element");
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Handle Escape key to close the entire menu
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   // Get error for a specific tab
   const getError = (key: TabType): ScreenshotError | undefined => {
@@ -166,6 +196,15 @@ export const ScreenshotPreview = React.memo(function ScreenshotPreview({
             ) : (
               <ExpandIcon className="w-4 h-4" />
             )}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            style={headerButtonStyle}
+            title="Close (Esc)"
+            aria-label="Close screenshot review"
+          >
+            <XIcon className="w-4 h-4" />
           </button>
         </div>
       </div>

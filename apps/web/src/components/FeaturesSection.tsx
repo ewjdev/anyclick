@@ -89,10 +89,10 @@ const FeaturesSection = () => {
           <div className="w-12 h-12 rounded-xl bg-linear-to-br from-indigo-500/20 to-indigo-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Zap className="w-6 h-6 text-indigo-400" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Zero Config</h3>
+          <h3 className="text-lg font-semibold mb-2">Minimal Setup</h3>
           <p className="text-gray-400 text-sm leading-relaxed">
-            Works out of the box with sensible defaults. Right-click anywhere in
-            your app and start capturing feedback immediately.
+            Sensible defaults get you started quickly. Add a provider and API
+            route, then right-click anywhere to capture feedback.
           </p>
         </div>
       </div>

@@ -50,6 +50,8 @@ export {
   captureAllScreenshots,
   estimateTotalSize,
   formatBytes,
+  resolveBackdropColor,
+  ANYCLICK_UI_ATTRIBUTE,
 } from "./screenshot";
 
 // Client

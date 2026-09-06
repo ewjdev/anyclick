@@ -59,15 +59,6 @@ export { ContextMenu } from "./ContextMenu";
 export { ScreenshotPreview } from "./ScreenshotPreview";
 
 // ============================================================================
-// Deprecated Exports (Backward Compatibility)
-// ============================================================================
-
-/**
- * @deprecated Use {@link AnyclickProvider} instead. Will be removed in v2.0.0.
- */
-export { FeedbackProvider } from "./AnyclickProvider";
-
-// ============================================================================
 // Context and Hooks
 // ============================================================================
 
@@ -89,16 +80,6 @@ export { AnyclickContext } from "./context";
  * ```
  */
 export { useAnyclick } from "./context";
-
-/**
- * @deprecated Use {@link AnyclickContext} instead. Will be removed in v2.0.0.
- */
-export { FeedbackContext } from "./context";
-
-/**
- * @deprecated Use {@link useAnyclick} instead. Will be removed in v2.0.0.
- */
-export { useFeedback } from "./context";
 
 // ============================================================================
 // Store (Advanced Use Cases)
@@ -298,6 +279,10 @@ export {
   formatBytes,
   /** Estimates total size of screenshot data */
   estimateTotalSize,
+  /** Resolves the composited background color behind an element */
+  resolveBackdropColor,
+  /** Attribute marking Anyclick UI that is excluded from captures */
+  ANYCLICK_UI_ATTRIBUTE,
   /** Default screenshot configuration */
   DEFAULT_SCREENSHOT_CONFIG,
   /** Default sensitive element selectors */
@@ -445,6 +430,18 @@ export type {
  * Provides quick answers about elements with streaming responses.
  */
 export { QuickChat } from "./QuickChat";
+export { Conversation } from "./Conversation/Conversation";
+export { ConversationResultView } from "./Conversation/Result";
+export { localCompletions, insertCompletion } from "./Conversation/completions";
+export type {
+  ConversationProps,
+  ConversationContext,
+  ConversationMessage,
+  ConversationResult,
+  ActionRequest,
+  CompletionItem,
+  SuggestionProvider,
+} from "./Conversation/types";
 
 /**
  * Hook for managing QuickChat state and logic.

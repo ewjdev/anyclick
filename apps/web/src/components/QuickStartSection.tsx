@@ -45,7 +45,7 @@ const github = createGitHubAdapter({
 
 export async function POST(req) {
   const payload = await req.json();
-  const result = await github.submit(payload);
+  const result = await github.createIssue(payload);
   return Response.json(result);
 }`}
             />

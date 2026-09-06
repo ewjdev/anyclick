@@ -1,6 +1,6 @@
 {
   "name": "@ewjdev/anyclick-adapters",
-  "version": "4.0.0",
+  "version": "5.1.0",
   "private": false,
   "description": "Adapters for Anyclick that are experimental or niche, including custom cursor/game mode helpers.",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/ewjdev/anyclick.git",
     "directory": "packages/anyclick-adapters"
   },
-  "homepage": "https://anyclick.ewj.dev/docs/adapters",
+  "homepage": "https://anyclick.dev/docs/adapters",
   "bugs": {
     "url": "https://github.com/ewjdev/anyclick/issues"
   },
@@ -45,7 +45,7 @@
     "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
   },
   "dependencies": {
-    "@ewjdev/anyclick-pointer": "^4.0.0"
+    "@ewjdev/anyclick-pointer": "^5.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.1",

@@ -1,7 +1,7 @@
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
+import { createCursorAgentAdapter } from "@ewjdev/anyclick-cursor";
 import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 import { createJiraAdapter } from "@ewjdev/anyclick-jira/server";
-import { createCursorAgentAdapter } from "@ewjdev/anyclick-cursor";
-import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 // Lazily create the GitHub adapter to allow proper error handling
 function getGitHubAdapter() {
@@ -121,8 +121,8 @@ function isGitHubConfigured(): boolean {
 }
 
 // Local cursor server URL (only used in development)
-const LOCAL_CURSOR_SERVER = process.env.LOCAL_CURSOR_SERVER_URL ??
-  "http://localhost:3847";
+const LOCAL_CURSOR_SERVER =
+  process.env.LOCAL_CURSOR_SERVER_URL ?? "http://localhost:3847";
 
 /**
  * Parse Jira error messages to extract missing/required field names
@@ -233,16 +233,16 @@ export async function POST(req: Request) {
   const payload: AnyclickPayload = await req.json();
 
   // Log incoming payload for debugging
-  console.log("\n========== FEEDBACK API POST ==========");
-  console.log("[Feedback] Type:", payload.type);
-  console.log("[Feedback] Comment:", payload.comment?.substring(0, 100));
+  console.log("\n========== ANYCLICK API POST ==========");
+  console.log("[Anyclick] Type:", payload.type);
+  console.log("[Anyclick] Comment:", payload.comment?.substring(0, 100));
   console.log(
-    "[Feedback] Metadata keys:",
+    "[Anyclick] Metadata keys:",
     payload.metadata ? Object.keys(payload.metadata) : "none",
   );
   if (payload.metadata) {
     console.log(
-      "[Feedback] Metadata:",
+      "[Anyclick] Metadata:",
       JSON.stringify(payload.metadata, null, 2),
     );
   }
@@ -286,7 +286,7 @@ export async function POST(req: Request) {
         {
           success: false,
           error:
-            "Failed to connect to local cursor server. Make sure it's running with: npx uifeedback-local-server",
+            "Failed to connect to local cursor server. Make sure it's running with: npx anyclick-local-server",
         },
         { status: 503 },
       );
@@ -369,9 +369,10 @@ export async function POST(req: Request) {
       const issue = await github.createIssue(payload);
       results.push({ adapter: "GitHub", success: true, url: issue.htmlUrl });
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to create GitHub issue";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to create GitHub issue";
       console.error("GitHub adapter error:", message);
       results.push({ adapter: "GitHub", success: false, error: message });
     }
@@ -385,9 +386,10 @@ export async function POST(req: Request) {
         const issue = await jiraAdapter.createIssue(payload);
         results.push({ adapter: "Jira", success: true, url: issue.url });
       } catch (error) {
-        const message = error instanceof Error
-          ? error.message
-          : "Failed to create Jira issue";
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to create Jira issue";
         console.error("Jira adapter error:", message);
 
         // Parse Jira error to extract missing/required fields
@@ -403,9 +405,10 @@ export async function POST(req: Request) {
     }
   } catch (error) {
     // Jira adapter initialization failed (e.g., invalid URL format)
-    const message = error instanceof Error
-      ? error.message
-      : "Failed to initialize Jira adapter";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to initialize Jira adapter";
     console.error("Jira adapter initialization error:", message);
     results.push({ adapter: "Jira", success: false, error: message });
   }
@@ -430,8 +433,7 @@ export async function POST(req: Request) {
         error:
           "No feedback adapters configured. Please configure GitHub or Jira.",
         details: missingVars,
-        hint:
-          "Add the missing environment variables to your .env.local file and restart the dev server.",
+        hint: "Add the missing environment variables to your .env.local file and restart the dev server.",
       },
       { status: 500 },
     );

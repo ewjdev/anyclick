@@ -503,10 +503,11 @@ export function ContextMenu({
   // Handle keyboard input - escape and type-to-chat
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Handle escape key
+      // Handle escape key (screenshot-preview handles its own Escape via ScreenshotPreview component)
       if (e.key === "Escape") {
         if (currentView === "screenshot-preview") {
-          setCurrentView("comment");
+          // ScreenshotPreview component handles Escape directly - no action needed here
+          return;
         } else if (currentView === "comment") {
           setCurrentView("menu");
           setSelectedType(null);
@@ -726,6 +727,7 @@ export function ContextMenu({
       {showMenu && (
         <div
           ref={menuRef}
+          data-anyclick-ui=""
           aria-label="Feedback options"
           className={className}
           role="menu"
@@ -832,6 +834,7 @@ export function ContextMenu({
               isLoading={isCapturing}
               isSubmitting={isSubmitting}
               onCancel={handleScreenshotCancel}
+              onClose={onClose}
               onConfirm={handleScreenshotConfirm}
               onRetake={handleRetakeScreenshots}
               screenshots={screenshots}

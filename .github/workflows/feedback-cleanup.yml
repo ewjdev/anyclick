@@ -16,11 +16,11 @@ jobs:
           script: |
             const issueBody = context.payload.issue.body || '';
             
-            // Look for uifeedback metadata comment
-            const metadataMatch = issueBody.match(/<!-- uifeedback-metadata: ({.*?}) -->/);
+            // Look for anyclick metadata comment (also support legacy uifeedback-metadata for existing issues)
+            const metadataMatch = issueBody.match(/<!-- (?:anyclick|uifeedback)-metadata: ({.*?}) -->/);
             
             if (!metadataMatch) {
-              console.log('No uifeedback metadata found in issue body, skipping cleanup.');
+              console.log('No anyclick metadata found in issue body, skipping cleanup.');
               return;
             }
             

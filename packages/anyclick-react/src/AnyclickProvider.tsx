@@ -482,8 +482,3 @@ export function AnyclickProvider({
     </AnyclickContext.Provider>
   );
 }
-
-/**
- * @deprecated Use {@link AnyclickProvider} instead. Will be removed in v2.0.0.
- */
-export const FeedbackProvider = AnyclickProvider;

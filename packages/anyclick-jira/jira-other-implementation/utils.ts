@@ -20,7 +20,7 @@ export const getJiraAuth = async (env?: JiraEnv) => {
   if (!resolvedEnv)
     throw new Error("Jira environment not configured error in getJiraAuth");
   return Buffer.from(`${resolvedEnv.email}:${resolvedEnv.apiToken}`).toString(
-    "base64"
+    "base64",
   );
 };
 
@@ -29,13 +29,13 @@ type JiraFetchOpts = Parameters<typeof fetch>[1] & {
 };
 export const getJiraFetchOptions = async (
   path: string,
-  { env, ...options }: JiraFetchOpts
+  { env, ...options }: JiraFetchOpts,
 ) => {
   const url = await getJiraUrl(path, env);
   const resolvedEnv = env || (await resolveJiraEnv());
   if (!resolvedEnv)
     throw new Error(
-      "Jira environment not configured error in getJiraFetchOptions"
+      "Jira environment not configured error in getJiraFetchOptions",
     );
 
   const auth = await getJiraAuth(resolvedEnv);
@@ -59,7 +59,7 @@ export const e = async ({ teamName, meta, env }: GetJiraTeamDataParams) => {
   };
   const teamFieldKey =
     Object.entries(meta).find(
-      ([, m]: [string, any]) => (m?.name || "").toLowerCase() === "team"
+      ([, m]: [string, any]) => (m?.name || "").toLowerCase() === "team",
     )?.[0] || customFieldIds.team;
   log.debug(`teamFieldKey: ${teamFieldKey}`);
   if (meta?.[teamFieldKey]) {

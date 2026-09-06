@@ -25,13 +25,13 @@ function jiraInit(program: Command) {
   const jira = program
     .command("jira")
     .description(
-      "Jira utilities: setup creds, list my tasks, current sprint, and create backlog task"
+      "Jira utilities: setup creds, list my tasks, current sprint, and create backlog task",
     );
 
   jira
     .command("setup")
     .description(
-      "Configure Jira environment variables and validate credentials"
+      "Configure Jira environment variables and validate credentials",
     )
     .action(async () => {
       try {
@@ -55,7 +55,7 @@ function jiraInit(program: Command) {
         }
 
         log.info(
-          "Ensure your shell loads .env or export env vars before using jira commands."
+          "Ensure your shell loads .env or export env vars before using jira commands.",
         );
       } catch (error) {
         log.error("✗ Setup failed");
@@ -85,7 +85,7 @@ function jiraInit(program: Command) {
             log.info(
               `${i.key}  —  ${i.summary}  [${i.status || ""}${
                 i.priority ? ", " + i.priority : ""
-              }]`
+              }]`,
             );
           }
         }
@@ -118,7 +118,7 @@ function jiraInit(program: Command) {
             log.info(
               `${i.key}  —  ${i.summary}  [${i.status || ""}${
                 i.priority ? ", " + i.priority : ""
-              }]`
+              }]`,
             );
           }
         }
@@ -135,7 +135,7 @@ function jiraInit(program: Command) {
     .description("Create a backlog task in a project")
     .option(
       "-p, --project <key>",
-      "Project key, e.g. CP, CLIN (uses default from config if not provided)"
+      "Project key, e.g. CP, CLIN (uses default from config if not provided)",
     )
     .option("-s, --summary <text>", "Issue summary")
     .option("-d, --description <text>", "Issue description")
@@ -143,11 +143,11 @@ function jiraInit(program: Command) {
     .option(
       "--force",
       "Do not prompt for input; require all needed args",
-      false
+      false,
     )
     .option(
       "-f, --field <key=value...>",
-      "Additional fields (e.g. customfield_12345=Yes, priority.name=P3)"
+      "Additional fields (e.g. customfield_12345=Yes, priority.name=P3)",
     )
     .action(
       async (options: {
@@ -194,29 +194,29 @@ function jiraInit(program: Command) {
           log.error("✗ Failed to create issue");
           log.error(`error: ${error?.message?.trim?.() || String(error)}`);
           log.error(
-            `jiraTicketPayload: ${JSON.stringify(jiraTicketPayload, null, 2)}`
+            `jiraTicketPayload: ${JSON.stringify(jiraTicketPayload, null, 2)}`,
           );
           process.exit(1);
         }
-      }
+      },
     );
 
   jira
     .command("validate")
     .argument("[issueKey]")
     .description(
-      "Validate a Jira ticket for development readiness. Optionally autofix AC from Zephyr."
+      "Validate a Jira ticket for development readiness. Optionally autofix AC from Zephyr.",
     )
     .option("--json", "Output JSON", false)
     .option(
       "--autofix",
       "Append Acceptance Criteria from Zephyr when AC missing",
-      false
+      false,
     )
     .action(
       async (
         issueKeyArg: string | undefined,
-        options: { json?: boolean; autofix?: boolean }
+        options: { json?: boolean; autofix?: boolean },
       ) => {
         try {
           await validateJiraTicket(issueKeyArg, options);
@@ -225,7 +225,7 @@ function jiraInit(program: Command) {
           log.debug(`error validating jira ticket: ${error?.message || error}`);
           process.exit(1);
         }
-      }
+      },
     );
 }
 

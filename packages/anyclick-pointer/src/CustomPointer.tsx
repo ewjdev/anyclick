@@ -344,12 +344,12 @@ function CustomPointerImpl({
 
     const handleContextMenu = (event: MouseEvent) => {
       // Ignore if this contextmenu was triggered by touch (long-press)
-      // Touch-triggered contextmenu events are handled by FeedbackClient
+      // Touch-triggered contextmenu events are handled by AnyclickClient
       if (wasLastInteractionTouch()) {
         return;
       }
 
-      // Skip if the event was already prevented (handled by FeedbackClient)
+      // Skip if the event was already prevented (handled by AnyclickClient)
       if (event.defaultPrevented) {
         return;
       }

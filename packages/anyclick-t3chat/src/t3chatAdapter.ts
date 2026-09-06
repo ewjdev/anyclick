@@ -1,7 +1,7 @@
 import type { T3ChatAdapterOptions, T3ChatResult } from "./types";
 import {
-  buildT3ChatUrl,
   DEFAULT_T3CHAT_BASE_URL,
+  buildT3ChatUrl,
   getSelectedText,
   navigateToUrl,
 } from "./utils";
@@ -123,7 +123,7 @@ export class T3ChatAdapter {
  * @returns Configured T3ChatAdapter
  */
 export function createT3ChatAdapter(
-  options: T3ChatAdapterOptions = {}
+  options: T3ChatAdapterOptions = {},
 ): T3ChatAdapter {
   return new T3ChatAdapter(options);
 }

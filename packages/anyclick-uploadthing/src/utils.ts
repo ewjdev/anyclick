@@ -183,7 +183,9 @@ export function storeApiKey(apiKey: string): void {
   try {
     localStorage.setItem("anyclick-uploadthing-api-key", apiKey);
   } catch {
-    console.warn("[anyclick-uploadthing] Failed to store API key in localStorage");
+    console.warn(
+      "[anyclick-uploadthing] Failed to store API key in localStorage",
+    );
   }
 }
 
@@ -206,7 +208,7 @@ export function clearStoredApiKey(): void {
  * @returns Unique filename
  */
 export function generateScreenshotFilename(
-  type: "element" | "container" | "viewport" = "element"
+  type: "element" | "container" | "viewport" = "element",
 ): string {
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
   return `screenshot-${type}-${timestamp}.png`;

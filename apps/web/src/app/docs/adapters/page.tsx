@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { SeeItLive } from "@/components/SeeItLive";
 import {
   ArrowRight,
   Cloud,
@@ -34,6 +35,10 @@ export default function AdaptersDocsPage() {
       {/* Adapter Overview */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Available Adapters</h2>
+        <SeeItLive
+          href="/examples/github-integration"
+          label="GitHub integration"
+        />
         <div className="grid gap-4">
           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
             <div className="flex items-center gap-3 mb-2">
@@ -106,7 +111,7 @@ export default function AdaptersDocsPage() {
         </p>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider } from '@ewjdev/anyclick-react';
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
 const adapter = createHttpAdapter({
@@ -119,9 +124,9 @@ const adapter = createHttpAdapter({
 
 export function Providers({ children }) {
   return (
-    <FeedbackProvider adapter={adapter}>
+    <AnyclickProvider adapter={adapter}>
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
 
@@ -130,7 +135,7 @@ export function Providers({ children }) {
           Create an API route that receives feedback and creates GitHub Issues:
         </p>
         <CodeBlock filename="app/api/feedback/route.ts">{`import { createGitHubAdapter, formatFeedbackAsMarkdown } from '@ewjdev/anyclick-github/server';
-import type { FeedbackPayload } from '@ewjdev/anyclick-core';
+import type { AnyclickPayload } from '@ewjdev/anyclick-core';
 
 const repoName = process.env.GITHUB_REPO!;
 const [owner, repo] = repoName.split("/");
@@ -155,8 +160,8 @@ const github = createGitHubAdapter({
 
 export async function POST(request: Request) {
   try {
-    const payload: FeedbackPayload = await request.json();
-    const result = await github.submit(payload);
+    const payload: AnyclickPayload = await request.json();
+    const result = await github.createIssue(payload);
     return Response.json(result);
   } catch (error) {
     console.error('Feedback error:', error);
@@ -191,7 +196,7 @@ export async function POST(request: Request) {
 const markdown = formatFeedbackAsMarkdown(payload);
 
 // Or create custom formatting
-function customFormat(payload: FeedbackPayload): string {
+function customFormat(payload: AnyclickPayload): string {
   return \`
 ## \${payload.type === 'issue' ? '🐛 Bug Report' : '✨ Feature Request'}
 
@@ -379,13 +384,12 @@ export async function POST(request: Request) {
         <CodeBlock>{`npm install @ewjdev/anyclick-cursor`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Usage</h3>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
-import { createCursorAdapter } from '@ewjdev/anyclick-cursor';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 
-const cursorAdapter = createCursorAdapter({
-  // Cursor Cloud Agent configuration
-  apiKey: process.env.NEXT_PUBLIC_CURSOR_API_KEY,
-  projectId: 'your-project-id',
+// Browser-side: use HTTP adapter to call your server endpoint
+const adapter = createHttpAdapter({
+  endpoint: '/api/feedback',
 });
 
 // Use with custom menu items
@@ -399,12 +403,12 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider 
-  adapter={cursorAdapter} 
+<AnyclickProvider 
+  adapter={adapter} 
   menuItems={menuItems}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">
           Format for Cursor Agent
@@ -445,7 +449,7 @@ const agentPrompt = formatForCursorAgent(payload);
 npm run feedback-server`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">Browser-Side Setup</h3>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { createLocalAdapter } from '@ewjdev/anyclick-cursor-local';
 
 // Only use in development
@@ -459,9 +463,9 @@ const adapter = process.env.NODE_ENV === 'development'
   ? localAdapter 
   : productionAdapter;
 
-<FeedbackProvider adapter={adapter}>
+<AnyclickProvider adapter={adapter}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <h3 className="text-lg font-semibold mb-3 mt-8">
           Server Configuration
@@ -493,19 +497,19 @@ const adapter = process.env.NODE_ENV === 'development'
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Building Custom Adapters</h2>
         <p className="text-gray-400 mb-4 leading-relaxed">
-          Implement the <code className="text-cyan-400">FeedbackAdapter</code>{" "}
+          Implement the <code className="text-cyan-400">AnyclickAdapter</code>{" "}
           interface to create custom integrations:
         </p>
-        <CodeBlock filename="adapters/slack.ts">{`import type { FeedbackAdapter, FeedbackPayload, FeedbackResult } from '@ewjdev/anyclick-core';
+        <CodeBlock filename="adapters/slack.ts">{`import type { AnyclickAdapter, AnyclickPayload, AnyclickResult } from '@ewjdev/anyclick-core';
 
 interface SlackAdapterConfig {
   webhookUrl: string;
   channel?: string;
 }
 
-export function createSlackAdapter(config: SlackAdapterConfig): FeedbackAdapter {
+export function createSlackAdapter(config: SlackAdapterConfig): AnyclickAdapter {
   return {
-    async submit(payload: FeedbackPayload): Promise<FeedbackResult> {
+    async submit(payload: AnyclickPayload): Promise<AnyclickResult> {
       try {
         const message = formatSlackMessage(payload);
         
@@ -536,7 +540,7 @@ export function createSlackAdapter(config: SlackAdapterConfig): FeedbackAdapter 
   };
 }
 
-function formatSlackMessage(payload: FeedbackPayload) {
+function formatSlackMessage(payload: AnyclickPayload) {
   return {
     blocks: [
       {
@@ -568,20 +572,24 @@ function formatSlackMessage(payload: FeedbackPayload) {
       {/* Combining Adapters */}
       <section className="not-prose mb-12">
         <h2 className="text-2xl font-bold mb-4">Combining Multiple Adapters</h2>
+        <SeeItLive
+          href="/examples/cursor-local"
+          label="Cursor local + GitHub"
+        />
         <p className="text-gray-400 mb-4 leading-relaxed">
           Send feedback to multiple destinations:
         </p>
-        <CodeBlock filename="adapters/multi.ts">{`import type { FeedbackAdapter, FeedbackPayload, FeedbackResult } from '@ewjdev/anyclick-core';
+        <CodeBlock filename="adapters/multi.ts">{`import type { AnyclickAdapter, AnyclickPayload, AnyclickResult } from '@ewjdev/anyclick-core';
 
-export function createMultiAdapter(adapters: FeedbackAdapter[]): FeedbackAdapter {
+export function createMultiAdapter(adapters: AnyclickAdapter[]): AnyclickAdapter {
   return {
-    async submit(payload: FeedbackPayload): Promise<FeedbackResult> {
+    async submit(payload: AnyclickPayload): Promise<AnyclickResult> {
       const results = await Promise.allSettled(
         adapters.map(adapter => adapter.submit(payload))
       );
       
       const successes = results.filter(
-        (r): r is PromiseFulfilledResult<FeedbackResult> => 
+        (r): r is PromiseFulfilledResult<AnyclickResult> => 
           r.status === 'fulfilled' && r.value.success
       );
       

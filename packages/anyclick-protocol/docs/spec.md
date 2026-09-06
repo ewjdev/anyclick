@@ -30,20 +30,20 @@ It links directly to the technical spec (`anyclick-spec.ts`) so both technical a
 
 An **Anyclick Event** is a structured record describing:
 
-- **What the user did**  
-- **What they meant to do**  
-- **What UI element they interacted with**  
-- **What the system did as a result**  
+- **What the user did**
+- **What they meant to do**
+- **What UI element they interacted with**
+- **What the system did as a result**
 - **Where in the code this interaction came from**
 
 A single record can power:
 
-- Debugging  
-- Autofix workflows  
-- Analytics  
-- Support / QA tools  
-- AI automation  
-- Visual regressions  
+- Debugging
+- Autofix workflows
+- Analytics
+- Support / QA tools
+- AI automation
+- Visual regressions
 - Replay/testing
 
 🔗 See the spec: [`InteractionEvent`](anyclick-spec.ts#L22)
@@ -82,10 +82,10 @@ Target describes the UI element:
 
 Target includes:
 
-- CSS selector  
-- ARIA/role  
-- attributes  
-- bounding box  
+- CSS selector
+- ARIA/role
+- attributes
+- bounding box
 
 🔗 Spec: [`TargetReference`](anyclick-spec.ts#L46)
 
@@ -93,8 +93,8 @@ Target includes:
 
 # <a name="operation"></a>4. Operation — What the System Did
 
-While **intent** is what the *user meant*,  
-**operation** is what the *system performs*.
+While **intent** is what the _user meant_,  
+**operation** is what the _system performs_.
 
 Examples:
 
@@ -106,9 +106,9 @@ Examples:
 
 Operations also include:
 
-- Approval  
-- Status (`pending`, `failed`, `succeeded`)  
-- Expected side effects  
+- Approval
+- Status (`pending`, `failed`, `succeeded`)
+- Expected side effects
 
 🔗 Spec: [`Operation`](anyclick-spec.ts#L135)
 
@@ -120,9 +120,9 @@ Every useful user journey crosses multiple screens.
 
 Navigation captures:
 
-- from → to  
-- method (`push`, `replace`, `pop`)  
-- optional HTTP status code  
+- from → to
+- method (`push`, `replace`, `pop`)
+- optional HTTP status code
 
 🔗 Spec: [`NavigationContext`](anyclick-spec.ts#L193)
 
@@ -132,17 +132,17 @@ Navigation captures:
 
 A lightweight view of the UI at the moment:
 
-- Form values (non-sensitive only)  
-- Toggle states  
-- Component visibility  
-- Disabled states  
+- Form values (non-sensitive only)
+- Toggle states
+- Component visibility
+- Disabled states
 
 Not a full-page serialization — just enough context for:
 
-- Autofix  
-- Testing  
-- AI reasoning  
-- Analytics  
+- Autofix
+- Testing
+- AI reasoning
+- Analytics
 
 🔗 Spec: [`StateSnapshot`](anyclick-spec.ts#L209)
 
@@ -152,16 +152,16 @@ Not a full-page serialization — just enough context for:
 
 Optional images:
 
-- element  
-- viewport  
-- ancestor container  
+- element
+- viewport
+- ancestor container
 
 Useful for:
 
-- Bug reports  
-- QA  
-- Replay  
-- AI visual understanding  
+- Bug reports
+- QA
+- Replay
+- AI visual understanding
 
 🔗 Spec: [`VisualPayload`](anyclick-spec.ts#L228)
 
@@ -171,12 +171,12 @@ Useful for:
 
 A list of parent nodes up the DOM tree:
 
-- tag  
-- role  
-- attributes  
-- semantic component ids  
+- tag
+- role
+- attributes
+- semantic component ids
 
-This answers: *"Where does this element live in the UI?"*
+This answers: _"Where does this element live in the UI?"_
 
 🔗 Spec: [`HierarchyEntry`](anyclick-spec.ts#L247)
 
@@ -186,17 +186,17 @@ This answers: *"Where does this element live in the UI?"*
 
 This connects an event directly to source code:
 
-- component name  
-- file path  
-- line + column  
-- handler name  
+- component name
+- file path
+- line + column
+- handler name
 
 Enables:
 
-- "Open in Cursor / VS Code"  
-- Autofix  
-- Component lineage  
-- Linking feedback to exact file  
+- "Open in Cursor / VS Code"
+- Autofix
+- Component lineage
+- Linking feedback to exact file
 
 🔗 Spec: [`SourceReference`](anyclick-spec.ts#L263)
 
@@ -206,10 +206,10 @@ Enables:
 
 What happened after the operation:
 
-- success / failure / partial  
-- diff score (visual regression)  
-- stack or error codes  
-- AI-generated output  
+- success / failure / partial
+- diff score (visual regression)
+- stack or error codes
+- AI-generated output
 
 🔗 Spec: [`ResultPayload`](anyclick-spec.ts#L280)
 
@@ -225,9 +225,9 @@ Useful for multi-step flows:
 
 And deployment context:
 
-- cloud / self-hosted  
-- environment  
-- tenant  
+- cloud / self-hosted
+- environment
+- tenant
 
 🔗 Spec: (`flowId`, `origin`) around [`InteractionEvent`](anyclick-spec.ts#L17)
 
@@ -251,14 +251,14 @@ Anyclick turns every UI interaction into a **meaningful, structured, contextual 
 
 This empowers:
 
-- Debugging  
-- Autofix  
-- Customer support  
-- Analytics  
-- QA  
-- AI-assisted development  
-- UX optimization  
-- Seamless collaboration between engineers, PMs, designers, and business teams  
+- Debugging
+- Autofix
+- Customer support
+- Analytics
+- QA
+- AI-assisted development
+- UX optimization
+- Seamless collaboration between engineers, PMs, designers, and business teams
 
 The **TypeScript spec** is the contract.  
 This document is the explanation.

@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Check,
@@ -14,6 +15,42 @@ export const metadata: Metadata = {
   title: "t3.chat Integration Example",
   description: "Send selected text to t3.chat with Anyclick context menus.",
 };
+
+const source = `"use client";
+
+import type { ReactNode } from "react";
+import { InspectDialogManager } from "@ewjdev/anyclick-devtools";
+import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
+
+const chromePreset = createPresetMenu("chrome");
+const adapter = createHttpAdapter({
+  endpoint: "/api/feedback",
+});
+
+export default function T3ChatProvider({ children }: { children: ReactNode }) {
+  return (
+    <AnyclickProvider
+      adapter={adapter}
+      menuItems={chromePreset.menuItems}
+      theme={chromePreset.theme}
+      quickChatConfig={{
+        endpoint: "/api/anyclick/chat",
+        t3chat: {
+          enabled: true,
+          baseUrl: "https://t3.chat",
+        },
+      }}
+    >
+      {children}
+      {/* The chrome preset's "Inspect" item needs this manager. The site-wide
+          one is not mounted under /examples, so mount it here. Remove if the
+          root wrapper is ever un-gated for /examples. */}
+      <InspectDialogManager />
+    </AnyclickProvider>
+  );
+}
+`;
 
 export default function T3ChatIntegrationPage() {
   return (
@@ -50,55 +87,63 @@ export default function T3ChatIntegrationPage() {
       </div>
 
       {/* Demo Area */}
-      <T3ChatProvider>
-        <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <MousePointerClick className="w-5 h-5 text-violet-400" />
-            Try It
-          </h2>
-          <p className="text-gray-400 text-sm mb-6">
-            Select some text below, then right-click and choose &quot;Ask
-            t3.chat&quot; to send it to t3.chat:
-          </p>
+      <ExampleStage
+        id="t3chat-integration"
+        prompt="Right-click. Ask t3.chat."
+        source={source}
+        note="What's different: the chrome preset plus quickChatConfig.t3chat, which hands the element context to t3.chat."
+        reveal="none"
+      >
+        <T3ChatProvider>
+          <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <MousePointerClick className="w-5 h-5 text-violet-400" />
+              Try It
+            </h2>
+            <p className="text-gray-400 text-sm mb-6">
+              Select some text below, then right-click and choose &quot;Ask
+              t3.chat&quot; to send it to t3.chat:
+            </p>
 
-          <div className="space-y-4">
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="font-medium mb-2">Sample Code</h3>
-              <pre className="text-sm text-gray-300 font-mono bg-black/30 p-3 rounded overflow-x-auto">
-                {`function fibonacci(n: number): number {
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <h3 className="font-medium mb-2">Sample Code</h3>
+                <pre className="text-sm text-gray-300 font-mono bg-black/30 p-3 rounded overflow-x-auto">
+                  {`function fibonacci(n: number): number {
   if (n <= 1) return n;
   return fibonacci(n - 1) + fibonacci(n - 2);
 }`}
-              </pre>
-              <p className="text-xs text-gray-500 mt-2">
-                Select any part of this code and ask t3.chat about it!
-              </p>
-            </div>
+                </pre>
+                <p className="text-xs text-gray-500 mt-2">
+                  Select any part of this code and ask t3.chat about it!
+                </p>
+              </div>
 
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="font-medium mb-2">Technical Content</h3>
-              <p className="text-sm text-gray-300">
-                React Server Components allow you to render components on the
-                server and send only the HTML to the client. This reduces the
-                JavaScript bundle size and improves initial page load
-                performance. Combined with Suspense boundaries, you can create
-                streaming SSR experiences.
-              </p>
-            </div>
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <h3 className="font-medium mb-2">Technical Content</h3>
+                <p className="text-sm text-gray-300">
+                  React Server Components allow you to render components on the
+                  server and send only the HTML to the client. This reduces the
+                  JavaScript bundle size and improves initial page load
+                  performance. Combined with Suspense boundaries, you can create
+                  streaming SSR experiences.
+                </p>
+              </div>
 
-            <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-              <h3 className="font-medium mb-2">Error Message</h3>
-              <code className="text-sm text-red-400 font-mono">
-                TypeError: Cannot read properties of undefined (reading
-                &apos;map&apos;)
-              </code>
-              <p className="text-xs text-gray-500 mt-2">
-                Select this error and ask t3.chat how to fix it!
-              </p>
+              <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                <h3 className="font-medium mb-2">Error Message</h3>
+                <code className="text-sm text-red-400 font-mono">
+                  TypeError: Cannot read properties of undefined (reading
+                  &apos;map&apos;)
+                </code>
+                <p className="text-xs text-gray-500 mt-2">
+                  Select this error and ask t3.chat how to fix it!
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </T3ChatProvider>
+        </T3ChatProvider>
+      </ExampleStage>
 
       {/* Features */}
       <div className="mb-12">

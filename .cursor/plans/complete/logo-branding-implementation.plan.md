@@ -111,7 +111,7 @@ Create `<AnyclickLogo size="sm|md|lg" />` component that handles different conte
 ### Phase 2: Update Branding Locations
 
 - [ ] Update main page navigation logo
-- [ ] Update main page footer logo  
+- [ ] Update main page footer logo
 - [ ] Update docs layout navigation logo
 - [ ] Update examples layout navigation logo
 - [ ] Update roadmap page header logo
@@ -132,23 +132,23 @@ Create `<AnyclickLogo size="sm|md|lg" />` component that handles different conte
 
 ```tsx
 // apps/web/src/components/AnyclickLogo.tsx
-import Image from 'next/image';
+import Image from "next/image";
 
 interface AnyclickLogoProps {
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
 }
 
 const sizeMap = {
   xs: 16,
-  sm: 24, 
+  sm: 24,
   md: 32,
   lg: 48,
 };
 
-export function AnyclickLogo({ size = 'md', className }: AnyclickLogoProps) {
+export function AnyclickLogo({ size = "md", className }: AnyclickLogoProps) {
   const pixels = sizeMap[size];
-  
+
   return (
     <Image
       src="/logo.png"
@@ -156,7 +156,7 @@ export function AnyclickLogo({ size = 'md', className }: AnyclickLogoProps) {
       width={pixels}
       height={pixels}
       className={className}
-      priority={size === 'lg'} // Priority for above-fold logos
+      priority={size === "lg"} // Priority for above-fold logos
     />
   );
 }
@@ -199,10 +199,10 @@ export const metadata: Metadata = {
   // ... existing metadata
   icons: {
     icon: [
-      { url: '/logo.ico', sizes: 'any' },
-      { url: '/logo.png', type: 'image/png' },
+      { url: "/logo.ico", sizes: "any" },
+      { url: "/logo.png", type: "image/png" },
     ],
-    apple: '/logo.png',
+    apple: "/logo.png",
   },
 };
 ```
@@ -218,7 +218,7 @@ The logo.png features:
 This design will:
 
 - ✅ Look good at 40px (lg size)
-- ✅ Look good at 32px (md size) 
+- ✅ Look good at 32px (md size)
 - ⚠️ May need testing at 24px (sm size) - details might be lost
 - ⚠️ 16px (xs size) - primarily for favicons
 
@@ -226,7 +226,7 @@ This design will:
 
 Since the logo is already green-toned, update hover effects:
 
-- Change `from-violet-500 to-cyan-500` blur to `bg-emerald-500/20` 
+- Change `from-violet-500 to-cyan-500` blur to `bg-emerald-500/20`
 - Match the logo's green color palette
 
 ## Testing Checklist

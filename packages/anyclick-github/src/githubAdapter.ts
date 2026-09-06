@@ -1,15 +1,15 @@
 import type {
   AnyclickPayload,
-  ScreenshotData,
   ScreenshotCapture,
+  ScreenshotData,
 } from "@ewjdev/anyclick-core";
+import { defaultFormatBody, defaultFormatTitle } from "./formatters";
 import type {
   GitHubAdapterOptions,
   GitHubIssueResult,
   UIFeedbackMetadata,
 } from "./types";
 import { feedbackTypeLabels } from "./types";
-import { defaultFormatTitle, defaultFormatBody } from "./formatters";
 
 /**
  * GitHub adapter for server-side usage
@@ -65,7 +65,6 @@ export class GitHubAdapter {
     console.log("🔍 Uploading asset to URL:", url);
     console.log(`   Branch: ${this.mediaBranch}`);
     console.log(`   Repo: ${this.owner}/${this.repo}`);
-    console.log(`   Token: ${this.token}`);
 
     const response = await fetch(url, {
       method: "PUT",
@@ -176,7 +175,7 @@ Validation failed. This could mean:
    * Format the metadata comment to embed in issue body
    */
   private formatMetadataComment(metadata: UIFeedbackMetadata): string {
-    return `\n\n<!-- uifeedback-metadata: ${JSON.stringify(metadata)} -->`;
+    return `\n\n<!-- anyclick-metadata: ${JSON.stringify(metadata)} -->`;
   }
 
   /**

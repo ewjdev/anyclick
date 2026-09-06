@@ -10,6 +10,7 @@
 `@ewjdev/anyclick-protocol` provides the foundational TypeScript types and domain-specific intent enums for the Anyclick interaction event protocol. This package defines how user interactions are captured, how intent is represented, and how context (UI, navigation, visual snapshots) is structured.
 
 The protocol enables:
+
 - **Semantic Intent** - Turn raw clicks into meaningful business events
 - **Full Context** - Capture UI state, navigation, screenshots, and source code mapping
 - **Domain-Specific Intents** - Pre-defined intent enums for common business domains
@@ -28,7 +29,7 @@ npm install @ewjdev/anyclick-protocol
 ### Basic Usage
 
 ```typescript
-import type { InteractionEvent, Intent } from "@ewjdev/anyclick-protocol";
+import type { Intent, InteractionEvent } from "@ewjdev/anyclick-protocol";
 
 // Create an interaction event
 const event: InteractionEvent = {
@@ -58,9 +59,9 @@ const event: InteractionEvent = {
 
 ```typescript
 import {
-  StoreIntent,
   EhrIntent,
   type InteractionEvent,
+  StoreIntent,
 } from "@ewjdev/anyclick-protocol";
 
 // Use predefined intent enums
@@ -87,10 +88,10 @@ const appointmentEvent: InteractionEvent = {
 
 ```typescript
 import {
+  type InteractionEvent,
+  type TargetReference,
   isDomTarget,
   isInteractionEvent,
-  type TargetReference,
-  type InteractionEvent,
 } from "@ewjdev/anyclick-protocol";
 
 function handleTarget(target: TargetReference) {
@@ -142,7 +143,13 @@ Represents the semantic meaning of a user action:
 interface Intent {
   type: string; // e.g., "domain.store.cart.add"
   confidence: number; // 0-1 confidence score
-  inferredFrom?: ("developer" | "component" | "role" | "dataset" | "heuristic")[];
+  inferredFrom?: (
+    | "developer"
+    | "component"
+    | "role"
+    | "dataset"
+    | "heuristic"
+  )[];
   parameters?: Record<string, any>;
 }
 ```
@@ -187,11 +194,11 @@ This package is written in TypeScript and provides complete type definitions. Al
 
 ```typescript
 import type {
-  InteractionEvent,
   Intent,
-  TargetReference,
+  InteractionEvent,
   Operation,
   // ... and more
+  TargetReference,
 } from "@ewjdev/anyclick-protocol";
 ```
 
@@ -204,4 +211,4 @@ import type {
 
 ## License
 
-MIT © [anyclick](https://anyclick.ewj.dev)
+MIT © [anyclick](https://anyclick.dev)

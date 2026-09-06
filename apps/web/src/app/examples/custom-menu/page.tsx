@@ -1,4 +1,5 @@
 import { CodeBlock } from "@/components/CodePreview";
+import { ExampleStage } from "@/components/ExampleStage";
 import {
   ArrowRight,
   Bug,
@@ -10,12 +11,43 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CustomMenuDemo } from "./CustomMenuDemo";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
   description:
     "Customized anyclick context menu with branded colors, icons, and role-based items.",
 };
+
+const source = `'use client';
+
+import { AnyclickProvider } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
+import { Bug, Cloud, Code, Heart, Lightbulb, Monitor } from 'lucide-react';
+
+const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
+
+const menuItems: ContextMenuItem[] = [
+  { type: 'bug', label: 'Report Bug', icon: <Bug className="w-4 h-4 text-rose-400" />, showComment: true },
+  { type: 'feature', label: 'Suggest Feature', icon: <Lightbulb className="w-4 h-4 text-amber-400" />, showComment: true },
+  { type: 'like', label: 'Love It!', icon: <Heart className="w-4 h-4 text-pink-400" />, showComment: false },
+  {
+    type: 'dev-tools', label: 'Developer Tools', icon: <Code className="w-4 h-4 text-cyan-400" />,
+    children: [
+      { type: 'dev-local', label: 'Fix locally', icon: <Monitor className="w-4 h-4" />, showComment: true },
+      { type: 'dev-cloud', label: 'Send to cloud agent', icon: <Cloud className="w-4 h-4" />, showComment: true },
+    ],
+  },
+];
+
+export function Providers({ children }) {
+  return (
+    <AnyclickProvider adapter={adapter} scoped menuItems={menuItems}>
+      {children}
+    </AnyclickProvider>
+  );
+}`;
 
 export default function CustomMenuExamplePage() {
   return (
@@ -38,41 +70,22 @@ export default function CustomMenuExamplePage() {
         </p>
       </div>
 
-      {/* Demo Area */}
-      <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Palette className="w-5 h-5 text-cyan-400" />
-          Custom Menu Preview
-        </h2>
-        <p className="text-gray-400 text-sm mb-6">
-          Right-click this area to see a customized feedback menu with icons and
-          custom labels:
-        </p>
-
-        {/* Simulated menu preview */}
-        <div className="inline-block p-2 rounded-xl bg-[#1a1a2e] border border-white/10 shadow-xl">
-          <div className="space-y-1 min-w-[200px]">
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Bug className="w-4 h-4 text-rose-400" />
-              <span className="text-sm">Report Bug</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Lightbulb className="w-4 h-4 text-amber-400" />
-              <span className="text-sm">Suggest Feature</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Heart className="w-4 h-4 text-pink-400" />
-              <span className="text-sm">Love It!</span>
-            </button>
-            <div className="border-t border-white/5 my-1" />
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left">
-              <Code className="w-4 h-4 text-cyan-400" />
-              <span className="text-sm">Developer Tools</span>
-              <ArrowRight className="w-3 h-3 ml-auto text-gray-500" />
-            </button>
+      <ExampleStage
+        id="custom-menu"
+        prompt="Right-click the card."
+        source={source}
+        note="What's different: menuItems. Labels, icons, a submenu, and which items ask for a comment are all yours. Items with children open a second level."
+      >
+        <CustomMenuDemo>
+          <div className="mx-auto max-w-md p-6 rounded-xl bg-[#14141c] border border-white/10">
+            <h3 className="font-medium mb-1">Order #4821</h3>
+            <p className="text-sm text-gray-400">
+              Shipped Tuesday. Right-click anywhere on this card to see the
+              branded menu with icons and a Developer Tools submenu.
+            </p>
           </div>
-        </div>
-      </div>
+        </CustomMenuDemo>
+      </ExampleStage>
 
       {/* Custom Icons */}
       <div className="mb-12">
@@ -82,7 +95,7 @@ export default function CustomMenuExamplePage() {
           <code className="text-cyan-400">icon</code> prop. Use any React
           component (Lucide, Heroicons, custom SVGs, etc.):
         </p>
-        <CodeBlock filename="app/providers.tsx">{`import { FeedbackProvider } from '@ewjdev/anyclick-react';
+        <CodeBlock filename="app/providers.tsx">{`import { AnyclickProvider } from '@ewjdev/anyclick-react';
 import { Bug, Lightbulb, Heart } from 'lucide-react';
 
 const menuItems = [
@@ -106,9 +119,9 @@ const menuItems = [
   },
 ];
 
-<FeedbackProvider adapter={adapter} menuItems={menuItems}>
+<AnyclickProvider adapter={adapter} menuItems={menuItems}>
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </div>
 
       {/* Submenus */}
@@ -154,11 +167,11 @@ const menuItems = [
           Show or hide menu items based on user roles using{" "}
           <code className="text-cyan-400">requiredRoles</code>:
         </p>
-        <CodeBlock>{`import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
+        <CodeBlock>{`import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem, AnyclickUserContext } from '@ewjdev/anyclick-react';
 
 // Define all menu items with role requirements
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: ContextMenuItem[] = [
   // Everyone sees these
   { type: 'bug', label: 'Report Bug', showComment: true },
   { type: 'feature', label: 'Request Feature', showComment: true },
@@ -184,7 +197,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 
 function Providers({ children, currentUser }) {
   // Create user context from your auth system
-  const userContext: FeedbackUserContext = {
+  const userContext: AnyclickUserContext = {
     roles: currentUser?.roles || [],
     id: currentUser?.id,
     email: currentUser?.email,
@@ -194,13 +207,13 @@ function Providers({ children, currentUser }) {
   const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
   
   return (
-    <FeedbackProvider 
+    <AnyclickProvider 
       adapter={adapter} 
       menuItems={menuItems}
       metadata={userContext} // Include user info in feedback
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
@@ -211,7 +224,7 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Apply custom styles or classes to the context menu:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   menuItems={menuItems}
   // Inline styles
@@ -224,7 +237,7 @@ function Providers({ children, currentUser }) {
   menuClassName="my-custom-menu"
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
 
         <CodeBlock filename="styles.css">{`/* Custom menu styling */
 .my-custom-menu {
@@ -247,7 +260,7 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Customize the colors used to highlight target and container elements:
         </p>
-        <CodeBlock>{`<FeedbackProvider
+        <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   highlightConfig={{
     enabled: true,
@@ -271,7 +284,7 @@ function Providers({ children, currentUser }) {
   }}
 >
   {children}
-</FeedbackProvider>`}</CodeBlock>
+</AnyclickProvider>`}</CodeBlock>
       </div>
 
       {/* Complete Example */}
@@ -279,15 +292,15 @@ function Providers({ children, currentUser }) {
         <h2 className="text-2xl font-bold mb-4">Complete Example</h2>
         <CodeBlock filename="app/providers.tsx">{`'use client';
 
-import { FeedbackProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
-import type { FeedbackMenuItem, FeedbackUserContext } from '@ewjdev/anyclick-react';
-import { createHttpAdapter } from '@ewjdev/anyclick-';
+import { AnyclickProvider, filterMenuItemsByRole } from '@ewjdev/anyclick-react';
+import type { ContextMenuItem, AnyclickUserContext } from '@ewjdev/anyclick-react';
+import { createHttpAdapter } from '@ewjdev/anyclick-github';
 import { Bug, Lightbulb, Heart, Code, Monitor, Cloud, Shield } from 'lucide-react';
 import { useUser } from '@/hooks/useUser';
 
 const adapter = createHttpAdapter({ endpoint: '/api/feedback' });
 
-const allMenuItems: FeedbackMenuItem[] = [
+const allMenuItems: ContextMenuItem[] = [
   { 
     type: 'bug', 
     label: 'Report Bug', 
@@ -338,7 +351,7 @@ const allMenuItems: FeedbackMenuItem[] = [
 export function Providers({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   
-  const userContext: FeedbackUserContext = {
+  const userContext: AnyclickUserContext = {
     roles: user?.roles || [],
     id: user?.id,
     email: user?.email,
@@ -347,7 +360,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const menuItems = filterMenuItemsByRole(allMenuItems, userContext);
   
   return (
-    <FeedbackProvider
+    <AnyclickProvider
       adapter={adapter}
       menuItems={menuItems}
       metadata={userContext}
@@ -360,7 +373,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </FeedbackProvider>
+    </AnyclickProvider>
   );
 }`}</CodeBlock>
       </div>
