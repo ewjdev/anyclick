@@ -1,8 +1,8 @@
 "use client";
 
+import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { AnyclickProviderWrapper } from "@/components/AnyclickProviderWrapper";
 
 /**
  * Conditionally wraps children with AnyclickProviderWrapper based on the current route.
@@ -21,7 +21,9 @@ export function ConditionalAnyclickWrapper({
   const pathname = usePathname();
 
   const shouldExcludeGlobalProvider =
-    pathname.startsWith("/examples") || pathname.startsWith("/docs");
+    pathname === "/" ||
+    pathname.startsWith("/examples") ||
+    pathname.startsWith("/docs");
 
   if (shouldExcludeGlobalProvider) {
     return <>{children}</>;

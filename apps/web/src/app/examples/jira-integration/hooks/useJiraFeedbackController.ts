@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NormalizedJiraField } from "@ewjdev/anyclick-jira";
+import type {
+  FieldErrorMap,
+  JiraCredentials,
+  JiraFeedbackMenuProps,
+  JiraIssueType,
+  StepState,
+} from "../types";
 import {
   extractPrimitiveValue,
   findFieldKeysByNames,
@@ -8,13 +15,6 @@ import {
   sanitizeErrorMessage,
 } from "../utils/jiraHelpers";
 import { useJiraPreferences } from "./useJiraPreferences";
-import type {
-  FieldErrorMap,
-  JiraCredentials,
-  JiraFeedbackMenuProps,
-  JiraIssueType,
-  StepState,
-} from "../types";
 
 const normalizeJiraUrl = (input: string) => {
   const trimmed = input.trim();
@@ -112,9 +112,8 @@ export function useJiraFeedbackController({
         return true;
       } catch (error) {
         console.error("Failed to fetch issue types:", error);
-        const errorMessage = error instanceof Error
-          ? error.message
-          : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         setLoadError(sanitizeErrorMessage(errorMessage));
         setStep("error");
         return false;
@@ -188,9 +187,9 @@ export function useJiraFeedbackController({
       setFieldsLoading(true);
       try {
         const response = await fetch(
-          `/api/ac/jira?action=fields&issueType=${
-            encodeURIComponent(issueType.name)
-          }&includeOptional=true`,
+          `/api/ac/jira?action=fields&issueType=${encodeURIComponent(
+            issueType.name,
+          )}&includeOptional=true`,
           { headers: getRequestHeaders() },
         );
         const data = await response.json();
@@ -229,9 +228,10 @@ export function useJiraFeedbackController({
           } else if (field.options?.length === 1) {
             initialData[field.key] = field.options[0].id;
           } else if (field.name.toLowerCase() === "priority" && field.options) {
-            const medium = field.options.find((option) =>
-              option.label.toLowerCase().includes("medium") ||
-              option.value.toLowerCase().includes("medium")
+            const medium = field.options.find(
+              (option) =>
+                option.label.toLowerCase().includes("medium") ||
+                option.value.toLowerCase().includes("medium"),
             );
             if (medium) {
               initialData[field.key] = medium.id;
@@ -248,9 +248,8 @@ export function useJiraFeedbackController({
         setStep("summary");
       } catch (error) {
         console.error("Failed to fetch fields:", error);
-        const errorMessage = error instanceof Error
-          ? error.message
-          : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         setLoadError(sanitizeErrorMessage(errorMessage));
         setStep("error");
       } finally {
@@ -278,8 +277,8 @@ export function useJiraFeedbackController({
     }
 
     for (const field of fields) {
-      const isRequired = field.required ||
-        conditionallyRequiredFields.has(field.key);
+      const isRequired =
+        field.required || conditionallyRequiredFields.has(field.key);
       if (isRequired) {
         const value = formData[field.key];
         if (value === undefined || value === null || value === "") {
@@ -310,7 +309,8 @@ export function useJiraFeedbackController({
         if (field.key === "priority") {
           const option = field.options?.find(
             (option) =>
-              option.id === primitiveValue || option.value === primitiveValue ||
+              option.id === primitiveValue ||
+              option.value === primitiveValue ||
               option.label === primitiveValue,
           );
           customFields[field.key] = {
@@ -321,8 +321,9 @@ export function useJiraFeedbackController({
 
         switch (field.type) {
           case "select": {
-            const option = field.options?.find((opt) =>
-              opt.id === primitiveValue || opt.value === primitiveValue
+            const option = field.options?.find(
+              (opt) =>
+                opt.id === primitiveValue || opt.value === primitiveValue,
             );
             customFields[field.key] = {
               id: option ? option.id : primitiveValue,
@@ -334,8 +335,8 @@ export function useJiraFeedbackController({
             customFields[field.key] = arrayValue
               .map((item) => {
                 const primitive = extractPrimitiveValue(item);
-                const option = field.options?.find((opt) =>
-                  opt.id === primitive || opt.value === primitive
+                const option = field.options?.find(
+                  (opt) => opt.id === primitive || opt.value === primitive,
                 );
                 return option ? { id: option.id } : { id: primitive };
               })
@@ -350,8 +351,8 @@ export function useJiraFeedbackController({
             break;
           }
           case "boolean": {
-            customFields[field.key] = primitiveValue === "true" ||
-              primitiveValue === "1";
+            customFields[field.key] =
+              primitiveValue === "true" || primitiveValue === "1";
             break;
           }
           case "user": {
@@ -360,9 +361,9 @@ export function useJiraFeedbackController({
           }
           case "array": {
             if (Array.isArray(value)) {
-              customFields[field.key] = value.map((item) =>
-                extractPrimitiveValue(item)
-              ).filter(Boolean);
+              customFields[field.key] = value
+                .map((item) => extractPrimitiveValue(item))
+                .filter(Boolean);
             } else {
               customFields[field.key] = [primitiveValue];
             }
@@ -413,9 +414,8 @@ export function useJiraFeedbackController({
       console.error("Failed to submit:", error);
       setStep("review");
 
-      const rawErrorMessage = error instanceof Error
-        ? error.message
-        : "Failed to create issue";
+      const rawErrorMessage =
+        error instanceof Error ? error.message : "Failed to create issue";
       const newErrors: Record<string, string> = {};
       let missingFieldNames: string[] = [];
       let displayMessage = rawErrorMessage;
@@ -451,15 +451,15 @@ export function useJiraFeedbackController({
 
           const optionalFields = fields.filter((field) => !field.required);
           const hasOptionalMissing = optionalFields.some((field) =>
-            matchedKeys.has(field.key)
+            matchedKeys.has(field.key),
           );
           if (hasOptionalMissing) {
             setShowOptionalFields(true);
           }
 
-          newErrors.submit = `Please fill in the required fields: ${
-            missingFieldNames.join(", ")
-          }`;
+          newErrors.submit = `Please fill in the required fields: ${missingFieldNames.join(
+            ", ",
+          )}`;
         } else {
           newErrors.submit = displayMessage;
         }
@@ -553,16 +553,17 @@ export function useJiraFeedbackController({
 
   const requiredFields = useMemo(
     () =>
-      fields.filter((field) =>
-        field.required || conditionallyRequiredFields.has(field.key)
+      fields.filter(
+        (field) => field.required || conditionallyRequiredFields.has(field.key),
       ),
     [conditionallyRequiredFields, fields],
   );
 
   const optionalFields = useMemo(
     () =>
-      fields.filter((field) =>
-        !field.required && !conditionallyRequiredFields.has(field.key)
+      fields.filter(
+        (field) =>
+          !field.required && !conditionallyRequiredFields.has(field.key),
       ),
     [conditionallyRequiredFields, fields],
   );
@@ -573,9 +574,10 @@ export function useJiraFeedbackController({
       : "opacity-0 -translate-x-4"
     : "opacity-100 translate-x-0";
 
-  const getTotalSteps = useCallback(() => 2 + requiredFields.length + 1, [
-    requiredFields.length,
-  ]);
+  const getTotalSteps = useCallback(
+    () => 2 + requiredFields.length + 1,
+    [requiredFields.length],
+  );
 
   const getCurrentStepNumber = useCallback(() => {
     switch (step) {
@@ -610,8 +612,7 @@ export function useJiraFeedbackController({
     }
     if (!formData[currentField.key]) {
       setErrors({
-        [currentField.key]:
-          `Please select a ${currentField.name.toLowerCase()}`,
+        [currentField.key]: `Please select a ${currentField.name.toLowerCase()}`,
       });
       return;
     }

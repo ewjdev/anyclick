@@ -3,13 +3,7 @@
 import { DEFAULT_SENSITIVE_SELECTORS } from "@ewjdev/anyclick-core";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
-import {
-  CreditCard,
-  Eye,
-  EyeOff,
-  Lock,
-  Shield,
-} from "lucide-react";
+import { CreditCard, Eye, EyeOff, Lock, Shield } from "lucide-react";
 
 const demoAdapter = createHttpAdapter({
   endpoint: "/api/feedback",

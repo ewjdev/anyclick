@@ -23,7 +23,6 @@ import type { AnyclickContextValue } from "./types";
  */
 export const AnyclickContext = createContext<AnyclickContextValue | null>(null);
 
-
 /**
  * Hook to access anyclick context values and methods.
  *
@@ -71,4 +70,3 @@ export function useAnyclick(): AnyclickContextValue {
   }
   return context;
 }
-

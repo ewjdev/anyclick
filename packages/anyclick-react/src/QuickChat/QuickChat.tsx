@@ -31,6 +31,7 @@ import {
   Send,
   X,
 } from "lucide-react";
+import { Conversation } from "../Conversation/Conversation";
 import { quickChatKeyframes, quickChatStyles } from "./styles";
 import type { QuickChatProps } from "./types";
 import { useQuickChat } from "./useQuickChat";
@@ -69,7 +70,15 @@ const LoadingDots = React.memo(function LoadingDots() {
 /**
  * QuickChat component.
  */
-export function QuickChat({
+export function QuickChat(props: QuickChatProps) {
+  if (props.conversation)
+    return props.visible ? (
+      <Conversation {...props.conversation} onClose={props.onClose} />
+    ) : null;
+  return <LegacyQuickChat {...props} />;
+}
+
+function LegacyQuickChat({
   visible,
   targetElement,
   containerElement,

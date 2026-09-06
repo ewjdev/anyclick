@@ -44,9 +44,8 @@ export function ConfigureStep({
 
       <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl mb-6">
         <p className="text-sm text-amber-800">
-          <strong>Note:</strong>{" "}
-          Your credentials are stored in this browser session only and are not
-          saved to any server.
+          <strong>Note:</strong> Your credentials are stored in this browser
+          session only and are not saved to any server.
         </p>
       </div>
 
@@ -136,9 +135,11 @@ export function ConfigureStep({
               onClick={onToggleApiToken}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
             >
-              {showApiToken
-                ? <EyeOff className="w-5 h-5" />
-                : <Eye className="w-5 h-5" />}
+              {showApiToken ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
             </button>
           </div>
           {credentialErrors.apiToken && (
@@ -164,7 +165,8 @@ export function ConfigureStep({
             data-form-type="other"
             value={credentialForm.projectKey}
             onChange={(e) =>
-              onChange({ projectKey: e.target.value.toUpperCase() })}
+              onChange({ projectKey: e.target.value.toUpperCase() })
+            }
             placeholder="PROJ"
             className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 uppercase ${
               credentialErrors.projectKey ? "border-red-500" : "border-gray-200"

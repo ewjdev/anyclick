@@ -5,7 +5,4 @@ export {
 } from "./serverAdapter";
 
 // Re-export types for server usage
-export type {
-  UploadResult,
-  UploadThingServerOptions,
-} from "./types";
+export type { UploadResult, UploadThingServerOptions } from "./types";

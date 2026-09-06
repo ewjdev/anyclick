@@ -1,15 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ElementHierarchyNav, {
-  isAnyclickOwnedUI,
-  isBlacklisted,
-  isStructuralElement,
-  isEligibleForNavigation,
+  findEligibleFirstChild,
+  findEligibleNextSibling,
   findEligibleParent,
   findEligiblePrevSibling,
-  findEligibleNextSibling,
-  findEligibleFirstChild,
   findOmittedAncestors,
+  isAnyclickOwnedUI,
+  isBlacklisted,
+  isEligibleForNavigation,
+  isStructuralElement,
 } from "../InspectDialog/ElementHierarchyNav";
 
 describe("ElementHierarchyNav utilities", () => {
@@ -38,14 +38,14 @@ describe("ElementHierarchyNav utilities", () => {
 
       const path = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "path"
+        "path",
       );
       svg.appendChild(path);
       expect(isStructuralElement(path)).toBe(true);
 
       const circle = document.createElementNS(
         "http://www.w3.org/2000/svg",
-        "circle"
+        "circle",
       );
       svg.appendChild(circle);
       expect(isStructuralElement(circle)).toBe(true);
@@ -296,7 +296,7 @@ describe("Navigation helper functions", () => {
 
   function createElementWithSize(
     tag: string,
-    options: { id?: string; classes?: string[] } = {}
+    options: { id?: string; classes?: string[] } = {},
   ) {
     const el = document.createElement(tag);
     if (options.id) el.id = options.id;
@@ -634,7 +634,7 @@ describe("ElementHierarchyNav component", () => {
 
   function createElementWithSize(
     tag: string,
-    options: { id?: string; classes?: string[] } = {}
+    options: { id?: string; classes?: string[] } = {},
   ) {
     const el = document.createElement(tag);
     if (options.id) el.id = options.id;
@@ -698,7 +698,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(getByText("parent")).toBeInTheDocument();
@@ -728,7 +728,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(getByText("next")).toBeInTheDocument();
@@ -749,7 +749,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(queryByText("prev")).not.toBeInTheDocument();
@@ -778,7 +778,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const prevRow = getByText("prev").closest('[role="button"]');
@@ -805,7 +805,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const parentRow = getByText("parent").closest('[role="button"]');
@@ -832,7 +832,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const blacklistedRow = getByLabelText(/\(not selectable\)$/);
@@ -869,7 +869,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -896,7 +896,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = queryByLabelText(/omitted ancestor/);
@@ -928,7 +928,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -964,7 +964,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -1006,7 +1006,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -1049,7 +1049,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -1090,7 +1090,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const ellipsisButton = getByLabelText(/omitted ancestor/);
@@ -1130,7 +1130,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(queryByText("next")).not.toBeInTheDocument();
@@ -1158,7 +1158,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       const nextRow = getByText("next").closest('[role="button"]');
@@ -1189,7 +1189,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "#target",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(getByText("next")).toBeInTheDocument();
@@ -1205,7 +1205,7 @@ describe("ElementHierarchyNav component", () => {
   describe("header navigation scenario (issue #98 regression)", () => {
     function createElementWithSizeAndContent(
       tag: string,
-      options: { id?: string; classes?: string[]; textContent?: string } = {}
+      options: { id?: string; classes?: string[]; textContent?: string } = {},
     ) {
       const el = document.createElement(tag);
       if (options.id) el.id = options.id;
@@ -1268,12 +1268,12 @@ describe("ElementHierarchyNav component", () => {
             selector: "#logo-div",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       // Should show NEXT pointing to the span
       expect(getByText("next")).toBeInTheDocument();
-      
+
       // Should NOT show CHILD (SVG is blacklisted)
       expect(queryByText("child")).not.toBeInTheDocument();
     });
@@ -1287,9 +1287,9 @@ describe("ElementHierarchyNav component", () => {
       //   </div>
       //   <span>anyclick</span>
       // </a>
-      const link = createElementWithSizeAndContent("a", { 
+      const link = createElementWithSizeAndContent("a", {
         id: "link",
-        classes: ["flex", "items-center", "gap-3", "group"]
+        classes: ["flex", "items-center", "gap-3", "group"],
       });
       const logoContainer = createElementWithSizeAndContent("div", {
         classes: ["relative"],
@@ -1313,7 +1313,7 @@ describe("ElementHierarchyNav component", () => {
       const prevSibling = findEligiblePrevSibling(brandSpan);
       expect(prevSibling).toBe(logoContainer);
 
-      // Test 2: When on logoContainer, NEXT should be brandSpan  
+      // Test 2: When on logoContainer, NEXT should be brandSpan
       const nextSibling = findEligibleNextSibling(logoContainer);
       expect(nextSibling).toBe(brandSpan);
 
@@ -1332,7 +1332,7 @@ describe("ElementHierarchyNav component", () => {
             selector: "div.relative",
           }}
           onSelectElement={onSelectElement}
-        />
+        />,
       );
 
       expect(getByText("next")).toBeInTheDocument();

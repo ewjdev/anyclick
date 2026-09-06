@@ -237,28 +237,29 @@ export function isBlacklisted(element: Element): boolean {
 
 function shouldHideElement(element: Element): boolean {
   // Check computed style first - if display:none or visibility:hidden, definitely hide
-  if (typeof window !== 'undefined' && window.getComputedStyle) {
+  if (typeof window !== "undefined" && window.getComputedStyle) {
     try {
       const style = window.getComputedStyle(element);
-      if (style.display === 'none') return true;
-      if (style.visibility === 'hidden') return true;
+      if (style.display === "none") return true;
+      if (style.visibility === "hidden") return true;
     } catch {
       // Ignore errors from getComputedStyle
     }
   }
-  
+
   // Check bounding rect - but be lenient
   // Only hide if truly zero-size AND has no text content
   const rect = element.getBoundingClientRect();
   if (rect.width === 0 && rect.height === 0) {
     // Check if element has any text content - if so, it might still be valid
     // (e.g., display:contents elements or inline elements not yet laid out)
-    const hasTextContent = element.textContent && element.textContent.trim().length > 0;
+    const hasTextContent =
+      element.textContent && element.textContent.trim().length > 0;
     if (!hasTextContent) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -287,9 +288,7 @@ function getElementInfo(element: Element) {
  * @param element - The element whose parent to find
  * @returns The first eligible parent element, or null if none found
  */
-export function findEligibleParent(
-  element: Element
-): Element | null {
+export function findEligibleParent(element: Element): Element | null {
   let current = element.parentElement;
   while (current && !isProviderBoundary(current)) {
     if (isEligibleForNavigation(current)) {
@@ -306,9 +305,7 @@ export function findEligibleParent(
  * @param element - The element whose previous sibling to find
  * @returns The first eligible previous sibling, or null if none found
  */
-export function findEligiblePrevSibling(
-  element: Element
-): Element | null {
+export function findEligiblePrevSibling(element: Element): Element | null {
   let sibling = element.previousElementSibling;
   while (sibling) {
     if (isEligibleForNavigation(sibling)) {
@@ -325,9 +322,7 @@ export function findEligiblePrevSibling(
  * @param element - The element whose next sibling to find
  * @returns The first eligible next sibling, or null if none found
  */
-export function findEligibleNextSibling(
-  element: Element
-): Element | null {
+export function findEligibleNextSibling(element: Element): Element | null {
   let sibling = element.nextElementSibling;
   while (sibling) {
     if (isEligibleForNavigation(sibling)) {
@@ -344,9 +339,7 @@ export function findEligibleNextSibling(
  * @param element - The element whose first child to find
  * @returns The first eligible child element, or null if none found
  */
-export function findEligibleFirstChild(
-  element: Element
-): Element | null {
+export function findEligibleFirstChild(element: Element): Element | null {
   let child = element.firstElementChild;
   while (child) {
     if (isEligibleForNavigation(child)) {
@@ -366,7 +359,7 @@ export function findEligibleFirstChild(
  */
 export function findOmittedAncestors(
   element: Element,
-  parentElement: Element | null
+  parentElement: Element | null,
 ): Element[] {
   if (!parentElement) {
     return [];
@@ -462,7 +455,10 @@ function AncestorChooser({
   }, [ancestors, focusedIndex, onClose, onSelect]);
 
   useEffect(() => {
-    if (ancestors[focusedIndex] && isEligibleForNavigation(ancestors[focusedIndex])) {
+    if (
+      ancestors[focusedIndex] &&
+      isEligibleForNavigation(ancestors[focusedIndex])
+    ) {
       onMouseEnter(ancestors[focusedIndex]);
     }
   }, [focusedIndex, ancestors, onMouseEnter]);
@@ -582,7 +578,7 @@ function HierarchyLine({
 }) {
   const { tagName, id, classNames } = getElementInfo(element);
   const blacklisted = isBlacklisted(element);
-  
+
   const relationLabels: Record<string, string> = {
     parent: "parent",
     prev: "prev",
@@ -754,7 +750,10 @@ function ElementHierarchyNav({
     if (!showAncestorChooser) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         closeAncestorChooser();
       }
     };
@@ -770,7 +769,7 @@ function ElementHierarchyNav({
       clearHighlights();
       highlightTarget(element, highlightColors);
     },
-    [highlightColors]
+    [highlightColors],
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -786,7 +785,7 @@ function ElementHierarchyNav({
       setShowAncestorChooser(false);
       onSelectElement?.(element);
     },
-    [onSelectElement]
+    [onSelectElement],
   );
 
   const handleEllipsisClick = useCallback(() => {
@@ -806,18 +805,21 @@ function ElementHierarchyNav({
         closeAncestorChooser();
       }
     },
-    [showAncestorChooser, closeAncestorChooser]
+    [showAncestorChooser, closeAncestorChooser],
   );
 
   const handleAncestorSelect = useCallback(
     (element: Element) => {
       handleSelect(element);
     },
-    [handleSelect]
+    [handleSelect],
   );
 
   return (
-    <div style={{ ...styles.container, position: "relative" }} ref={containerRef}>
+    <div
+      style={{ ...styles.container, position: "relative" }}
+      ref={containerRef}
+    >
       {hasOmittedAncestors && (
         <button
           type="button"

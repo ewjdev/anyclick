@@ -430,6 +430,18 @@ export type {
  * Provides quick answers about elements with streaming responses.
  */
 export { QuickChat } from "./QuickChat";
+export { Conversation } from "./Conversation/Conversation";
+export { ConversationResultView } from "./Conversation/Result";
+export { localCompletions, insertCompletion } from "./Conversation/completions";
+export type {
+  ConversationProps,
+  ConversationContext,
+  ConversationMessage,
+  ConversationResult,
+  ActionRequest,
+  CompletionItem,
+  SuggestionProvider,
+} from "./Conversation/types";
 
 /**
  * Hook for managing QuickChat state and logic.

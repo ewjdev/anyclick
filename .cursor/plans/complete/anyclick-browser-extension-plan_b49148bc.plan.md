@@ -54,14 +54,14 @@ todos:
 
 ## Key Workstreams
 
-1) **Extension Shell**: Scaffold MV3 manifest (permissions: `scripting`, `activeTab`, `tabs`, `storage`, `contextMenus`, `offscreen` if needed), background worker, popup HTML, icons, build pipeline (likely Vite/tsup) and bundling to `dist/`.
-2) **Content Script Capture**: Inject capture hook that listens for context-menu/right-click; reuse anyclick-core to collect DOM context; throttle observers; serialize minimal payload.
-3) **Screenshot & Context**: Use `chrome.tabs.captureVisibleTab` or `chrome.tabs.captureTab` via background; consider offscreen doc for full-page stitched capture if required; include URL/tab metadata.
-4) **Messaging & Bridge**: Define a typed message protocol; background mediates between content and adapters; optionally expose a `window.anyclickExtension` bridge for web apps to feature-detect.
-5) **Adapter Integration**: Route captured payloads to existing adapters (GitHub/HTTP/AI) via background fetch; allow user-configured endpoint/token stored in `chrome.storage`.
-6) **UX for Consumers**: Minimal popup to toggle enablement, set endpoint/token, and show last capture status; optional context menu entry “Send feedback with Anyclick”.
-7) **Performance & Safety**: Avoid heavy libs in content script, defer non-critical work to background, limit DOM traversal scope, sanitize/limit payload size; handle permission errors gracefully.
-8) **Testing & Release**: Automated tests for message contracts and capture utilities; manual validation in Chrome; prepare `README` section and Chrome Web Store submission checklist.
+1. **Extension Shell**: Scaffold MV3 manifest (permissions: `scripting`, `activeTab`, `tabs`, `storage`, `contextMenus`, `offscreen` if needed), background worker, popup HTML, icons, build pipeline (likely Vite/tsup) and bundling to `dist/`.
+2. **Content Script Capture**: Inject capture hook that listens for context-menu/right-click; reuse anyclick-core to collect DOM context; throttle observers; serialize minimal payload.
+3. **Screenshot & Context**: Use `chrome.tabs.captureVisibleTab` or `chrome.tabs.captureTab` via background; consider offscreen doc for full-page stitched capture if required; include URL/tab metadata.
+4. **Messaging & Bridge**: Define a typed message protocol; background mediates between content and adapters; optionally expose a `window.anyclickExtension` bridge for web apps to feature-detect.
+5. **Adapter Integration**: Route captured payloads to existing adapters (GitHub/HTTP/AI) via background fetch; allow user-configured endpoint/token stored in `chrome.storage`.
+6. **UX for Consumers**: Minimal popup to toggle enablement, set endpoint/token, and show last capture status; optional context menu entry “Send feedback with Anyclick”.
+7. **Performance & Safety**: Avoid heavy libs in content script, defer non-critical work to background, limit DOM traversal scope, sanitize/limit payload size; handle permission errors gracefully.
+8. **Testing & Release**: Automated tests for message contracts and capture utilities; manual validation in Chrome; prepare `README` section and Chrome Web Store submission checklist.
 
 ## Deliverables
 

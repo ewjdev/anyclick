@@ -64,4 +64,3 @@ export function AnyclickProviderWrapper({ children }: { children: ReactNode }) {
     </AnyclickProvider>
   );
 }
-

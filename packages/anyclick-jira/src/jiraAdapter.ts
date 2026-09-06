@@ -1,4 +1,5 @@
 import type { AnyclickPayload, ScreenshotData } from "@ewjdev/anyclick-core";
+import { defaultFormatDescription, defaultFormatSummary } from "./formatters";
 import type {
   AdfDocument,
   JiraAdapterOptions,
@@ -9,7 +10,6 @@ import type {
   NormalizedJiraField,
 } from "./types";
 import { defaultIssueTypeMapping, feedbackTypeLabels } from "./types";
-import { defaultFormatDescription, defaultFormatSummary } from "./formatters";
 
 // Fields to skip when returning normalized fields (handled separately)
 const SKIP_FIELDS = [
@@ -41,8 +41,10 @@ export class JiraAdapter {
   constructor(options: JiraAdapterOptions) {
     // Validate and normalize Jira URL
     // Validate and normalize Jira URL
-    const normalizedUrl = options.jiraUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-    if (!normalizedUrl.endsWith('.atlassian.net')) {
+    const normalizedUrl = options.jiraUrl
+      .replace(/^https?:\/\//, "")
+      .replace(/\/+$/, "");
+    if (!normalizedUrl.endsWith(".atlassian.net")) {
       throw new Error(
         `Invalid Jira URL: ${options.jiraUrl}. Must be a Jira Cloud URL (*.atlassian.net)`,
       );
@@ -58,8 +60,8 @@ export class JiraAdapter {
     this.issueTypeMapping = options.issueTypeMapping ?? defaultIssueTypeMapping;
     this.defaultLabels = options.defaultLabels ?? [];
     this.formatSummary = options.formatSummary ?? defaultFormatSummary;
-    this.formatDescription = options.formatDescription ??
-      defaultFormatDescription;
+    this.formatDescription =
+      options.formatDescription ?? defaultFormatDescription;
     this.customFields = options.customFields ?? {};
     this.defaultFieldValues = options.defaultFieldValues ?? {};
   }
@@ -238,7 +240,9 @@ export class JiraAdapter {
     // Merge additional metadata fields (excluding summary which we already handled)
     for (const [key, value] of Object.entries(metadataFields)) {
       if (
-        key !== "summary" && value !== undefined && value !== null &&
+        key !== "summary" &&
+        value !== undefined &&
+        value !== null &&
         value !== ""
       ) {
         fields[key] = value;
@@ -260,16 +264,15 @@ export class JiraAdapter {
       const isObject = valueType === "object" && value !== null;
       const objectKeys = isObject ? Object.keys(value) : [];
       console.log(
-        `  - ${key}: type=${valueType}, isObject=${isObject}, keys=${
-          objectKeys.join(",")
-        }`,
+        `  - ${key}: type=${valueType}, isObject=${isObject}, keys=${objectKeys.join(
+          ",",
+        )}`,
       );
 
       // Check for common issues
       if (isObject && value.id !== undefined && typeof value.id !== "string") {
         console.warn(
-          `[JiraAdapter] WARNING: Field ${key} has non-string id: ${typeof value
-            .id}`,
+          `[JiraAdapter] WARNING: Field ${key} has non-string id: ${typeof value.id}`,
         );
         // Auto-fix: convert to string
         fields[key] = { ...value, id: String(value.id) };
@@ -306,8 +309,7 @@ export class JiraAdapter {
             const missingFields = Object.entries(errorJson.errors)
               .map(([field, msg]) => `  - ${field}: ${msg}`)
               .join("\n");
-            diagnosticMessage =
-              `\nValidation failed. Missing/invalid fields:\n${missingFields}`;
+            diagnosticMessage = `\nValidation failed. Missing/invalid fields:\n${missingFields}`;
           }
         } catch {
           // If we can't parse, use generic message
@@ -318,16 +320,15 @@ export class JiraAdapter {
   - All required fields are provided
   
 Fields that were sent:
-${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
+${Object.keys(fields)
+  .map((k) => `  - ${k}`)
+  .join("\n")}`;
       } else if (response.status === 401) {
-        diagnosticMessage =
-          `\nAuthentication failed. Check that JIRA_EMAIL and JIRA_API_TOKEN are correct.`;
+        diagnosticMessage = `\nAuthentication failed. Check that JIRA_EMAIL and JIRA_API_TOKEN are correct.`;
       } else if (response.status === 403) {
-        diagnosticMessage =
-          `\nPermission denied. The API token may not have permission to create issues in project '${this.projectKey}'.`;
+        diagnosticMessage = `\nPermission denied. The API token may not have permission to create issues in project '${this.projectKey}'.`;
       } else if (response.status === 404) {
-        diagnosticMessage =
-          `\nProject '${this.projectKey}' not found or not accessible.`;
+        diagnosticMessage = `\nProject '${this.projectKey}' not found or not accessible.`;
       }
 
       throw new Error(
@@ -435,14 +436,13 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     console.log("[JiraAdapter] Found issue type ID:", issueType.id);
 
     // Now fetch the fields for this issue type
-    const fieldsPath =
-      `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes/${issueType.id}`;
+    const fieldsPath = `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes/${issueType.id}`;
     const fieldsResponse = await this.fetchJira(fieldsPath);
 
     if (!fieldsResponse.ok) {
-      const errorText = await fieldsResponse.text().catch(() =>
-        "Unknown error"
-      );
+      const errorText = await fieldsResponse
+        .text()
+        .catch(() => "Unknown error");
       throw new Error(
         `Failed to fetch fields for issue type: ${fieldsResponse.status} ${fieldsResponse.statusText} - ${errorText}`,
       );
@@ -457,12 +457,14 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     console.log("[JiraAdapter] Raw fields count:", fields.length);
     console.log(
       "[JiraAdapter] Required fields from API:",
-      fields.filter((f: any) => f.required).map((f: any) => ({
-        key: f.fieldId || f.key,
-        name: f.name,
-        type: f.schema?.type,
-        hasAllowedValues: !!f.allowedValues?.length,
-      })),
+      fields
+        .filter((f: any) => f.required)
+        .map((f: any) => ({
+          key: f.fieldId || f.key,
+          name: f.name,
+          type: f.schema?.type,
+          hasAllowedValues: !!f.allowedValues?.length,
+        })),
     );
 
     // Convert array to record
@@ -701,9 +703,9 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     }
 
     // Default: use JQL autocomplete suggestions
-    const path = `/rest/api/3/jql/autocompletedata/suggestions?fieldName=${
-      encodeURIComponent(fieldName)
-    }&fieldValue=${encodeURIComponent(query)}`;
+    const path = `/rest/api/3/jql/autocompletedata/suggestions?fieldName=${encodeURIComponent(
+      fieldName,
+    )}&fieldValue=${encodeURIComponent(query)}`;
 
     const response = await this.fetchJira(path);
 
@@ -871,9 +873,9 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     for (const jql of queries) {
       console.log(`[JiraAdapter] Trying JQL: ${jql}`);
 
-      const path = `/rest/api/3/search?jql=${
-        encodeURIComponent(jql)
-      }&maxResults=20&fields=summary,key,issuetype`;
+      const path = `/rest/api/3/search?jql=${encodeURIComponent(
+        jql,
+      )}&maxResults=20&fields=summary,key,issuetype`;
 
       const response = await this.fetchJira(path);
 
@@ -898,9 +900,10 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
       } else {
         const errorText = await response.text().catch(() => "");
         console.log(
-          `[JiraAdapter] JQL query failed: ${response.status} - ${
-            errorText.substring(0, 100)
-          }`,
+          `[JiraAdapter] JQL query failed: ${response.status} - ${errorText.substring(
+            0,
+            100,
+          )}`,
         );
       }
     }
@@ -962,10 +965,9 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     }
 
     // Try JQL autocomplete with "Team" field name
-    const jqlPath =
-      `/rest/api/3/jql/autocompletedata/suggestions?fieldName=Team&fieldValue=${
-        encodeURIComponent(query || "")
-      }`;
+    const jqlPath = `/rest/api/3/jql/autocompletedata/suggestions?fieldName=Team&fieldValue=${encodeURIComponent(
+      query || "",
+    )}`;
 
     console.log("[JiraAdapter] Trying JQL autocomplete for Team");
     const jqlResponse = await this.fetchJira(jqlPath);
@@ -988,9 +990,9 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     }
 
     // Try the groups picker API as fallback
-    const groupsPath = `/rest/api/3/groups/picker?query=${
-      encodeURIComponent(query || "")
-    }&maxResults=20`;
+    const groupsPath = `/rest/api/3/groups/picker?query=${encodeURIComponent(
+      query || "",
+    )}&maxResults=20`;
 
     console.log("[JiraAdapter] Trying groups picker");
     const groupsResponse = await this.fetchJira(groupsPath);
@@ -1026,8 +1028,7 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     try {
       // First, try to get the field's autocomplete URL from the create meta
       // We need to find which issue type has this field to get the autocomplete URL
-      const issueTypesPath =
-        `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes`;
+      const issueTypesPath = `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes`;
       const issueTypesResponse = await this.fetchJira(issueTypesPath);
 
       if (!issueTypesResponse.ok) {
@@ -1044,19 +1045,20 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
 
       // Try the first issue type to get field metadata
       if (issueTypes.length > 0) {
-        const fieldsPath =
-          `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes/${
-            issueTypes[0].id
-          }`;
+        const fieldsPath = `/rest/api/3/issue/createmeta/${this.projectKey}/issuetypes/${
+          issueTypes[0].id
+        }`;
         const fieldsResponse = await this.fetchJira(fieldsPath);
 
         if (fieldsResponse.ok) {
           const fieldsData = (await fieldsResponse.json()) as {
             values?: Array<{
               fieldId: string;
-              allowedValues?: Array<
-                { id: string; value?: string; name?: string }
-              >;
+              allowedValues?: Array<{
+                id: string;
+                value?: string;
+                name?: string;
+              }>;
               autoCompleteUrl?: string;
             }>;
           };
@@ -1144,8 +1146,8 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
     const data = (await response.json()) as any;
 
     // Handle various response formats
-    const results = data.results || data.values || data.suggestions || data ||
-      [];
+    const results =
+      data.results || data.values || data.suggestions || data || [];
 
     if (Array.isArray(results)) {
       return results.map((r: any) => ({
@@ -1166,9 +1168,9 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
   async searchUsers(
     query: string,
   ): Promise<Array<{ id: string; name: string; value?: string }>> {
-    const path = `/rest/api/3/user/search?query=${
-      encodeURIComponent(query)
-    }&maxResults=20`;
+    const path = `/rest/api/3/user/search?query=${encodeURIComponent(
+      query,
+    )}&maxResults=20`;
 
     const response = await this.fetchJira(path);
 
@@ -1196,10 +1198,7 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
   /**
    * Format field value for Jira API submission based on field type
    */
-  formatFieldValue(
-    field: NormalizedJiraField,
-    value: any,
-  ): any {
+  formatFieldValue(field: NormalizedJiraField, value: any): any {
     if (value === undefined || value === null || value === "") {
       return undefined;
     }
@@ -1209,8 +1208,8 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
         // Select fields usually need { id: ... } or { value: ... } or { name: ... }
         if (typeof value === "string") {
           // Check if it's an ID in our options
-          const option = field.options?.find((o) =>
-            o.id === value || o.value === value
+          const option = field.options?.find(
+            (o) => o.id === value || o.value === value,
           );
           if (option) {
             return { id: option.id };
@@ -1224,8 +1223,8 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
         if (Array.isArray(value)) {
           return value.map((v) => {
             if (typeof v === "string") {
-              const option = field.options?.find((o) =>
-                o.id === v || o.value === v
+              const option = field.options?.find(
+                (o) => o.id === v || o.value === v,
               );
               return option ? { id: option.id } : { id: v };
             }
@@ -1293,8 +1292,6 @@ ${Object.keys(fields).map((k) => `  - ${k}`).join("\n")}`;
 /**
  * Create a Jira adapter instance
  */
-export function createJiraAdapter(
-  options: JiraAdapterOptions,
-): JiraAdapter {
+export function createJiraAdapter(options: JiraAdapterOptions): JiraAdapter {
   return new JiraAdapter(options);
 }

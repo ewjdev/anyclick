@@ -9,7 +9,6 @@ import { delay } from "../utils/delay.js";
 import { saveEnvToDotenvFile } from "../utils/env.js";
 import { log } from "../utils/log.js";
 import { customFieldIds } from "./cmd.js";
-
 import {
   CreateIssueInteractiveOptions,
   FieldMeta,
@@ -37,7 +36,7 @@ export function getHostFromJiraUrl(url: string) {
 const TOKEN_URL = "https://id.atlassian.com/manage-profile/security/api-tokens";
 
 export async function resolveJiraEnv(
-  overrides?: Partial<JiraEnv>
+  overrides?: Partial<JiraEnv>,
 ): Promise<JiraEnv | undefined> {
   const envJiraUrl = overrides?.jiraUrl || process.env.JIRA_URL;
   const email =
@@ -78,7 +77,7 @@ export async function resolveJiraEnv(
 
 export async function promptForJiraEnv(
   defaults?: Partial<JiraEnv>,
-  validate: boolean = true
+  validate: boolean = true,
 ): Promise<JiraEnv> {
   log.info("We need your Jira credentials to proceed.");
   // Load defaults from config
@@ -144,7 +143,7 @@ export async function promptForJiraEnv(
         log.error("Jira setup cancelled");
         process.exit(1);
       },
-    }
+    },
   );
 
   log.info("If you don't have an API token, create one here:");
@@ -241,7 +240,7 @@ function getPlanTextFromDescription(description: JiraIssueDescription): string {
 
 // Detect if the issue description already contains an "Acceptance Criteria" section
 export function issueHasAcceptanceSection(
-  planTextDescription: string | JiraIssueDescription
+  planTextDescription: string | JiraIssueDescription,
 ): boolean {
   if (typeof planTextDescription !== "string") {
     planTextDescription = getPlanTextFromDescription(planTextDescription);
@@ -286,7 +285,7 @@ function makeBulletList(items: string[]) {
 export async function appendAcceptanceCriteriaToDescription(
   issueKey: string,
   acItems: string[],
-  env?: JiraEnv
+  env?: JiraEnv,
 ) {
   if (!acItems || acItems.length === 0) return;
   const client = await createJiraClient(env);
@@ -323,7 +322,7 @@ export async function appendAcceptanceCriteriaToDescription(
 
 export function computeJiraTicketValidation(
   issue: JiraIssueObjectForCPProjects,
-  zephyr?: { hasCases: boolean; acFromZephyr?: string[] }
+  zephyr?: { hasCases: boolean; acFromZephyr?: string[] },
 ): ValidationResult {
   const checks: ValidationResult["checks"] = [];
 
@@ -346,7 +345,8 @@ export function computeJiraTicketValidation(
       : getPlanTextFromDescription(description);
   const hasACInDescription = issueHasAcceptanceSection(description);
   const hasDescription = Boolean(
-    description && (typeof description === "string" ? description.trim() : true)
+    description &&
+      (typeof description === "string" ? description.trim() : true),
   );
   const acOk = hasACInDescription || (zephyr?.hasCases ?? false);
   checks.push({
@@ -468,7 +468,7 @@ export async function findMyOpenIssues(env: JiraEnv): Promise<IssueLite[]> {
 
 export async function findCurrentSprintIssues(
   projectKey: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ): Promise<IssueLite[]> {
   const jql = `project = ${projectKey} AND sprint in openSprints() AND status != Done ORDER BY updated DESC`;
 
@@ -507,7 +507,7 @@ export async function searchIssuesBySummary(
   summaryQuery: string,
   env?: JiraEnv,
   projectKey?: string,
-  maxResults: number = 25
+  maxResults: number = 25,
 ): Promise<IssueLite[]> {
   const e = env || (await resolveJiraEnv());
   if (!e) throw new Error("Jira environment not configured");
@@ -554,7 +554,7 @@ export async function createBacklogTask(
   description?: string,
   env?: JiraEnv,
   issueTypeName: string = "Task",
-  extraFields?: Record<string, any>
+  extraFields?: Record<string, any>,
 ): Promise<{ key: string }> {
   const client = await createJiraClient(env);
   // Convert plain-text description to Atlassian Document Format (ADF) per REST v3 requirements
@@ -596,12 +596,12 @@ export async function createBacklogTask(
 export async function getCreateIssueMetadata(
   projectKey: string,
   issueTypeName: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ): Promise<Record<string, FieldMeta>> {
   // TODO : update to use the new endpoint that hasnt been deprecated yet
   // https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-createmeta-projectidorkey-issuetypes-get
   const path = `/rest/api/3/issue/createmeta?projectKeys=${encodeURIComponent(
-    projectKey
+    projectKey,
   )}&expand=projects.issuetypes.fields`;
   const { url, options } = await getJiraFetchOptions(path, {
     env,
@@ -614,14 +614,14 @@ export async function getCreateIssueMetadata(
   } as any);
   if (!res.ok) {
     throw new Error(
-      `Failed to fetch create metadata: ${res.status} ${res.statusText}`
+      `Failed to fetch create metadata: ${res.status} ${res.statusText}`,
     );
   }
   const data = (await res.json()) as any;
   const project = (data.projects || []).find((p: any) => p.key === projectKey);
   if (!project) return {};
   const it = (project.issuetypes || []).find(
-    (t: any) => (t.name || "").toLowerCase() === issueTypeName.toLowerCase()
+    (t: any) => (t.name || "").toLowerCase() === issueTypeName.toLowerCase(),
   );
   if (!it || !it.fields) return {};
   return it.fields as Record<string, FieldMeta>;
@@ -629,7 +629,7 @@ export async function getCreateIssueMetadata(
 
 export async function promptForMissingRequiredFields(
   fieldsMeta: Record<string, FieldMeta>,
-  provided: Record<string, any>
+  provided: Record<string, any>,
 ): Promise<Record<string, any>> {
   log.debug(`--------------------------------`);
   log.debug(`provided: ${JSON.stringify(provided, null, 2)}`);
@@ -670,15 +670,15 @@ export async function promptForMissingRequiredFields(
       });
       if (hasPassedInValue) {
         log.debug(
-          `Using passed in value for ${fieldKey}: ${provided[fieldKey]}`
+          `Using passed in value for ${fieldKey}: ${provided[fieldKey]}`,
         );
 
         const foundName = choices.find(
-          (c) => `${c.name.toLowerCase()}` === passedInValue.toLowerCase()
+          (c) => `${c.name.toLowerCase()}` === passedInValue.toLowerCase(),
         );
         const foundValue = choices.find(
           (c) =>
-            `${c.value.value.toLowerCase()}` === passedInValue.toLowerCase()
+            `${c.value.value.toLowerCase()}` === passedInValue.toLowerCase(),
         );
         const foundId = choices.find((c) => c.value.id === passedInValue);
         const found = foundName || foundValue || foundId;
@@ -687,7 +687,7 @@ export async function promptForMissingRequiredFields(
           result[fieldKey] = { id: found.value.id };
         } else {
           log.warn(
-            `No matching value found for ${fieldKey}: ${passedInValue}. using passed in value as id`
+            `No matching value found for ${fieldKey}: ${passedInValue}. using passed in value as id`,
           );
           result[fieldKey] = { id: passedInValue };
         }
@@ -738,7 +738,7 @@ export async function promptForMissingRequiredFields(
 
 // Centralized interactive creation flow used by both `jira create` and other commands (e.g., edu)
 export async function interactiveCreateBacklogTask(
-  options: CreateIssueInteractiveOptions
+  options: CreateIssueInteractiveOptions,
 ): Promise<{ key: string }> {
   const env = await ensureJiraEnv();
   let project = (options.project || env.defaultProject || "").trim();
@@ -813,8 +813,8 @@ export async function interactiveCreateBacklogTask(
     if (missing.length > 0) {
       log.error(
         `Missing required input with force mode: ${missing.join(
-          ", "
-        )}. Provide via extraFields.`
+          ", ",
+        )}. Provide via extraFields.`,
       );
       return { key: null };
     }
@@ -833,7 +833,7 @@ export async function interactiveCreateBacklogTask(
   // Epic link handling (if present in project template)
   const epicFieldKey =
     Object.entries(meta).find(([, m]: [string, any]) =>
-      ((m?.name || "") as string).toLowerCase().includes("epic link")
+      ((m?.name || "") as string).toLowerCase().includes("epic link"),
     )?.[0] || customFieldIds.epicLink;
   if (meta[epicFieldKey] && extraFieldsFilled[epicFieldKey] == null && !force) {
     const preEpic = providedExtra[epicFieldKey] || env.defaultEpic;
@@ -866,7 +866,7 @@ export async function interactiveCreateBacklogTask(
   // Team field handling (common custom field)
   const teamFieldKey =
     Object.entries(meta).find(
-      ([, m]: [string, any]) => (m?.name || "").toLowerCase() === "team"
+      ([, m]: [string, any]) => (m?.name || "").toLowerCase() === "team",
     )?.[0] || customFieldIds.team;
   log.debug(`teamFieldKey: ${teamFieldKey}`);
   if (meta[teamFieldKey]) {
@@ -950,13 +950,13 @@ export async function interactiveCreateBacklogTask(
     description,
     env,
     issueType,
-    extraFieldsFilled
+    extraFieldsFilled,
   );
 }
 
 export async function findProjectEpics(
   projectKey: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ): Promise<Array<{ key: string; id: string; summary: string }>> {
   const jql = `project = ${projectKey} AND issuetype = Epic ORDER BY updated DESC`;
   const { url, options } = await getJiraFetchOptions(`/rest/api/3/search/jql`, {
@@ -990,7 +990,7 @@ export async function findProjectEpics(
 
 export async function findIssueIdByKey(
   issueKey: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ): Promise<string | undefined> {
   const client = await createJiraClient(env);
   try {
@@ -1004,12 +1004,12 @@ export async function findIssueIdByKey(
 export async function searchTeams(
   query: string,
   fieldName: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ): Promise<TeamSuggestion[]> {
   let url, options;
   try {
     const path = `/rest/api/3/jql/autocompletedata/suggestions?fieldName=${encodeURIComponent(
-      fieldName
+      fieldName,
     )}&fieldValue=${encodeURIComponent(query)}`;
     let { url, options } = await getJiraFetchOptions(path, {
       env,
@@ -1081,7 +1081,7 @@ export async function openIssueInBrowser(issueKey: string, env?: JiraEnv) {
 export async function addCommentToIssue(
   issueKey: string,
   comment: string,
-  env?: JiraEnv
+  env?: JiraEnv,
 ) {
   const client = await createJiraClient(env);
   // Convert plain-text comment to ADF to satisfy Jira Cloud v3 requirements
@@ -1122,7 +1122,7 @@ export async function addCommentToIssue(
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     log.debug(`fetching url: ${url}`);
     log.debug(`options: ${JSON.stringify(options, null, 2)}`);
@@ -1135,14 +1135,14 @@ export async function addCommentToIssue(
   } catch (error: any) {
     log.error(`Failed to add comment to issue: ${error?.message || error}`);
     throw new Error(
-      `Failed to add comment to issue: ${error?.message || error}`
+      `Failed to add comment to issue: ${error?.message || error}`,
     );
   }
 }
 
 export async function updateIssue(
   issueKey: string,
-  data: { fields: { issuetype?: { name: string }; labels?: string[] } }
+  data: { fields: { issuetype?: { name: string }; labels?: string[] } },
 ) {
   const client = await createJiraClient();
   await client.updateIssue(issueKey, data);

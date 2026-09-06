@@ -1,3 +1,4 @@
+import { buildAnyclickPayload } from "./payload";
 import type {
   AnyclickAdapter,
   AnyclickClientOptions,
@@ -8,7 +9,6 @@ import type {
   AnyclickType,
   ScreenshotData,
 } from "./types";
-import { buildAnyclickPayload } from "./payload";
 
 /** Default touch hold duration in milliseconds */
 const DEFAULT_TOUCH_HOLD_DURATION_MS = 500;

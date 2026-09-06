@@ -10,13 +10,16 @@
 Pre-populate the description field with rich context when the form loads:
 
 ```typescript
-const generateContextDescription = (targetElement: Element | null, containerElement: Element | null) => {
-  const tag = targetElement?.tagName.toLowerCase() || 'element';
-  const testId = targetElement?.getAttribute('data-testid');
+const generateContextDescription = (
+  targetElement: Element | null,
+  containerElement: Element | null,
+) => {
+  const tag = targetElement?.tagName.toLowerCase() || "element";
+  const testId = targetElement?.getAttribute("data-testid");
   const id = targetElement?.id;
-  const page = typeof window !== 'undefined' ? window.location.pathname : '';
-  
-  return `**Element:** ${tag}${testId ? ` [data-testid="${testId}"]` : ''}${id ? ` #${id}` : ''}
+  const page = typeof window !== "undefined" ? window.location.pathname : "";
+
+  return `**Element:** ${tag}${testId ? ` [data-testid="${testId}"]` : ""}${id ? ` #${id}` : ""}
 **Page:** ${page}
 **URL:** ${window.location.href}
 
@@ -33,8 +36,9 @@ Create a unified storage utility that persists:
 
 - Jira credentials (when user-provided)
 - Last-used field values per issue type
+
 ```typescript
-const STORAGE_KEY = 'anyclick-jira-preferences';
+const STORAGE_KEY = "anyclick-jira-preferences";
 
 interface JiraPreferences {
   credentials?: {
@@ -44,7 +48,7 @@ interface JiraPreferences {
     projectKey: string;
   };
   fieldDefaults: {
-    [issueType: string]: Record<string, any>;  // e.g. { "Bug": { priority: "10002" } }
+    [issueType: string]: Record<string, any>; // e.g. { "Bug": { priority: "10002" } }
   };
   lastIssueType?: string;
 }
@@ -67,7 +71,7 @@ API route changes in `route.ts`:
 
 ```typescript
 // Check for session credentials in headers
-const sessionCreds = req.headers.get('x-jira-credentials');
+const sessionCreds = req.headers.get("x-jira-credentials");
 if (sessionCreds) {
   const creds = JSON.parse(sessionCreds);
   // Use these instead of env vars
@@ -79,7 +83,14 @@ if (sessionCreds) {
 **New step states:**
 
 ```typescript
-type Step = "loading" | "configure" | "type-selection" | "form" | "submitting" | "success" | "error";
+type Step =
+  | "loading"
+  | "configure"
+  | "type-selection"
+  | "form"
+  | "submitting"
+  | "success"
+  | "error";
 ```
 
 **Flow:**

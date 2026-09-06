@@ -117,9 +117,10 @@ export async function GET(req: Request) {
     jira = getJiraAdapter(req);
   } catch (error) {
     // Jira adapter initialization failed (e.g., invalid URL format)
-    const message = error instanceof Error
-      ? error.message
-      : "Failed to initialize Jira adapter";
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to initialize Jira adapter";
     console.error("[Jira API] Adapter initialization error:", message);
     return Response.json({ error: message }, { status: 400 });
   }
@@ -141,9 +142,8 @@ export async function GET(req: Request) {
       const issueTypes = await jira.getIssueTypes();
       return Response.json({ issueTypes });
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to fetch issue types";
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch issue types";
       console.error("Failed to fetch issue types:", message);
       return Response.json({ error: message }, { status: 500 });
     }
@@ -153,9 +153,12 @@ export async function GET(req: Request) {
   if (action === "fields") {
     const issueType = url.searchParams.get("issueType");
     if (!issueType) {
-      return Response.json({ error: "issueType parameter is required" }, {
-        status: 400,
-      });
+      return Response.json(
+        { error: "issueType parameter is required" },
+        {
+          status: 400,
+        },
+      );
     }
 
     const includeOptional = url.searchParams.get("includeOptional") === "true";
@@ -170,19 +173,20 @@ export async function GET(req: Request) {
       console.log(`[Jira API] Total fields: ${result.fields.length}`);
       console.log(
         `[Jira API] Required fields:`,
-        result.fields.filter((f) => f.required).map((f) => ({
-          key: f.key,
-          name: f.name,
-          type: f.type,
-          hasOptions: !!f.options?.length,
-        })),
+        result.fields
+          .filter((f) => f.required)
+          .map((f) => ({
+            key: f.key,
+            name: f.name,
+            type: f.type,
+            hasOptions: !!f.options?.length,
+          })),
       );
 
       return Response.json(result);
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to fetch fields";
+      const message =
+        error instanceof Error ? error.message : "Failed to fetch fields";
       console.error("Failed to fetch fields:", message);
       return Response.json({ error: message }, { status: 500 });
     }
@@ -195,18 +199,22 @@ export async function GET(req: Request) {
     const query = url.searchParams.get("query") || "";
 
     if (!fieldName) {
-      return Response.json({ error: "field parameter is required" }, {
-        status: 400,
-      });
+      return Response.json(
+        { error: "field parameter is required" },
+        {
+          status: 400,
+        },
+      );
     }
 
     try {
       const results = await jira.searchFieldValues(fieldName, query, fieldKey);
       return Response.json({ results });
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to search field values";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to search field values";
       console.error("Failed to search field values:", message);
       return Response.json({ error: message }, { status: 500 });
     }

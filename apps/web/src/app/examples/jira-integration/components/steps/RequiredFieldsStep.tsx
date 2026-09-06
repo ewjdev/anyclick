@@ -60,7 +60,8 @@ export function RequiredFieldsStep({
               hasError={Boolean(errors[currentField.key])}
               requestHeaders={requestHeaders}
               onChange={(value, display) =>
-                onChangeField(currentField.key, value, display)}
+                onChangeField(currentField.key, value, display)
+              }
             />
             {errors[currentField.key] && (
               <p className="text-sm text-red-500">{errors[currentField.key]}</p>

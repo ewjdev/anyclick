@@ -1,16 +1,16 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { AnyclickProvider } from "@ewjdev/anyclick-react";
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import {
   Layers,
+  MousePointer2,
+  Paintbrush,
   Palette,
   ShieldOff,
   Sparkles,
-  MousePointer2,
-  Paintbrush,
 } from "lucide-react";
 
 // Create a mock adapter for the demo (sends to API but we don't need it to actually work)

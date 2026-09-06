@@ -6,6 +6,7 @@ require("dotenv").config({
 });
 
 module.exports = {
+  agentRules: false,
   images: {
     remotePatterns: [new URL("https://s.yimg.com/**")],
   },

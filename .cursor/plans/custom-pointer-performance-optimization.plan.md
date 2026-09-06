@@ -188,7 +188,7 @@ After:
 #### Motion Value Strategy (Alternative to Phase 1)
 
 ```tsx
-import { useMotionValue, motion } from "motion/react";
+import { motion, useMotionValue } from "motion/react";
 
 const x = useMotionValue(-100);
 const y = useMotionValue(-100);

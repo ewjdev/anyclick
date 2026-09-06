@@ -25,21 +25,21 @@ UPLOADTHING_TOKEN=your_token_here
 
 ```ts
 // app/api/uploadthing/route.ts
-import { NextResponse } from "next/server";
 import { createUploadThingServerAdapter } from "@ewjdev/anyclick-uploadthing/server";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const token = process.env.UPLOADTHING_TOKEN;
-  
+
   if (!token) {
     return NextResponse.json({ error: "Not configured" }, { status: 503 });
   }
 
   const adapter = createUploadThingServerAdapter({ token });
-  
+
   const formData = await request.formData();
   const file = formData.get("file") as File;
-  
+
   const result = await adapter.uploadFile(file);
   return NextResponse.json(result);
 }
@@ -54,7 +54,10 @@ Point your Anyclick extension or web integration to your API endpoint:
 **Web:** Use the `createUploadThingMenuItem` helper:
 
 ```tsx
-import { AnyclickProvider, createUploadThingMenuItem } from "@ewjdev/anyclick-react";
+import {
+  AnyclickProvider,
+  createUploadThingMenuItem,
+} from "@ewjdev/anyclick-react";
 
 const menuItems = [
   createUploadThingMenuItem({
@@ -63,9 +66,7 @@ const menuItems = [
   }),
 ];
 
-<AnyclickProvider menuItems={menuItems}>
-  {children}
-</AnyclickProvider>
+<AnyclickProvider menuItems={menuItems}>{children}</AnyclickProvider>;
 ```
 
 ## Server Adapter API
@@ -108,7 +109,7 @@ Upload a file from a URL.
 ```ts
 const result = await adapter.uploadFromUrl(
   "https://example.com/image.png",
-  "my-image.png"
+  "my-image.png",
 );
 ```
 
@@ -119,7 +120,7 @@ Upload from a base64 data URL (useful for screenshots).
 ```ts
 const result = await adapter.uploadFromDataUrl(
   "data:image/png;base64,...",
-  "screenshot.png"
+  "screenshot.png",
 );
 ```
 
@@ -160,8 +161,8 @@ Now when you right-click on an image, you'll see "Upload to UploadThing" option.
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable            | Description                                   |
+| ------------------- | --------------------------------------------- |
 | `UPLOADTHING_TOKEN` | Your UploadThing API token from the dashboard |
 
 ## Links

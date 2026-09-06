@@ -57,26 +57,23 @@ function loadEnvFiles() {
 loadEnvFiles();
 
 // Check if GitHub token is configured
-const hasGitHubToken = !!(process.env.GITHUB_TOKEN);
-const hasGitHubRepo = !!(process.env.GITHUB_REPO);
+const hasGitHubToken = !!process.env.GITHUB_TOKEN;
+const hasGitHubRepo = !!process.env.GITHUB_REPO;
 
 if (!hasGitHubToken || !hasGitHubRepo) {
   console.log("\n⚠️  GitHub adapter setup skipped");
   console.log(
-    "   GITHUB_TOKEN and/or GITHUB_REPO not configured in environment variables."
+    "   GITHUB_TOKEN and/or GITHUB_REPO not configured in environment variables.",
   );
   console.log("\n💡 To enable GitHub integration:");
   console.log("   1. Create a GitHub Personal Access Token");
   console.log("   2. Add to .env.local:");
   console.log("      GITHUB_TOKEN=ghp_xxxxxxxxxxxx");
   console.log("      GITHUB_REPO=owner/repository");
-  console.log(
-    "   3. Run: npx @ewjdev/anyclick-github setup-media-branch\n"
-  );
+  console.log("   3. Run: npx @ewjdev/anyclick-github setup-media-branch\n");
   process.exit(0);
 }
 
 // GitHub is configured, run the actual setup script
 console.log("✓ GitHub token found, running media branch setup...\n");
 require("./setup-media-branch.js");
-
