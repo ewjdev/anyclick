@@ -31,6 +31,7 @@ import {
   generateSyncReport,
   loadExistingData,
   mergeWithExistingItems,
+  formatFiles,
 } from './roadmap-utils.mjs';
 
 /**
@@ -169,6 +170,17 @@ async function main() {
         console.log(mdContent.substring(0, 1000) + '...\n');
       } else {
         await writeRoadmapMarkdown(mdContent, config.output.markdownPath);
+      }
+    }
+    
+    // Format written files with Prettier to ensure CI passes
+    if (!args.dryRun) {
+      const filesToFormat = [];
+      if (!args.mdOnly) filesToFormat.push(config.output.jsonPath);
+      if (!args.jsonOnly) filesToFormat.push(config.output.markdownPath);
+      if (filesToFormat.length > 0) {
+        console.log('Formatting files with Prettier...');
+        await formatFiles(filesToFormat);
       }
     }
     

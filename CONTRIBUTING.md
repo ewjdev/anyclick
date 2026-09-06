@@ -56,7 +56,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 git clone https://github.com/YOUR_USERNAME/anyclick.git
 cd anyclick
 
-# Install dependencies
+# Install dependencies (also installs git hooks)
 yarn install
 
 # Build all packages
@@ -64,6 +64,18 @@ yarn build
 
 # Start development mode
 yarn dev
+```
+
+### Git Hooks
+
+This repository uses [simple-git-hooks](https://github.com/toplenboren/simple-git-hooks) to run pre-push checks. The hooks are automatically installed when you run `yarn install`.
+
+**Pre-push hook**: Runs `yarn format:check` before each push to ensure code formatting matches the CI requirements. If the check fails, fix formatting with `yarn format` and try again.
+
+If you need to reinstall hooks manually:
+
+```bash
+yarn prepare
 ```
 
 ### Project Structure
