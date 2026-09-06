@@ -2,7 +2,7 @@
 
 ### 1. Analyze and Extract Core Jira Decisions
 
-- **Inspect existing Jira integration**: Use the files in [`packages/anyclick-jira/other-jira-integration`](packages/anyclick-jira/other-jira-integration) (`jira.ts`, `types.ts`, `utils.ts`, `validate.ts`, `cmd.ts`) to identify:
+- **Inspect existing Jira integration**: Use the files in [`packages/anyclick-jira/jira-other-implementation`](packages/anyclick-jira/jira-other-implementation) (`jira.ts`, `types.ts`, `utils.ts`, `validate.ts`, `cmd.ts`) to identify:
 - Good instructions and cli to get environment setup easily (link to token creation, parse any jira url for base url)
 - **Auth model and env vars** (`JIRA_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`, defaults) and how Jira Cloud is addressed.
 - **Issue creation behavior** (project key usage, default issue type, ADF description format, custom fields like epic/team, label patterns).
@@ -25,7 +25,7 @@
 - `JiraAdapterOptions` with fields derived from `JiraEnv` and create-issue helpers: `jiraUrl`, `email`, `apiToken`, `projectKey`, optional `issueType`, default labels, optional mapping from Anyclick type → Jira issue type, and an optional `extraFields`/`customFields` map.
 - `JiraIssueResult` type exposing `key`, `id`, and a `url` that points to the browse page.
 - **HTTP and auth helpers** in `src/jiraAdapter.ts` or a small `src/utils.ts`:
-- Reuse the `getJiraUrl`/`getJiraFetchOptions` pattern from `other-jira-integration/utils.ts`, simplified to:
+- Reuse the `getJiraUrl`/`getJiraFetchOptions` pattern from `jira-other-implementation/utils.ts`, simplified to:
 - Take `jiraUrl` from options instead of prompting or reading external config.
 - Always use Jira Cloud v3 REST paths (`/rest/api/3/issue`, attachments endpoint, etc.).
 - **Core method `createIssue(payload: AnyclickPayload)`**:
@@ -35,7 +35,7 @@
 - If screenshots are present on `payload.screenshots`, call Jira’s attachments API for the created issue (multiparts or base64 depending on the existing decisions) and, if appropriate, append attachment references in the description or leave them as plain attachments.
 - Return a `JiraIssueResult` with `key`, `id`, and `url` built similarly to `openIssueInBrowser` from `jira.ts`.
 - **Error handling and validation**:
-- Mirror the existing error messaging style from `other-jira-integration` (helpful messages for auth/URL issues) but without interactive prompts.
+- Mirror the existing error messaging style from `jira-other-implementation` (helpful messages for auth/URL issues) but without interactive prompts.
 - Optionally add a `validateConfiguration()` method similar to `GitHubAdapter.validateConfiguration` that verifies credentials with a lightweight Jira API call.
 
 ### 4. Implement Anyclick-Specific Formatters
@@ -58,9 +58,9 @@
 - Preserve existing GitHub and Cursor behaviors, and if both GitHub and Jira are configured, invoke **both** and aggregate results.
 - **Optional composite helper** (if you want a reusable abstraction): add a small `CompositeAdapter` in [`packages/anyclick-adapters/src/utils.ts`](packages/anyclick-adapters/src/utils.ts) that accepts multiple `AnyclickAdapter` instances and fans out `submitAnyclick` calls, but this is not required if you prefer explicit calls in the route handler.
 
-### 6. Clean Up `other-jira-integration` and Expose Public API
+### 6. Clean Up `jira-other-implementation` and Expose Public API
 
-- **Move only the needed, non-interactive pieces** from `other-jira-integration` into the new adapter files:
+- **Move only the needed, non-interactive pieces** from `jira-other-implementation` into the new adapter files:
 - ADF description helpers.
 - URL/auth/fetch helpers for Jira Cloud.
 - Types that are still directly relevant to issue creation.
@@ -78,4 +78,4 @@
 - Example Next.js API route wiring that submits to Jira (and optionally GitHub).
 - Notes on Jira Cloud-only support and any assumptions about custom fields.
 - **Update docs site** (e.g., [`apps/web/src/app/docs/adapters/page.tsx`](apps/web/src/app/docs/adapters/page.tsx)) to include a Jira adapter section and example usage alongside the GitHub adapter.
-- **Final cleanup**: Once the new adapter is working and referenced everywhere, delete the legacy [`packages/anyclick-jira/other-jira-integration`](packages/anyclick-jira/other-jira-integration) folder so that the package only contains the adapter-focused code.
+- **Final cleanup**: Once the new adapter is working and referenced everywhere, delete the legacy [`packages/anyclick-jira/jira-other-implementation`](packages/anyclick-jira/jira-other-implementation) folder so that the package only contains the adapter-focused code.

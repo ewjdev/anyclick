@@ -196,45 +196,45 @@ docs/
 
 ## Sync Script Features
 
-1.  **GitHub API Integration**:
+1. **GitHub API Integration**:
 
-            - Fetch issues with roadmap label
-            - Filter by title prefix
-            - Extract metadata and labels
-            - Handle pagination
+   - Fetch issues with roadmap label
+   - Filter by title prefix
+   - Extract metadata and labels
+   - Handle pagination
 
-2.  **Plan File Parsing**:
+2. **Plan File Parsing**:
 
-            - Scan `.cursor/plans/*.plan.md`
-            - Parse frontmatter/metadata
-            - Extract title, description, todos
-            - Link to plan file
+   - Scan `.cursor/plans/*.plan.md`
+   - Parse frontmatter/metadata
+   - Extract title, description, todos
+   - Link to plan file
 
-3.  **Deduplication**:
+3. **Deduplication**:
 
-            - Match items by title similarity
-            - Prefer GitHub items over plans (if duplicate)
-            - Merge metadata when appropriate
+   - Match items by title similarity
+   - Prefer GitHub items over plans (if duplicate)
+   - Merge metadata when appropriate
 
-4.  **Era Assignment**:
+4. **Era Assignment**:
 
-            - Apply rules from config
-            - Use labels as primary source
-            - Fall back to heuristics
-            - Log assignments for review
+   - Apply rules from config
+   - Use labels as primary source
+   - Fall back to heuristics
+   - Log assignments for review
 
-5.  **Markdown Generation**:
+5. **Markdown Generation**:
 
-            - Format items by era
-            - Include links to sources
-            - Preserve manual edits (comments, formatting)
-            - Generate clean, consistent structure
+   - Format items by era
+   - Include links to sources
+   - Preserve manual edits (comments, formatting)
+   - Generate clean, consistent structure
 
-6.  **JSON Generation**:
+6. **JSON Generation**:
 
-            - Structured data for React page
-            - Include all metadata
-            - Sortable/filterable format
+   - Structured data for React page
+   - Include all metadata
+   - Sortable/filterable format
 
 ## Manual Override Support
 

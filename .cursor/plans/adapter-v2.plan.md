@@ -13,11 +13,10 @@ Prioritize
 
 - Standardize something like:
 
-```
+```typescript
 interface AnyclickAdapter {
   submit(payload: AnyclickPayload): Promise<{ url?: string }>;
 }
-
 ```
 
 - And a tiny guide: “Write an adapter in 30 lines” → big draw for OSS contributors.
