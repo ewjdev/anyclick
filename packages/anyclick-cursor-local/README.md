@@ -34,8 +34,8 @@ npm run feedback-server
 ```tsx
 "use client";
 
-import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { createLocalAdapter } from "@ewjdev/anyclick-cursor-local";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 
 const adapter = createLocalAdapter({
   serverUrl: "http://localhost:3847",

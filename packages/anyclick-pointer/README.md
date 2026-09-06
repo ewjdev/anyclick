@@ -234,6 +234,8 @@ Here's a full example showing how to integrate the pointer in a Next.js applicat
 "use client";
 
 import { PointerProvider } from "@ewjdev/anyclick-pointer";
+// app/layout.tsx
+import { Providers } from "./providers";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -259,9 +261,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 }
 
-// app/layout.tsx
-import { Providers } from "./providers";
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
@@ -278,9 +277,9 @@ export default function RootLayout({ children }) {
 Use alongside `@ewjdev/anyclick-react` for a complete feedback experience:
 
 ```tsx
-import { AnyclickProvider } from "@ewjdev/anyclick-react";
-import { PointerProvider } from "@ewjdev/anyclick-pointer";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { PointerProvider } from "@ewjdev/anyclick-pointer";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 
@@ -368,14 +367,14 @@ Import animation utilities for advanced customization:
 
 ```tsx
 import {
-  springTransition,
-  quickSpringTransition,
-  fadeTransition,
-  pointerVariants,
   circleVariants,
-  rippleVariants,
   createSpringTransition,
+  fadeTransition,
   getTransition,
+  pointerVariants,
+  quickSpringTransition,
+  rippleVariants,
+  springTransition,
 } from "@ewjdev/anyclick-pointer";
 
 // Create custom spring animation

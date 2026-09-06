@@ -12,6 +12,7 @@ Other ideas
 **“Link back to DOM”**
 
 - Alongside screenshots, generate a **locator snippet** in the issue body:
+
 ```
 // pseudo
 const locator = buildLocator(element); // role=button[name="Save"], data-test-id, etc.

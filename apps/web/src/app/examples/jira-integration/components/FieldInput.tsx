@@ -29,10 +29,9 @@ export function FieldInput({
   requestHeaders,
   onChange,
 }: FieldInputProps) {
-  const baseInputClasses =
-    `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
-      hasError ? "border-red-500" : "border-gray-200"
-    }`;
+  const baseInputClasses = `w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0d6e7c] text-gray-900 ${
+    hasError ? "border-red-500" : "border-gray-200"
+  }`;
 
   if (needsAutocomplete(field)) {
     return (
@@ -71,8 +70,10 @@ export function FieldInput({
           multiple
           value={Array.isArray(value) ? value : []}
           onChange={(e) => {
-            const selected = Array.from(e.target.selectedOptions, (option) =>
-              option.value);
+            const selected = Array.from(
+              e.target.selectedOptions,
+              (option) => option.value,
+            );
             onChange(selected);
           }}
           className={`${baseInputClasses} min-h-[100px]`}

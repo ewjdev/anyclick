@@ -9,6 +9,7 @@ node_modules
 coverage
 test-results/
 playwright-report/
+next-env.d.ts
 
 # next.js
 .next/

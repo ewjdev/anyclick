@@ -40,8 +40,8 @@ export async function POST(request: Request) {
 **Browser-side provider:**
 
 ```tsx
-import { AnyclickProvider } from "@ewjdev/anyclick-react";
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
+import { AnyclickProvider } from "@ewjdev/anyclick-react";
 
 const adapter = createHttpAdapter({ endpoint: "/api/feedback" });
 

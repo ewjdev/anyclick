@@ -2,13 +2,7 @@
 
 import { createHttpAdapter } from "@ewjdev/anyclick-github";
 import { AnyclickProvider } from "@ewjdev/anyclick-react";
-import {
-  Bug,
-  Code,
-  Heart,
-  Lightbulb,
-  Palette,
-} from "lucide-react";
+import { Bug, Code, Heart, Lightbulb, Palette } from "lucide-react";
 
 const demoAdapter = createHttpAdapter({
   endpoint: "/api/feedback",

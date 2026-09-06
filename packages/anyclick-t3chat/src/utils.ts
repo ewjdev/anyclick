@@ -67,7 +67,7 @@ export function hasTextSelection(): boolean {
  */
 export function buildT3ChatUrl(
   query: string,
-  baseUrl: string = DEFAULT_T3CHAT_BASE_URL
+  baseUrl: string = DEFAULT_T3CHAT_BASE_URL,
 ): string {
   const trimmedQuery = query.trim();
 

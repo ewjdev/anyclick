@@ -18,7 +18,7 @@ import {
 
 export async function validateJiraTicket(
   issueKey: string,
-  options: { json?: boolean; autofix?: boolean }
+  options: { json?: boolean; autofix?: boolean },
 ) {
   const env = await ensureJiraEnv();
   if (!issueKey && !options.json) {
@@ -47,7 +47,7 @@ export async function validateJiraTicket(
           onCancel: () => {
             return validateJiraTicket("", options);
           },
-        }
+        },
       );
       issueKey = String(k || "").trim();
     } else if (mode === "search") {
@@ -61,7 +61,7 @@ export async function validateJiraTicket(
           onCancel: () => {
             return validateJiraTicket("", options);
           },
-        }
+        },
       );
       const query = String(q || "").trim();
       if (query) {
@@ -88,7 +88,7 @@ export async function validateJiraTicket(
               onCancel: () => {
                 return validateJiraTicket("", options);
               },
-            }
+            },
           );
           if (sel === "back-to-search") {
             return validateJiraTicket("", options);
@@ -132,7 +132,7 @@ export async function validateJiraTicket(
 
   const result = computeJiraTicketValidation(issue, zephyrInfo);
   log.debug(
-    `computeJiraTicketValidation results: ${JSON.stringify(result, null, 2)}`
+    `computeJiraTicketValidation results: ${JSON.stringify(result, null, 2)}`,
   );
   // Interactive guidance when both AC and Zephyr are missing
   const hasAC = issueHasAcceptanceSection(issue?.fields?.description);
@@ -167,7 +167,7 @@ export async function validateJiraTicket(
         onCancel: () => {
           return validateJiraTicket("", options);
         },
-      }
+      },
     );
 
     if (action === "exit") {
@@ -209,7 +209,7 @@ export async function validateJiraTicket(
       if (lines.length > 0) {
         await addCommentToIssue(
           issueKey,
-          `Open Questions:\n${lines.join("\n")}`
+          `Open Questions:\n${lines.join("\n")}`,
         );
         log.success("✓ Added comment with Open Questions");
       } else {
@@ -255,7 +255,7 @@ export async function validateJiraTicket(
     await appendAcceptanceCriteriaToDescription(
       issueKey,
       zephyrInfo.acFromZephyr!,
-      env
+      env,
     );
     log.success("✓ Acceptance Criteria appended from Zephyr");
   }

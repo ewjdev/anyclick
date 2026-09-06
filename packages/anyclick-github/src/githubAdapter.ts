@@ -1,15 +1,15 @@
 import type {
   AnyclickPayload,
-  ScreenshotData,
   ScreenshotCapture,
+  ScreenshotData,
 } from "@ewjdev/anyclick-core";
+import { defaultFormatBody, defaultFormatTitle } from "./formatters";
 import type {
   GitHubAdapterOptions,
   GitHubIssueResult,
   UIFeedbackMetadata,
 } from "./types";
 import { feedbackTypeLabels } from "./types";
-import { defaultFormatTitle, defaultFormatBody } from "./formatters";
 
 /**
  * GitHub adapter for server-side usage

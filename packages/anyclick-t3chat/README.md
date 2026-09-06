@@ -20,12 +20,11 @@ The easiest way to use t3.chat integration is with the Chrome preset or the `cre
 
 ```tsx
 import { AnyclickProvider, createPresetMenu } from "@ewjdev/anyclick-react";
+// Option 2: Add to custom menu
+import { createT3ChatMenuItem } from "@ewjdev/anyclick-react";
 
 // Option 1: Use Chrome preset (includes t3.chat by default)
 const chromePreset = createPresetMenu("chrome");
-
-// Option 2: Add to custom menu
-import { createT3ChatMenuItem } from "@ewjdev/anyclick-react";
 
 const menuItems = [
   { label: "Report Bug", type: "bug", showComment: true },
@@ -103,10 +102,10 @@ interface T3ChatAdapterOptions {
 
 ```typescript
 import {
-  getSelectedText,
-  hasTextSelection,
-  getTextSelectionContext,
   buildT3ChatUrl,
+  getSelectedText,
+  getTextSelectionContext,
+  hasTextSelection,
   navigateToUrl,
 } from "@ewjdev/anyclick-t3chat";
 

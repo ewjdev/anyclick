@@ -1,6 +1,6 @@
 import React from "react";
-import { Bug, FileText, Settings, Sparkles } from "lucide-react";
 import type { NormalizedJiraField } from "@ewjdev/anyclick-jira";
+import { Bug, FileText, Settings, Sparkles } from "lucide-react";
 import { issueTypeIcons } from "../components/Icons";
 
 const errorPatterns: Array<{ pattern: RegExp | string; message: string }> = [
@@ -212,8 +212,8 @@ export function getDisplayValue(
   if (displayValues[field.key]) return displayValues[field.key];
 
   if (field.options) {
-    const option = field.options.find((option) =>
-      option.id === value || option.value === value
+    const option = field.options.find(
+      (option) => option.id === value || option.value === value,
     );
     if (option) return option.label;
   }

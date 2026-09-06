@@ -1,13 +1,13 @@
 import type { AnyclickPayload } from "@ewjdev/anyclick-core";
+import { defaultFormatAgentName, defaultFormatPrompt } from "./formatters";
 import type {
-  CursorAgentAdapterOptions,
-  CursorAgentResult,
   AgentCreateResponse,
+  AgentPrompt,
   AgentSource,
   AgentTarget,
-  AgentPrompt,
+  CursorAgentAdapterOptions,
+  CursorAgentResult,
 } from "./types";
-import { defaultFormatPrompt, defaultFormatAgentName } from "./formatters";
 
 const DEFAULT_API_BASE_URL = "https://api.cursor.com";
 const DEFAULT_TIMEOUT = 30000;

@@ -5,8 +5,8 @@ import {
   ChevronRight,
   ChevronUp,
 } from "lucide-react";
-import { FieldInput } from "../FieldInput";
 import { getDisplayValue } from "../../utils/jiraHelpers";
+import { FieldInput } from "../FieldInput";
 
 interface ReviewStepProps {
   requiredFields: NormalizedJiraField[];
@@ -121,9 +121,11 @@ export function ReviewStep({
                     {optionalFields.length}
                   </span>
                 </div>
-                {showOptionalFields
-                  ? <ChevronUp className="w-5 h-5 text-gray-500" />
-                  : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                {showOptionalFields ? (
+                  <ChevronUp className="w-5 h-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                )}
               </button>
 
               {showOptionalFields && (
@@ -139,7 +141,8 @@ export function ReviewStep({
                         displayValue={displayValues[field.key]}
                         requestHeaders={requestHeaders}
                         onChange={(value, display) =>
-                          onChangeField(field.key, value, display)}
+                          onChangeField(field.key, value, display)
+                        }
                       />
                     </div>
                   ))}

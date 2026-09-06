@@ -8,9 +8,12 @@ interface ErrorStepProps {
   onClose: () => void;
 }
 
-export function ErrorStep(
-  { loadError, preferences, onReconfigure, onClose }: ErrorStepProps,
-) {
+export function ErrorStep({
+  loadError,
+  preferences,
+  onReconfigure,
+  onClose,
+}: ErrorStepProps) {
   return (
     <div className="flex-1 flex items-center justify-center p-8">
       <div className="text-center">

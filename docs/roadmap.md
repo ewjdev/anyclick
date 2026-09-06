@@ -33,6 +33,7 @@ Scope here does **not** block the error ingestion stack.
   filtering, selector generation.
 
 <!-- ROADMAP:AUTO-START -->
+
 ## Short-term (next up)
 
 - ✅ **Quick Chat (AI Assistant)**: Inline AI chat in context menu. Type-to-chat, element context extraction, suggested prompts, pinnabl... [plan](https://github.com/ewjdev/anyclick/blob/main/packages/anyclick-react/CHANGELOG.md)

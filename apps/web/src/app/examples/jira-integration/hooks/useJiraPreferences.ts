@@ -29,7 +29,7 @@ function savePreferences(preferences: JiraPreferences): void {
 
 export function useJiraPreferences() {
   const [preferences, setPreferences] = useState<JiraPreferences>(() =>
-    getStoredPreferences()
+    getStoredPreferences(),
   );
 
   const updatePreferences = useCallback((updates: Partial<JiraPreferences>) => {

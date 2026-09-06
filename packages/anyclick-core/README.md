@@ -55,10 +55,10 @@ client.detach();
 
 ```typescript
 import {
-  getUniqueSelector,
+  buildElementContext,
   getAncestors,
   getDataAttributes,
-  buildElementContext,
+  getUniqueSelector,
 } from "@ewjdev/anyclick-core";
 
 // Get a unique CSS selector for an element
@@ -78,8 +78,8 @@ const context = buildElementContext(element);
 
 ```typescript
 import {
-  captureScreenshot,
   captureAllScreenshots,
+  captureScreenshot,
   isScreenshotSupported,
 } from "@ewjdev/anyclick-core";
 

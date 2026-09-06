@@ -31,7 +31,7 @@ We will transform the current `WorkstreamShowcase` from a horizontal scrolling l
 - **Vertical "Takeover" Sections:** Each workstream gets a dedicated section (min-height 80vh) that dominates the viewport.
 - **Parallax Depth:** Backgrounds, "floating" contextual elements, and the main interactive target will scroll at different speeds.
 - **Live Interaction:** The center of each section will be an interactive "playground" where the custom cursor and context menu are active.
-- **Minimalist Aesthetic:** Reduced text density, focusing on the *feeling* of the workflow.
+- **Minimalist Aesthetic:** Reduced text density, focusing on the _feeling_ of the workflow.
 
 ## Detailed Implementation Steps
 
@@ -44,22 +44,22 @@ We will transform the current `WorkstreamShowcase` from a horizontal scrolling l
 
 - **Layout:** Full-viewport height sections.
 - **Motion Parallax Engine:**
-    - Use `useScroll` hook to track scroll progress relative to the section ref.
-    - Use `useTransform` to map scroll progress to `y` values for background and floating elements.
-    - Example: `const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])`.
+  - Use `useScroll` hook to track scroll progress relative to the section ref.
+  - Use `useTransform` to map scroll progress to `y` values for background and floating elements.
+  - Example: `const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])`.
 - **Background Layer:**
-    - `motion.div` with absolute positioning.
-    - Smoothed transforms for high-end feel.
+  - `motion.div` with absolute positioning.
+  - Smoothed transforms for high-end feel.
 - **The "Playground" (Centerpiece):**
-    - **Abstract Interactive Cards:** Stylized, glass-morphic containers.
-    - **Interaction:** Wrapped in `AnyclickProvider` and `PointerProvider`.
-    - **Mobile:** Static card view; no scroll-jacking.
+  - **Abstract Interactive Cards:** Stylized, glass-morphic containers.
+  - **Interaction:** Wrapped in `AnyclickProvider` and `PointerProvider`.
+  - **Mobile:** Static card view; no scroll-jacking.
 
 ### 3. Navigation & Progress
 
 - **Sticky Timeline Rail:**
-    - Use `useScroll` to drive the active state of dots/lines on the rail.
-    - Click-to-scroll functionality.
+  - Use `useScroll` to drive the active state of dots/lines on the rail.
+  - Click-to-scroll functionality.
 
 ### 4. Integration
 

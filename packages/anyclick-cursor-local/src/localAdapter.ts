@@ -1,12 +1,12 @@
-import { spawn } from "child_process";
 import type { AnyclickPayload } from "@ewjdev/anyclick-core";
+import { spawn } from "child_process";
+import { defaultFormatPrompt } from "./formatters";
 import type {
+  ExecutionMode,
   LocalCursorAdapterOptions,
   LocalCursorResult,
-  ExecutionMode,
   OutputFormat,
 } from "./types";
-import { defaultFormatPrompt } from "./formatters";
 
 const DEFAULT_TIMEOUT = 6000000; // 10 minutes
 

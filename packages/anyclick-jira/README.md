@@ -28,8 +28,8 @@ pnpm add @ewjdev/anyclick-jira
 
 ```typescript
 // app/api/feedback/route.ts
-import { createJiraAdapter } from "@ewjdev/anyclick-jira/server";
 import type { AnyclickPayload } from "@ewjdev/anyclick-core";
+import { createJiraAdapter } from "@ewjdev/anyclick-jira/server";
 
 export async function POST(req: Request) {
   const payload: AnyclickPayload = await req.json();
@@ -75,31 +75,31 @@ JIRA_PROJECT_KEY=PROJ
 interface JiraAdapterOptions {
   /** Jira instance URL (e.g., https://company.atlassian.net) */
   jiraUrl: string;
-  
+
   /** Jira user email */
   email: string;
-  
+
   /** Jira API token */
   apiToken: string;
-  
+
   /** Project key (e.g., "PROJ") */
   projectKey: string;
-  
+
   /** Default issue type (default: "Task") */
   defaultIssueType?: string;
-  
+
   /** Issue type mapping from AnyclickType to Jira issue types */
   issueTypeMapping?: Record<string, string>;
-  
+
   /** Default labels to add to issues */
   defaultLabels?: string[];
-  
+
   /** Custom summary formatter */
   formatSummary?: (payload: AnyclickPayload) => string;
-  
+
   /** Custom description formatter */
   formatDescription?: (payload: AnyclickPayload) => AdfDocument;
-  
+
   /** Additional custom fields to include in issue creation */
   customFields?: Record<string, any>;
 }
@@ -163,7 +163,10 @@ const jira = createJiraAdapter({
 Customize how feedback is formatted:
 
 ```typescript
-import { defaultFormatSummary, defaultFormatDescription } from "@ewjdev/anyclick-jira/server";
+import {
+  defaultFormatDescription,
+  defaultFormatSummary,
+} from "@ewjdev/anyclick-jira/server";
 
 const jira = createJiraAdapter({
   jiraUrl: process.env.JIRA_URL!,
@@ -172,8 +175,11 @@ const jira = createJiraAdapter({
   projectKey: "PROJ",
   formatSummary: (payload) => {
     // Custom summary logic
-    const typeLabel = payload.type.charAt(0).toUpperCase() + payload.type.slice(1);
-    const prefix = payload.comment ? payload.comment.substring(0, 50) : payload.element.selector;
+    const typeLabel =
+      payload.type.charAt(0).toUpperCase() + payload.type.slice(1);
+    const prefix = payload.comment
+      ? payload.comment.substring(0, 50)
+      : payload.element.selector;
     return `[${typeLabel}] ${prefix}`;
   },
   formatDescription: (payload) => {
@@ -191,9 +197,9 @@ Submit feedback to both GitHub and Jira:
 
 ```typescript
 // app/api/feedback/route.ts
+import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 import { createGitHubAdapter } from "@ewjdev/anyclick-github/server";
 import { createJiraAdapter } from "@ewjdev/anyclick-jira/server";
-import type { AnyclickPayload } from "@ewjdev/anyclick-core";
 
 export async function POST(req: Request) {
   const payload: AnyclickPayload = await req.json();
@@ -261,6 +267,7 @@ if (!isValid) {
 ### Authentication Errors
 
 If you get 401 errors:
+
 - Verify your email and API token are correct
 - Make sure the API token hasn't expired
 - Check that you're using the correct Jira URL
@@ -268,6 +275,7 @@ If you get 401 errors:
 ### Permission Errors
 
 If you get 403 errors:
+
 - Ensure your user has permission to create issues in the project
 - Verify the project key is correct
 - Check that the issue type exists in your project
@@ -275,6 +283,7 @@ If you get 403 errors:
 ### Invalid Issue Type
 
 If you get validation errors about issue types:
+
 - Check that the issue type name matches exactly (case-sensitive)
 - Verify the issue type is available in your project
 - Use `issueTypeMapping` to map feedback types to valid issue types
@@ -294,4 +303,3 @@ MIT
 - [Documentation](https://anyclick.dev/docs/adapters)
 - [GitHub Repository](https://github.com/ewjdev/anyclick)
 - [Report Issues](https://github.com/ewjdev/anyclick/issues)
-

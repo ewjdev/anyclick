@@ -9,7 +9,7 @@ Create adapters for t3.chat and UploadThing to enable marketing opportunities wi
 ### Package Structure
 
 - `packages/anyclick-t3chat/` - t3.chat adapter package
-- `packages/anyclick-uploadthing/` - UploadThing adapter package  
+- `packages/anyclick-uploadthing/` - UploadThing adapter package
 - `packages/anyclick-extension/` - Browser extension
 
 ### Integration Points

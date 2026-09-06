@@ -51,7 +51,7 @@ todos:
 **Light theme:**
 
 - Background: `#ffffff` with `rgba(0,0,0,0.08)` border
-- Surface: `#f4f4f5` for hover states  
+- Surface: `#f4f4f5` for hover states
 - Text: `#18181b` primary, `#71717a` secondary
 
 ### Typography

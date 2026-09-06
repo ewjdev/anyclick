@@ -90,10 +90,12 @@ Add `ai` as a dependency to access `DefaultChatTransport`:
 
 ```typescript
 function getMessageText(msg: UIMessage): string {
-  return msg.parts
-    ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-    .map((p) => p.text)
-    .join('') ?? '';
+  return (
+    msg.parts
+      ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
+      .map((p) => p.text)
+      .join("") ?? ""
+  );
 }
 ```
 
@@ -102,6 +104,6 @@ function getMessageText(msg: UIMessage): string {
 Replace `isSending` logic:
 
 ```typescript
-const isSending = status === 'submitted' || status === 'streaming';
-const isStreaming = status === 'streaming';
+const isSending = status === "submitted" || status === "streaming";
+const isStreaming = status === "streaming";
 ```
