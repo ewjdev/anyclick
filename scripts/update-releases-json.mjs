@@ -32,7 +32,8 @@ const PACKAGE_DIRS = [
 ];
 
 /**
- * Format a file using Prettier to ensure CI format checks pass
+ * Format a file using Prettier to ensure CI format checks pass.
+ * Throws on failure to prevent pushing unformatted files.
  */
 function formatFile(filePath) {
   try {
@@ -42,7 +43,8 @@ function formatFile(filePath) {
     });
     console.log(`✨ Formatted: ${filePath}`);
   } catch (error) {
-    console.warn(`⚠️  Warning: Could not format file: ${error.message}`);
+    console.error(`❌ Failed to format file: ${error.message}`);
+    throw error;
   }
 }
 

@@ -803,7 +803,8 @@ export function generateSyncReport(items, stats = {}) {
 }
 
 /**
- * Format files using Prettier
+ * Format files using Prettier.
+ * Throws on failure to prevent pushing unformatted files.
  * @param {string[]} filePaths - Array of file paths to format
  * @returns {Promise<void>}
  */
@@ -817,6 +818,7 @@ export async function formatFiles(filePaths) {
     });
     console.log(`Formatted: ${files}`);
   } catch (error) {
-    console.warn(`Warning: Could not format files: ${error.message}`);
+    console.error(`Failed to format files: ${error.message}`);
+    throw error;
   }
 }
