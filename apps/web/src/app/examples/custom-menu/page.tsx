@@ -12,6 +12,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CustomMenuDemo } from "./CustomMenuDemo";
+import { CustomMenuDemoArea } from "./CustomMenuDemoArea";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
@@ -224,6 +225,9 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Apply custom styles or classes to the context menu:
         </p>
+
+        <CustomMenuDemoArea />
+
         <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   menuItems={menuItems}
