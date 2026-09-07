@@ -198,7 +198,7 @@
       "details": "Release of version 5.1.1 with patch changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
-      "era": "today"
+      "era": "past"
     },
     {
       "id": "anyclick-5.1.2",
@@ -214,6 +214,18 @@
       "details": "Release of version 5.1.2 with patch changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-5.2.0",
+      "packages": ["@ewjdev/anyclick-react"],
+      "version": "5.2.0",
+      "type": "minor",
+      "date": "2026-09-07",
+      "summary": "Add opt-in scoped conversations with full structured message support, accessible command and object completion, editable action results, and docked/floating/sheet presentations. Export the shared stylesheet and keep existing QuickChat consumers compatible through an optional conversation prop.",
+      "details": "Release of version 5.2.0 with minor changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-react",
       "era": "today"
     }
   ],
@@ -271,6 +283,6 @@
       ]
     }
   ],
-  "currentVersion": "5.1.2",
-  "lastUpdated": "2026-09-04"
+  "currentVersion": "5.2.0",
+  "lastUpdated": "2026-09-07"
 }

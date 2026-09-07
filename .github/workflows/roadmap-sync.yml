@@ -75,7 +75,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add docs/roadmap.md apps/web/src/data/roadmap-items.json
           git commit -m "chore: sync roadmap items [skip ci]"
-          git push
+          # Use --no-verify to skip local hooks for bot commits (files already formatted by sync script)
+          git push --no-verify
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
