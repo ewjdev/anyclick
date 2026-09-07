@@ -46,6 +46,7 @@ const customMenuItems = [
   },
 ];
 
+/** Renders an interactive area demonstrating custom menu styling and items. */
 export function CustomMenuDemoArea() {
   return (
     <AnyclickProvider

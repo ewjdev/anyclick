@@ -50,6 +50,7 @@ export function Providers({ children }) {
   );
 }`;
 
+/** Renders the custom menu example page and its interactive demonstrations. */
 export default function CustomMenuExamplePage() {
   return (
     <div className="max-w-3xl">
