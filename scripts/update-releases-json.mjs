@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = join(__dirname, "..");
@@ -29,6 +30,23 @@ const PACKAGE_DIRS = [
   "anyclick-devtools",
   "anyclick-adapters",
 ];
+
+/**
+ * Format a file using Prettier to ensure CI format checks pass.
+ * Throws on failure to prevent pushing unformatted files.
+ */
+function formatFile(filePath) {
+  try {
+    execSync(`yarn prettier --write "${filePath}"`, {
+      stdio: "inherit",
+      cwd: ROOT_DIR,
+    });
+    console.log(`✨ Formatted: ${filePath}`);
+  } catch (error) {
+    console.error(`❌ Failed to format file: ${error.message}`);
+    throw error;
+  }
+}
 
 /**
  * Parse a CHANGELOG.md file to extract release entries
@@ -231,6 +249,9 @@ function updateReleasesJson() {
     RELEASES_JSON_PATH,
     JSON.stringify(releasesData, null, 2) + "\n"
   );
+
+  // Format the file with Prettier to ensure CI format checks pass
+  formatFile(RELEASES_JSON_PATH);
 
   console.log(`✅ Added ${newReleases.length} new release(s):`);
   for (const release of newReleases) {

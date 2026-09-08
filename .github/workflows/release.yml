@@ -61,4 +61,6 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add apps/web/src/data/releases.json
           git diff --staged --quiet || git commit -m "chore: update roadmap releases data"
-          git push
+          # Use --no-verify to skip local hooks (e.g. pre-push format check) for bot commits.
+          # The file is already formatted by update-releases-json.mjs via Prettier.
+          git push --no-verify
