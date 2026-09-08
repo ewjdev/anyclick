@@ -46,6 +46,7 @@ const customMenuItems = [
   },
 ];
 
+/** Renders an interactive area demonstrating custom menu styling and items. */
 export function CustomMenuDemoArea() {
   return (
     <AnyclickProvider
@@ -63,11 +64,12 @@ export function CustomMenuDemoArea() {
       <div className="mb-12 p-8 rounded-2xl bg-linear-to-br from-cyan-500/10 to-violet-500/10 border border-cyan-500/20">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Palette className="w-5 h-5 text-cyan-400" />
-          Try Custom Menu
+          Try Custom Styling
         </h2>
         <p className="text-gray-400 text-sm mb-6">
-          Right-click anywhere in this area to see the customized feedback menu
-          with icons and custom labels:
+          Right-click anywhere in this area to see custom menu styling with
+          gradient background, rounded corners, and shadow. Developer Tools
+          includes Copy CSS Selector and Inspect Element:
         </p>
 
         <div className="space-y-4">

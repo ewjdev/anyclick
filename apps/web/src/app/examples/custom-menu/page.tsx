@@ -12,6 +12,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CustomMenuDemo } from "./CustomMenuDemo";
+import { CustomMenuDemoArea } from "./CustomMenuDemoArea";
 
 export const metadata: Metadata = {
   title: "Custom Menu Example",
@@ -49,6 +50,7 @@ export function Providers({ children }) {
   );
 }`;
 
+/** Renders the custom menu example page and its interactive demonstrations. */
 export default function CustomMenuExamplePage() {
   return (
     <div className="max-w-3xl">
@@ -224,6 +226,9 @@ function Providers({ children, currentUser }) {
         <p className="text-gray-400 mb-4">
           Apply custom styles or classes to the context menu:
         </p>
+
+        <CustomMenuDemoArea />
+
         <CodeBlock>{`<AnyclickProvider
   adapter={adapter}
   menuItems={menuItems}
