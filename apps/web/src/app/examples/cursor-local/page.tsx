@@ -207,14 +207,14 @@ function createRoutingAdapter(config: {
   github: AnyclickAdapter;
 }): AnyclickAdapter {
   return {
-    async submit(payload: AnyclickPayload) {
+    async submitAnyclick(payload: AnyclickPayload) {
       // Route Cursor types to local adapter
       if (payload.type === 'cursor_local' || payload.type === 'cursor_cloud') {
-        return config.local.submit(payload);
+        return config.local.submitAnyclick(payload);
       }
       
       // Route everything else to GitHub
-      return config.github.submit(payload);
+      return config.github.submitAnyclick(payload);
     },
   };
 }

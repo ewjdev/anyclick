@@ -509,32 +509,20 @@ interface SlackAdapterConfig {
 
 export function createSlackAdapter(config: SlackAdapterConfig): AnyclickAdapter {
   return {
-    async submit(payload: AnyclickPayload): Promise<AnyclickResult> {
-      try {
-        const message = formatSlackMessage(payload);
-        
-        const response = await fetch(config.webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            channel: config.channel,
-            ...message,
-          }),
-        });
-        
-        if (!response.ok) {
-          throw new Error(\`Slack API error: \${response.status}\`);
-        }
-        
-        return {
-          success: true,
-          id: \`slack-\${Date.now()}\`,
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        };
+    async submitAnyclick(payload: AnyclickPayload): Promise<void> {
+      const message = formatSlackMessage(payload);
+      
+      const response = await fetch(config.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channel: config.channel,
+          ...message,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(\`Slack API error: \${response.status}\`);
       }
     },
   };
@@ -583,22 +571,18 @@ function formatSlackMessage(payload: AnyclickPayload) {
 
 export function createMultiAdapter(adapters: AnyclickAdapter[]): AnyclickAdapter {
   return {
-    async submit(payload: AnyclickPayload): Promise<AnyclickResult> {
+    async submitAnyclick(payload: AnyclickPayload): Promise<void> {
       const results = await Promise.allSettled(
-        adapters.map(adapter => adapter.submit(payload))
+        adapters.map(adapter => adapter.submitAnyclick(payload))
       );
       
-      const successes = results.filter(
-        (r): r is PromiseFulfilledResult<AnyclickResult> => 
-          r.status === 'fulfilled' && r.value.success
+      const failures = results.filter(
+        (r): r is PromiseRejectedResult => r.status === 'rejected'
       );
       
-      return {
-        success: successes.length > 0,
-        id: successes[0]?.value.id,
-        url: successes[0]?.value.url,
-        error: successes.length === 0 ? 'All adapters failed' : undefined,
-      };
+      if (failures.length === adapters.length) {
+        throw new Error('All adapters failed');
+      }
     },
   };
 }

@@ -12,7 +12,7 @@
 ## Installation
 
 ```bash
-yarn install @ewjdev/anyclick-core
+yarn add @ewjdev/anyclick-core
 ```
 
 ## Features
@@ -27,12 +27,15 @@ yarn install @ewjdev/anyclick-core
 ```typescript
 import { createAnyclickClient } from "@ewjdev/anyclick-core";
 
-// Create a anyclick client with your adapter
+// Create an anyclick client with your adapter
 const client = createAnyclickClient({
   adapter: {
-    async submit(payload) {
-      // Your submission logic
-      return { success: true };
+    async submitAnyclick(payload) {
+      // Your submission logic (e.g., POST to your backend)
+      await fetch("/api/feedback", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
     },
   },
 });
@@ -40,10 +43,11 @@ const client = createAnyclickClient({
 // Attach to DOM (starts listening for context menu events)
 client.attach();
 
-// Later, submit analytic programmatically
-await client.submitAnalytic(element, "issue", {
+// Later, submit anyclick programmatically
+const result = await client.submitAnyclick(element, "issue", {
   comment: "This button is broken",
 });
+// result: { success: boolean; error?: Error }
 
 // Cleanup
 client.detach();
@@ -103,9 +107,7 @@ if (isScreenshotSupported()) {
 ```typescript
 import { buildAnyclickPayload, buildPageContext } from "@ewjdev/anyclick-core";
 
-const payload = buildAnyclickPayload({
-  element,
-  type: "issue",
+const payload = buildAnyclickPayload(element, "issue", {
   comment: "Something is wrong here",
   metadata: { userId: "123" },
 });
@@ -131,14 +133,18 @@ interface AnyclickPayload {
 
 ```typescript
 interface AnyclickAdapter {
-  submit(payload: AnyclickPayload): Promise<AnyclickResult>;
+  submitAnyclick(payload: AnyclickPayload): Promise<void>;
 }
+```
 
+### AnyclickResult
+
+Returned by `client.submitAnyclick()` and `client.submitPendingAnyclick()`:
+
+```typescript
 interface AnyclickResult {
   success: boolean;
-  id?: string;
-  url?: string;
-  error?: string;
+  error?: Error;
 }
 ```
 
@@ -163,7 +169,7 @@ For full documentation, visit [anyclick.dev/docs/core](https://anyclick.dev/docs
 ## Related Packages
 
 - [`@ewjdev/anyclick-react`](https://www.npmjs.com/package/@ewjdev/anyclick-react) - React provider and UI
-- [`@ewjdev/anyclick-`](https://www.npmjs.com/package/@ewjdev/anyclick-github) - GitHub Issues integration
+- [`@ewjdev/anyclick-github`](https://www.npmjs.com/package/@ewjdev/anyclick-github) - GitHub Issues integration
 - [`@ewjdev/anyclick-cursor`](https://www.npmjs.com/package/@ewjdev/anyclick-cursor) - Cursor AI integration
 - [`@ewjdev/anyclick-cursor-local`](https://www.npmjs.com/package/@ewjdev/anyclick-cursor-local) - Local Cursor development
 
