@@ -152,8 +152,9 @@ export class AnyclickClient {
       return;
     }
 
-    // Verify the target element is still in the document
-    if (!document.contains(this.touchTargetElement)) {
+    // Verify the target element is still in its ownerDocument
+    const ownerDoc = this.touchTargetElement.ownerDocument;
+    if (!ownerDoc?.contains(this.touchTargetElement)) {
       if (process.env.NODE_ENV === "development") {
         console.log("[Anyclick] Touch target element is no longer in document");
       }
@@ -480,9 +481,10 @@ export class AnyclickClient {
       }
     };
 
-    // For scoped providers, always attach to document but filter by container
-    // This avoids issues with display:contents not receiving events
-    this.attachedTarget = document;
+    // Attach to the container's ownerDocument (or global document if no container).
+    // This ensures events inside same-origin iframes are captured correctly.
+    const targetDocument = this.container?.ownerDocument ?? document;
+    this.attachedTarget = targetDocument;
 
     // Use capture phase for scoped providers to handle events before bubble phase
     // This ensures scoped handlers run before global handlers
