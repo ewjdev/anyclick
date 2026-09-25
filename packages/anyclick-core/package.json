@@ -39,12 +39,16 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --sourcemap",
     "clean": "rimraf dist",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch"
+    "dev": "tsup src/index.ts --format esm,cjs --dts --sourcemap --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
+    "jsdom": "^26.1.0",
     "rimraf": "^6.0.1",
     "tsup": "^8.3.5",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "vitest": "^3.2.0"
   },
   "engines": {
     "node": ">=18.18.0"
