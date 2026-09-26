@@ -226,6 +226,18 @@
       "details": "Release of version 5.2.0 with minor changes.",
       "highlights": [],
       "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-react",
+      "era": "past"
+    },
+    {
+      "id": "anyclick-5.2.1",
+      "packages": ["@ewjdev/anyclick-core"],
+      "version": "5.2.1",
+      "type": "patch",
+      "date": "2026-09-26",
+      "summary": "Fix `attach()` to listen on `container.ownerDocument` instead of the global `document`, so containers inside same-origin iframes now correctly receive contextmenu events. Also fix `getUniqueSelector` and `getAncestors` to stop at the element's `ownerDocument.body`, producing selectors relative to the iframe document rather than the parent.",
+      "details": "Release of version 5.2.1 with patch changes.",
+      "highlights": [],
+      "npmLink": "https://www.npmjs.com/package/@ewjdev/anyclick-core",
       "era": "today"
     }
   ],
@@ -283,6 +295,6 @@
       ]
     }
   ],
-  "currentVersion": "5.2.0",
-  "lastUpdated": "2026-09-07"
+  "currentVersion": "5.2.1",
+  "lastUpdated": "2026-09-26"
 }
