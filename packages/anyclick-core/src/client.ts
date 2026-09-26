@@ -10,6 +10,14 @@ import type {
   ScreenshotData,
 } from "./types";
 
+/**
+ * Safe check for development mode that works in browsers without bundler defines.
+ * Avoids `ReferenceError: process is not defined` when loaded via CDN or
+ * in environments that don't replace process.env.NODE_ENV.
+ */
+const DEV =
+  typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+
 /** Default touch hold duration in milliseconds */
 const DEFAULT_TOUCH_HOLD_DURATION_MS = 500;
 
@@ -119,7 +127,7 @@ export class AnyclickClient {
     this.touchStartEvent = null;
 
     // Log only if we actually cleared something (avoid noise)
-    if (process.env.NODE_ENV === "development" && hadState) {
+    if (DEV && hadState) {
       console.log("[Anyclick] Touch state cleared", {
         wasHoldTriggered: this.touchHoldTriggered,
       });
@@ -145,7 +153,7 @@ export class AnyclickClient {
       !this.touchStartPosition ||
       !this.touchStartEvent
     ) {
-      if (process.env.NODE_ENV === "development") {
+      if (DEV) {
         console.log("[Anyclick] handleTouchHold called but state was cleared");
       }
       this.clearTouchState();
@@ -154,7 +162,7 @@ export class AnyclickClient {
 
     // Verify the target element is still in the document
     if (!document.contains(this.touchTargetElement)) {
-      if (process.env.NODE_ENV === "development") {
+      if (DEV) {
         console.log("[Anyclick] Touch target element is no longer in document");
       }
       this.clearTouchState();
@@ -174,7 +182,7 @@ export class AnyclickClient {
       isTouch: true,
     };
 
-    if (process.env.NODE_ENV === "development") {
+    if (DEV) {
       console.log("[Anyclick] Touch hold triggered", {
         position: this.touchStartPosition,
         target: this.touchTargetElement.tagName,
@@ -195,7 +203,7 @@ export class AnyclickClient {
    * Update the container element for scoped event handling
    */
   setContainer(container: Element | null): void {
-    if (process.env.NODE_ENV === "development") {
+    if (DEV) {
       console.log("[Anyclick] setContainer called", {
         hadContainer: !!this.container,
         newContainer: !!container,
@@ -230,7 +238,7 @@ export class AnyclickClient {
     const isScoped = !!this.container;
     const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
 
-    if (process.env.NODE_ENV === "development") {
+    if (DEV) {
       console.log(`${debugPrefix} Attaching event listener`, {
         isScoped,
         container: this.container,
@@ -243,7 +251,7 @@ export class AnyclickClient {
       const targetTag = target.tagName?.toLowerCase() || "unknown";
       const targetClass = target.className || "";
 
-      if (process.env.NODE_ENV === "development") {
+      if (DEV) {
         console.log(`${debugPrefix} Context menu event received`, {
           target: `${targetTag}.${targetClass.toString().slice(0, 50)}`,
           eventPhase:
@@ -258,14 +266,14 @@ export class AnyclickClient {
 
       // If scoped to a container, ensure target is within the container
       if (this.container && !this.container.contains(target)) {
-        if (process.env.NODE_ENV === "development") {
+        if (DEV) {
           console.log(`${debugPrefix} Target not in container, skipping`);
         }
         return;
       }
 
       if (!this.targetFilter(event, target)) {
-        if (process.env.NODE_ENV === "development") {
+        if (DEV) {
           console.log(`${debugPrefix} Target filtered out`);
         }
         return;
@@ -284,7 +292,7 @@ export class AnyclickClient {
 
       // Call the onContextMenu callback if set
       if (this.onContextMenu) {
-        if (process.env.NODE_ENV === "development") {
+        if (DEV) {
           console.log(`${debugPrefix} Handling event`, {
             willStopPropagation: isScoped,
             target: `${targetTag}`,
@@ -336,7 +344,7 @@ export class AnyclickClient {
       this.touchStartEvent = event;
       this.touchHoldTriggered = false;
 
-      if (process.env.NODE_ENV === "development") {
+      if (DEV) {
         console.log("[Anyclick] Touch started", {
           target: target.tagName,
           position: { x: touch.clientX, y: touch.clientY },
@@ -422,7 +430,7 @@ export class AnyclickClient {
           !mouseEvent.altKey;
 
         if (isLikelyTouch) {
-          if (process.env.NODE_ENV === "development") {
+          if (DEV) {
             console.log("[Anyclick] Blocking native contextmenu from touch", {
               holdTriggered: this.touchHoldTriggered,
               timerActive: !!this.touchHoldTimer,
@@ -453,7 +461,7 @@ export class AnyclickClient {
     this.clickCleanupHandler = () => {
       // Only clear if we have stale state (menu was triggered but user clicked elsewhere)
       if (this.touchHoldTriggered) {
-        if (process.env.NODE_ENV === "development") {
+        if (DEV) {
           console.log("[Anyclick] Clearing touch state on click");
         }
         this.clearTouchState();
@@ -471,7 +479,7 @@ export class AnyclickClient {
         pointerEvent.pointerType !== "touch" &&
         (this.touchStartEvent || this.touchHoldTriggered)
       ) {
-        if (process.env.NODE_ENV === "development") {
+        if (DEV) {
           console.log("[Anyclick] Clearing touch state on pointer down", {
             pointerType: pointerEvent.pointerType,
           });
@@ -547,7 +555,7 @@ export class AnyclickClient {
 
     this.isAttached = true;
 
-    if (process.env.NODE_ENV === "development") {
+    if (DEV) {
       console.log(`${debugPrefix} Event listener attached successfully`);
     }
   }
@@ -563,7 +571,7 @@ export class AnyclickClient {
     const isScoped = !!this.container;
     const debugPrefix = isScoped ? "[Anyclick:Scoped]" : "[Anyclick:Global]";
 
-    if (process.env.NODE_ENV === "development") {
+    if (DEV) {
       console.log(`${debugPrefix} Detaching event listener`);
     }
 
