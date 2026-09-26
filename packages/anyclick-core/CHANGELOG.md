@@ -1,5 +1,12 @@
 # @ewjdev/anyclick-core
 
+## 5.2.1
+
+### Patch Changes
+
+- 4211ff0: Fix `attach()` to listen on `container.ownerDocument` instead of the global `document`, so containers inside same-origin iframes now correctly receive contextmenu events. Also fix `getUniqueSelector` and `getAncestors` to stop at the element's `ownerDocument.body`, producing selectors relative to the iframe document rather than the parent.
+- c200924: Guard `process.env.NODE_ENV` access for browser environments without bundler defines. Previously, loading the ESM build via CDN `<script type="module">`, in browser extensions, or with Rollup/esbuild setups that don't replace `process.env.NODE_ENV` would throw `ReferenceError: process is not defined`. The debug logging checks now use a module-level constant with a `typeof process !== "undefined"` guard.
+
 ## 5.1.2
 
 ### Patch Changes
