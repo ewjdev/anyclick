@@ -1,7 +1,9 @@
 import type { AncestorInfo, ElementContext } from "./types";
 
 /**
- * Generate a unique CSS selector for an element
+ * Generate a unique CSS selector for an element.
+ * Stops at the element's ownerDocument body, so selectors for elements
+ * inside iframes are relative to that iframe's document.
  */
 export function getUniqueSelector(element: Element): string {
   // If element has an id, use that
@@ -12,11 +14,11 @@ export function getUniqueSelector(element: Element): string {
   const path: string[] = [];
   let current: Element | null = element;
 
-  while (
-    current &&
-    current !== document.body &&
-    current !== document.documentElement
-  ) {
+  const ownerDoc = element.ownerDocument;
+  const stopAtBody = ownerDoc?.body ?? null;
+  const stopAtDocEl = ownerDoc?.documentElement ?? null;
+
+  while (current && current !== stopAtBody && current !== stopAtDocEl) {
     let selector = current.tagName.toLowerCase();
 
     // Add id if present
@@ -52,7 +54,8 @@ export function getUniqueSelector(element: Element): string {
 }
 
 /**
- * Get ancestor information for an element up to body
+ * Get ancestor information for an element up to its ownerDocument body.
+ * For elements inside iframes, stops at the iframe's document body.
  */
 export function getAncestors(
   element: Element,
@@ -62,7 +65,9 @@ export function getAncestors(
   let current = element.parentElement;
   let depth = 0;
 
-  while (current && current !== document.body && depth < maxDepth) {
+  const stopAtBody = element.ownerDocument?.body ?? null;
+
+  while (current && current !== stopAtBody && depth < maxDepth) {
     ancestors.push({
       tag: current.tagName.toLowerCase(),
       id: current.id || undefined,

@@ -342,11 +342,10 @@ function fitsInViewport(rect: DOMRect, render: ViewportRender): boolean {
  */
 function hasScrolledAncestor(node: Element): boolean {
   let current = node.parentElement;
-  while (
-    current &&
-    current !== document.body &&
-    current !== document.documentElement
-  ) {
+  const ownerDoc = node.ownerDocument;
+  const stopAtBody = ownerDoc?.body ?? null;
+  const stopAtDocEl = ownerDoc?.documentElement ?? null;
+  while (current && current !== stopAtBody && current !== stopAtDocEl) {
     if (current.scrollTop || current.scrollLeft) return true;
     current = current.parentElement;
   }

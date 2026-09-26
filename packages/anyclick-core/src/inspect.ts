@@ -542,11 +542,11 @@ function generateUniqueSelector(element: Element): string {
   const path: string[] = [];
   let current: Element | null = element;
 
-  while (
-    current &&
-    current !== document.body &&
-    current !== document.documentElement
-  ) {
+  const ownerDoc = element.ownerDocument;
+  const stopAtBody = ownerDoc?.body ?? null;
+  const stopAtDocEl = ownerDoc?.documentElement ?? null;
+
+  while (current && current !== stopAtBody && current !== stopAtDocEl) {
     let selector = current.tagName.toLowerCase();
 
     if (current.id) {
