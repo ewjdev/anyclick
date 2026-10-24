@@ -26,9 +26,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "24.22.1"
           cache: "yarn"
 
+      - name: Update npm
+        run: npm install --global --ignore-scripts --no-audit --no-fund npm@12.2.1
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
