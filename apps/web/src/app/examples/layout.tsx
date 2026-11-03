@@ -7,6 +7,7 @@ import {
   Box,
   Gauge,
   GitBranch,
+  Layers,
   Menu,
   MousePointer2,
   Palette,
@@ -42,6 +43,11 @@ const navigation = [
     name: "Sensitive Masking",
     href: "/examples/sensitive-masking",
     icon: Shield,
+  },
+  {
+    name: "Scoped & Nested Providers",
+    href: "/examples/scoped-providers",
+    icon: Layers,
   },
 ];
 
